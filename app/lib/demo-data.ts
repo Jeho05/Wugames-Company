@@ -70,6 +70,33 @@ export const navigationGroups: {
   },
 ];
 
+export const clientNavigationGroups: {
+  label: string;
+  items: {
+    href: string;
+    icon: IconName;
+    label: string;
+  }[];
+}[] = [
+  {
+    label: "Mon espace",
+    items: [
+      { href: "/espace", icon: "dashboard", label: "Vue d'ensemble" },
+      { href: "/espace/projets", icon: "folder", label: "Mes projets" },
+      { href: "/espace/demandes", icon: "clipboard", label: "Mes demandes" },
+    ],
+  },
+  {
+    label: "Suivi",
+    items: [
+      { href: "/espace/documents", icon: "file-text", label: "Documents" },
+      { href: "/espace/factures", icon: "chart", label: "Factures & paiements" },
+      { href: "/espace/messages", icon: "message", label: "Messages" },
+      { href: "/espace/notifications", icon: "bell", label: "Notifications" },
+    ],
+  },
+];
+
 export const dashboardMetrics = [
   {
     caption: "vs. mois précédent",
@@ -485,6 +512,155 @@ export const modules: Record<string, ModuleDefinition> = {
     ],
     tabs: ["Tous", "Finance", "Opérations", "Stocks", "Qualité"],
     title: "Rapports",
+  },
+  demandes: {
+    actionLabel: "Nouvelle demande",
+    columns: [
+      { id: "demande", label: "Demande" },
+      { id: "service", label: "Service" },
+      { id: "created", label: "Créée le" },
+      { id: "contact", label: "Interlocuteur" },
+      { id: "status", label: "Statut" },
+    ],
+    description: "Retrouvez vos demandes de devis et de services, ainsi que leur avancement.",
+    eyebrow: "Votre projet",
+    icon: "clipboard",
+    insights: [
+      { label: "Demandes ouvertes", value: "02" },
+      { label: "Devis à signer", value: "01" },
+      { label: "Réponse moyenne", value: "24 h" },
+    ],
+    rows: [
+      { demande: "Rénovation intérieure", service: "Rénovation", created: "10 juillet", contact: "Sarah G.", status: { label: "En cours", tone: "info" } },
+      { demande: "Aménagement salle de bain", service: "Devis travaux", created: "27 juillet", contact: "À attribuer", status: { label: "Reçue", tone: "neutral" } },
+      { demande: "Réparation plomberie", service: "Dépannage", created: "04 juin", contact: "Marc K.", status: { label: "Terminée", tone: "success" } },
+    ],
+    stats: [
+      { label: "Demandes totales", value: "07" },
+      { label: "En traitement", value: "02" },
+      { label: "Terminées", value: "05" },
+    ],
+    tabs: ["Toutes", "En cours", "À confirmer", "Terminées"],
+    title: "Mes demandes",
+  },
+  projets: {
+    actionLabel: "Demander un devis",
+    columns: [
+      { id: "projet", label: "Projet" },
+      { id: "adresse", label: "Adresse" },
+      { id: "avancement", label: "Avancement" },
+      { id: "updated", label: "Mise à jour" },
+      { id: "status", label: "Statut" },
+    ],
+    description: "Suivez les grandes étapes, les rendez-vous et les livrables de vos travaux.",
+    eyebrow: "Suivi de travaux",
+    icon: "folder",
+    insights: [
+      { label: "Projet actif", value: "01" },
+      { label: "Prochaine visite", value: "29 juil." },
+      { label: "Photos publiées", value: "18" },
+    ],
+    rows: [
+      { projet: "Rénovation résidence Traoré", adresse: "Cocody, Abidjan", avancement: "68 %", updated: "Aujourd'hui", status: { label: "En cours", tone: "info" } },
+      { projet: "Dépannage plomberie", adresse: "Marcory, Abidjan", avancement: "100 %", updated: "04 juin", status: { label: "Terminé", tone: "success" } },
+    ],
+    stats: [
+      { label: "Projets lancés", value: "03" },
+      { label: "En cours", value: "01" },
+      { label: "Satisfaction", value: "4,8 / 5" },
+    ],
+    tabs: ["Tous", "En cours", "Terminés", "Photos"],
+    title: "Mes projets",
+  },
+  documents: {
+    actionLabel: "Ajouter une pièce",
+    columns: [
+      { id: "document", label: "Document" },
+      { id: "projet", label: "Projet" },
+      { id: "date", label: "Date" },
+      { id: "author", label: "Publié par" },
+      { id: "status", label: "Statut" },
+    ],
+    description: "Vos devis, rapports, photos et documents importants, réunis au même endroit.",
+    eyebrow: "Dossier client",
+    icon: "file-text",
+    insights: [
+      { label: "Documents", value: "06" },
+      { label: "Nouveaux", value: "02" },
+      { label: "Pièces requises", value: "00" },
+    ],
+    rows: [
+      { document: "Compte-rendu de visite", projet: "Résidence Traoré", date: "24 juillet", author: "Sarah G.", status: { label: "Nouveau", tone: "info" } },
+      { document: "Devis signé DEV-2026-085", projet: "Résidence Traoré", date: "18 juillet", author: "WUGAMS", status: { label: "Disponible", tone: "success" } },
+      { document: "Planning prévisionnel", projet: "Résidence Traoré", date: "12 juillet", author: "WUGAMS", status: { label: "Disponible", tone: "success" } },
+    ],
+    stats: [
+      { label: "Rapports", value: "02" },
+      { label: "Photos", value: "18" },
+      { label: "Devis", value: "01" },
+    ],
+    tabs: ["Tous", "Rapports", "Devis", "Photos"],
+    title: "Documents",
+  },
+  factures: {
+    actionLabel: "Voir les moyens de paiement",
+    columns: [
+      { id: "reference", label: "Référence" },
+      { id: "objet", label: "Objet" },
+      { id: "montant", label: "Montant" },
+      { id: "echeance", label: "Échéance" },
+      { id: "status", label: "Statut" },
+    ],
+    description: "Consultez vos factures, échéances et paiements en toute transparence.",
+    eyebrow: "Facturation",
+    icon: "chart",
+    insights: [
+      { label: "À payer", value: "1,2 M" },
+      { label: "Réglées", value: "2,8 M" },
+      { label: "Prochaine échéance", value: "05 août" },
+    ],
+    rows: [
+      { reference: "FAC-2026-091", objet: "Acompte travaux - 2e tranche", montant: "1 250 000 FCFA", echeance: "05 août", status: { label: "À payer", tone: "warning" } },
+      { reference: "FAC-2026-074", objet: "Acompte travaux - 1re tranche", montant: "1 250 000 FCFA", echeance: "18 juillet", status: { label: "Payée", tone: "success" } },
+      { reference: "FAC-2026-038", objet: "Dépannage plomberie", montant: "180 000 FCFA", echeance: "04 juin", status: { label: "Payée", tone: "success" } },
+    ],
+    stats: [
+      { label: "Factures", value: "05" },
+      { label: "En attente", value: "01" },
+      { label: "Total réglé", value: "2,8 M" },
+    ],
+    tabs: ["Toutes", "À payer", "Réglées", "Historique"],
+    title: "Factures & paiements",
+  },
+  messages: {
+    actionLabel: "Nouveau message",
+    columns: [
+      { id: "sujet", label: "Conversation" },
+      { id: "projet", label: "Projet" },
+      { id: "contact", label: "Avec" },
+      { id: "activity", label: "Dernière activité" },
+      { id: "status", label: "Statut" },
+    ],
+    description: "Échangez directement avec votre interlocuteur WUGAMS sans perdre le contexte de votre projet.",
+    eyebrow: "Messagerie",
+    icon: "message",
+    insights: [
+      { label: "Non lus", value: "01" },
+      { label: "Conversations", value: "04" },
+      { label: "Temps de réponse", value: "18 min" },
+    ],
+    rows: [
+      { sujet: "Visite de suivi mardi", projet: "Résidence Traoré", contact: "Sarah G.", activity: "Il y a 2 h", status: { label: "Non lu", tone: "info" } },
+      { sujet: "Choix du revêtement", projet: "Résidence Traoré", contact: "Sarah G.", activity: "Hier", status: { label: "Répondu", tone: "success" } },
+      { sujet: "Dépannage plomberie", projet: "Intervention Marcory", contact: "Marc K.", activity: "04 juin", status: { label: "Clôturé", tone: "neutral" } },
+    ],
+    stats: [
+      { label: "Messages ce mois", value: "21" },
+      { label: "Réponses reçues", value: "18" },
+      { label: "À relire", value: "01" },
+    ],
+    tabs: ["Boîte de réception", "Projets", "Archivées"],
+    title: "Messages",
   },
 };
 

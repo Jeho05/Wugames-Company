@@ -4,14 +4,26 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
 
 export function LoginForm() {
   const router = useRouter();
-  const [role, setRole] = useState("Gérant / SuperAdmin");
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
+
+    if (!email.trim()) {
+      setError("Veuillez renseigner votre adresse e-mail.");
+      return;
+    }
+
+    login(email, password || "********");
     router.push("/espace");
   }
 
@@ -24,10 +36,12 @@ export function LoginForm() {
         <input
           autoComplete="email"
           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-          defaultValue="gerant@wugams.ci"
           id="email"
           name="email"
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="vous@exemple.com"
           type="email"
+          value={email}
         />
       </div>
       <div>
@@ -42,41 +56,32 @@ export function LoginForm() {
         <input
           autoComplete="current-password"
           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-          defaultValue="********"
           id="password"
           name="password"
+          onChange={(event) => setPassword(event.target.value)}
+          placeholder="Votre mot de passe"
           type="password"
+          value={password}
         />
       </div>
-      <div>
-        <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="role">
-          Profil de démonstration
-        </label>
-        <div className="relative">
-          <select
-            className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-            id="role"
-            onChange={(event) => setRole(event.target.value)}
-            value={role}
-          >
-            <option>Gérant / SuperAdmin</option>
-            <option>Manager Opérations</option>
-            <option>Comptable</option>
-            <option>Responsable Ouvriers</option>
-          </select>
-          <Icon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" name="chevron-down" size={16} />
+      {error ? (
+        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">
+          <Icon name="warning" size={16} />
+          {error}
         </div>
+      ) : null}
+      <div className="rounded-xl border border-sky-100 bg-[#edf6ff] px-3.5 py-2.5">
+        <p className="text-[11px] leading-5 text-sky-800">
+          <span className="font-bold">Mode démo.</span> Entrez n&apos;importe quel e-mail pour vous connecter. Votre rôle sera automatiquement détecté.
+        </p>
       </div>
       <button
         className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61]"
         type="submit"
       >
-        Accéder à l&apos;espace
+        Se connecter
         <Icon name="arrow-right" size={17} />
       </button>
-      <p className="text-center text-[11px] leading-5 text-slate-400">
-        Mode démo : le contrôle d&apos;accès, les tokens JWT et la 2FA seront activés avec l&apos;API.
-      </p>
     </form>
   );
 }

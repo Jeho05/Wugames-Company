@@ -3,193 +3,175 @@ import Link from "next/link";
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
 
-const benefits = [
+const services = [
   {
+    description: "Rénovation intérieure et extérieure, construction neuve, aménagement complet de vos espaces.",
     icon: "folder" as const,
-    text: "Un flux clair, du devis à la facture et au retour client.",
-    title: "Opérations maîtrisées",
+    title: "Rénovation & Construction",
   },
   {
-    icon: "hardhat" as const,
-    text: "Des équipes mieux coordonnées, même sur le terrain.",
-    title: "Terrain connecté",
+    description: "Nettoyage professionnel pour résidences, bureaux, complexes médicaux et espaces verts.",
+    icon: "sparkles" as const,
+    title: "Nettoyage & Entretien",
   },
   {
+    description: "Matériaux de construction et de bricolage, livraison rapide et conseil technique.",
     icon: "boxes" as const,
-    text: "Des seuils, dépôts et commandes visibles au bon moment.",
-    title: "Stocks sous contrôle",
+    title: "Matériaux & Fournitures",
+  },
+  {
+    description: "Création, conception et restauration de mobilier sur mesure pour particuliers et professionnels.",
+    icon: "hardhat" as const,
+    title: "Mobilier & Design",
   },
 ];
 
-const workflow = [
-  ["01", "Demande client", "Une demande est centralisée avec son contexte et ses pièces jointes."],
-  ["02", "Exécution terrain", "Les missions sont planifiées, acceptées et documentées par les équipes."],
-  ["03", "Pilotage fiable", "Les statuts, alertes et données consolident les décisions du groupe."],
+const steps = [
+  ["01", "Décrivez votre projet", "Remplissez un formulaire simple avec vos besoins, photos et budget estimé."],
+  ["02", "Recevez un devis", "Un expert WUGAMS étudie votre demande et vous envoie un devis détaillé sous 48h."],
+  ["03", "Travaux & suivi", "Suivez l'avancement en temps réel, échangez avec votre équipe et validez chaque étape."],
+  ["04", "Résultat garanti", "Réception des travaux, garantie décennale et service après-vente inclus."],
 ];
 
-export default function Home() {
+const testimonials = [
+  {
+    name: "Koffi Amara",
+    role: "Propriétaire, Résidence Cocody",
+    text: "WUGAMS a transformé notre résidence en 3 semaines. Le suivi en temps réel m'a rassuré tout au long du projet.",
+  },
+  {
+    name: "Ahoua Brigitte",
+    role: "Directrice, SCI Les Palmiers",
+    text: "La qualité des équipes et la transparence du processus nous ont convaincus. Je recommande à 100%.",
+  },
+  {
+    name: "Koné David",
+    role: "Entrepreneur immobilier",
+    text: "De la rénovation à la décoration, un seul interlocuteur. Le gain de temps est énorme.",
+  },
+];
+
+const stats = [
+  ["1 200+", "Projets réalisés"],
+  ["4,7 / 5", "Satisfaction client"],
+  ["4", "Filiales spécialisées"],
+  ["48 h", "Délai de devis"],
+];
+
+export default function ClientBrandingPage() {
   return (
     <main className="overflow-hidden bg-[#fbfcfe] text-[#17294b]">
       <section className="relative border-b border-slate-200/80 bg-[#f7f9fc]">
         <header className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
           <BrandMark />
           <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-500 md:flex">
-            <a className="transition hover:text-[#17294b]" href="#solutions">Solutions</a>
-            <a className="transition hover:text-[#17294b]" href="#methode">Méthode</a>
+            <a className="transition hover:text-[#17294b]" href="#services">Services</a>
+            <a className="transition hover:text-[#17294b]" href="#comment">Comment ça marche</a>
+            <a className="transition hover:text-[#17294b]" href="#temoignages">Avis clients</a>
             <a className="transition hover:text-[#17294b]" href="#contact">Contact</a>
           </nav>
-          <Link
-            className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-3.5 py-2.5 text-xs font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#243a61] sm:px-4 sm:text-sm"
-            href="/connexion"
-          >
-            Espace WUGAMS <Icon name="arrow-right" size={16} />
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <Link
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50 sm:px-4 sm:text-sm"
+              href="/connexion"
+            >
+              Se connecter
+            </Link>
+            <Link
+              className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-3.5 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] sm:px-4 sm:text-sm"
+              href="/inscription"
+            >
+              Créer un espace <Icon name="arrow-right" size={16} />
+            </Link>
+          </div>
         </header>
 
-        <div className="mx-auto grid max-w-[1240px] gap-12 px-5 pb-20 pt-16 sm:px-8 lg:grid-cols-[1fr_0.88fr] lg:items-center lg:pb-28 lg:pt-24">
-          <div className="relative z-10">
+        <div className="mx-auto max-w-[1240px] px-5 pb-20 pt-16 sm:px-8 lg:pb-28 lg:pt-24">
+          <div className="relative z-10 mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-[#e7d3ae] bg-[#fff8eb] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#a5680a]">
               <Icon name="sparkles" size={14} />
-              WUGAMS Holding Inc.
+              WUGAMS &mdash; Votre partenaire immobilier
             </span>
-            <h1 className="mt-6 max-w-2xl text-[42px] font-bold leading-[1.04] tracking-[-0.065em] text-[#17294b] sm:text-6xl">
-              Pilotez vos filiales. Gardez le terrain en vue.
+            <h1 className="mt-6 text-[42px] font-bold leading-[1.04] tracking-[-0.065em] text-[#17294b] sm:text-6xl">
+              Votre maison mérite le meilleur.
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              WUGAMS connecte les opérations, les équipes, les stocks et la relation client pour faire grandir chaque activité avec méthode.
+            <p className="mt-6 mx-auto max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
+              Rénovation, entretien, construction, mobilier &mdash; WUGAMS vous accompagne de la demande à la livraison avec des équipes qualifiées et un suivi en temps réel.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-5 py-3.5 text-sm font-bold text-[#14223b] shadow-xl shadow-amber-600/15 transition hover:bg-[#efb653]"
-                href="/connexion"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-6 py-3.5 text-sm font-bold text-[#14223b] shadow-xl shadow-amber-600/15 transition hover:bg-[#efb653]"
+                href="/inscription"
               >
-                Accéder à l&apos;espace <Icon name="arrow-right" size={18} />
+                Demander un devis gratuit <Icon name="arrow-right" size={18} />
               </Link>
               <a
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50"
-                href="#solutions"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50"
+                href="#services"
               >
-                Découvrir les modules <Icon className="rotate-90" name="arrow-right" size={18} />
+                Découvrir nos services <Icon className="rotate-90" name="arrow-right" size={18} />
               </a>
             </div>
-            <div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-xs font-semibold text-slate-500">
-              <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Multi-filiales</span>
-              <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Pilotage en temps réel</span>
-              <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Accès par rôle</span>
-            </div>
-          </div>
-
-          <div className="relative mx-auto w-full max-w-[550px]">
-            <div className="absolute -inset-7 rounded-[44px] bg-[#dfeafa] blur-3xl" />
-            <div className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-900/15 sm:p-4">
-              <div className="flex items-center justify-between rounded-xl bg-[#17294b] px-4 py-3 text-white">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid size-7 place-items-center rounded-lg bg-[#e3a641] text-[11px] font-black text-[#17294b]">W</span>
-                  <span className="text-xs font-bold">Pilotage WUGAMS</span>
-                </div>
-                <span className="size-2 rounded-full bg-[#8de1c5] ring-4 ring-[#8de1c5]/15" />
-              </div>
-              <div className="grid gap-3 pt-3 sm:grid-cols-[0.66fr_1fr]">
-                <div className="rounded-xl bg-[#f5f7fb] p-3">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">Vue groupe</p>
-                  <div className="mt-3 space-y-2">
-                    {["Tableau de bord", "Chantiers", "Équipes", "Stocks", "Rapports"].map((item, index) => (
-                      <div
-                        className={
-                          "flex items-center gap-2 rounded-lg px-2 py-1.5 text-[10px] font-semibold " +
-                          (index === 0 ? "bg-[#24395d] text-white" : "text-slate-500")
-                        }
-                        key={item}
-                      >
-                        <span className={"size-1.5 rounded-full " + (index === 0 ? "bg-[#e3a641]" : "bg-slate-300")} />
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-slate-100 p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-700">Vue d&apos;ensemble</p>
-                      <p className="mt-0.5 text-[8px] text-slate-400">Aujourd&apos;hui, 27 juillet</p>
-                    </div>
-                    <span className="rounded-full bg-emerald-50 px-2 py-1 text-[8px] font-bold text-emerald-700">+12,8%</span>
-                  </div>
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {[
-                      ["41,8 M", "CA"],
-                      ["18", "Chantiers"],
-                      ["94%", "Présence"],
-                    ].map(([value, label]) => (
-                      <div className="rounded-lg bg-[#f5f7fb] p-2" key={label}>
-                        <p className="text-[11px] font-bold tracking-[-0.04em] text-[#24395d]">{value}</p>
-                        <p className="mt-1 text-[7px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex h-24 items-end gap-1.5">
-                    {[33, 48, 42, 64, 54, 78, 68, 92].map((height, index) => (
-                      <span
-                        className={"flex-1 rounded-t-sm " + (index === 7 ? "bg-[#e3a641]" : "bg-[#c9d9ea]")}
-                        key={index}
-                        style={{ height: height + "%" }}
-                      />
-                    ))}
-                  </div>
-                  <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2">
-                    <p className="text-[8px] font-bold text-amber-800">8 alertes stock à traiter</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="absolute -bottom-7 -left-7 hidden rounded-2xl border border-white bg-white px-4 py-3 shadow-xl shadow-slate-900/10 sm:block">
-              <p className="text-xl font-bold tracking-[-0.045em] text-[#17294b]">4,7 / 5</p>
-              <p className="mt-0.5 text-[10px] font-semibold text-slate-400">Satisfaction client</p>
+            <div className="mt-10 flex flex-wrap justify-center gap-x-7 gap-y-3 text-xs font-semibold text-slate-500">
+              <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Devis gratuit sous 48h</span>
+              <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Garantie décennale</span>
+              <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Suivi en temps réel</span>
             </div>
           </div>
         </div>
         <span className="absolute -right-32 top-20 size-[480px] rounded-full bg-[#e3a641]/10 blur-3xl" />
       </section>
 
-      <section className="mx-auto grid max-w-[1240px] gap-8 px-5 py-16 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:py-24" id="solutions">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Un socle pour grandir</p>
-          <h2 className="mt-3 max-w-md text-3xl font-bold leading-tight tracking-[-0.05em] text-[#17294b] sm:text-4xl">
-            Tout ce qui fait avancer une filiale, enfin aligné.
+      <section className="border-b border-slate-200/80 bg-white">
+        <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-6 px-5 py-10 sm:px-8 md:grid-cols-4 md:py-12">
+          {stats.map(([value, label]) => (
+            <div className="text-center" key={label}>
+              <p className="text-2xl font-bold tracking-[-0.05em] text-[#17294b] sm:text-3xl">{value}</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="services">
+        <div className="text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos filiales</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] text-[#17294b] sm:text-4xl">
+            Des experts pour chaque besoin.
           </h2>
-          <p className="mt-5 max-w-md text-sm leading-7 text-slate-500">
-            Le front s&apos;organise autour des flux les plus importants : relation client, exécution de chantier, ressources, achats et pilotage.
+          <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-slate-500">
+            WUGAMS regroupe 4 filiales spécialisées pour couvrir l&apos;ensemble de vos projets immobiliers.
           </p>
         </div>
-        <div className="grid gap-3">
-          {benefits.map((benefit, index) => (
-            <article className="group flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#bdd0e2] hover:shadow-lg hover:shadow-slate-900/5" key={benefit.title}>
-              <span className={"grid size-10 shrink-0 place-items-center rounded-xl " + (index === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
-                <Icon name={benefit.icon} size={20} />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {services.map((service, index) => (
+            <article className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#bdd0e2] hover:shadow-lg hover:shadow-slate-900/5" key={service.title}>
+              <span className={"grid size-11 place-items-center rounded-2xl " + (index % 2 === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
+                <Icon name={service.icon} size={22} />
               </span>
-              <div>
-                <h3 className="text-sm font-bold text-[#24395d]">{benefit.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-slate-500">{benefit.text}</p>
-              </div>
-              <Icon className="ml-auto mt-1 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#426b95]" name="arrow-up-right" size={17} />
+              <h3 className="mt-5 text-base font-bold text-[#24395d]">{service.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">{service.description}</p>
+              <Link className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#426b95] transition hover:text-[#17294b]" href="/inscription">
+                En savoir plus <Icon name="arrow-right" size={15} />
+              </Link>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="border-y border-slate-200 bg-[#eef4fa]" id="methode">
+      <section className="border-y border-slate-200 bg-[#eef4fa]" id="comment">
         <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
-          <div className="max-w-xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Un cycle sans rupture</p>
+          <div className="text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Comment ça marche</p>
             <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] text-[#17294b] sm:text-4xl">
-              Un parcours lisible pour les clients comme pour les équipes.
+              De votre demande à la clé en main.
             </h2>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {workflow.map(([number, title, text]) => (
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map(([number, title, text]) => (
               <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" key={number}>
                 <p className="text-4xl font-bold tracking-[-0.06em] text-[#d19331]">{number}</p>
-                <h3 className="mt-8 text-lg font-bold tracking-[-0.03em] text-[#24395d]">{title}</h3>
+                <h3 className="mt-6 text-lg font-bold tracking-[-0.03em] text-[#24395d]">{title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-500">{text}</p>
               </article>
             ))}
@@ -197,31 +179,105 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="temoignages">
+        <div className="text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Ils nous font confiance</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] text-[#17294b] sm:text-4xl">
+            Ce que disent nos clients.
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          {testimonials.map((testimonial) => (
+            <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" key={testimonial.name}>
+              <div className="flex items-center gap-1 text-amber-500">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <svg className="size-4 fill-current" key={star} viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">&ldquo;{testimonial.text}&rdquo;</p>
+              <div className="mt-5 flex items-center gap-3">
+                <span className="grid size-9 place-items-center rounded-full bg-[#dce7f5] text-[10px] font-extrabold text-[#244269]">
+                  {testimonial.name.split(" ").map((n) => n[0]).join("")}
+                </span>
+                <div>
+                  <p className="text-xs font-bold text-slate-700">{testimonial.name}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">{testimonial.role}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="contact">
         <div className="relative overflow-hidden rounded-[28px] bg-[#17294b] px-7 py-12 text-white sm:px-12 lg:px-16">
           <div className="relative z-10 max-w-2xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f2c56d]">WUGAMS Holding Inc.</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f2c56d]">Prêt à commencer ?</p>
             <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.05em] sm:text-4xl">
-              Prêt à mettre le groupe en mouvement ?
+              Transformez votre espace de vie dès aujourd&apos;hui.
             </h2>
             <p className="mt-5 text-sm leading-7 text-slate-300">
-              Accédez à votre espace de travail pour piloter les opérations, vos équipes et les prochaines décisions importantes.
+              Créez votre espace client, décrivez votre projet et recevez un devis personnalisé. Simple, rapide, sans engagement.
             </p>
-            <Link
-              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-5 py-3 text-sm font-bold text-[#14223b] transition hover:bg-[#efb653]"
-              href="/connexion"
-            >
-              Ouvrir l&apos;espace WUGAMS <Icon name="arrow-right" size={17} />
-            </Link>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-5 py-3 text-sm font-bold text-[#14223b] transition hover:bg-[#efb653]"
+                href="/inscription"
+              >
+                Créer mon espace <Icon name="arrow-right" size={17} />
+              </Link>
+              <Link
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-white/[0.12]"
+                href="/connexion"
+              >
+                J&apos;ai déjà un compte
+              </Link>
+            </div>
           </div>
           <span className="absolute -right-20 -top-24 size-80 rounded-full bg-[#e3a641]/20 blur-3xl" />
         </div>
       </section>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-7 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <BrandMark />
-          <p>© 2026 WUGAMS Holding Inc. — Plateforme de gestion multi-filiales.</p>
+        <div className="mx-auto max-w-[1240px] px-5 py-10 sm:px-8">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <BrandMark />
+              <p className="mt-3 max-w-xs text-xs leading-5 text-slate-400">
+                WUGAMS Holding Inc. &mdash; Votre partenaire de confiance pour tous vos projets immobiliers.
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-700">Services</p>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                <li><a className="transition hover:text-[#17294b]" href="#services">Rénovation & Construction</a></li>
+                <li><a className="transition hover:text-[#17294b]" href="#services">Nettoyage & Entretien</a></li>
+                <li><a className="transition hover:text-[#17294b]" href="#services">Matériaux & Fournitures</a></li>
+                <li><a className="transition hover:text-[#17294b]" href="#services">Mobilier & Design</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-700">Entreprise</p>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                <li><Link className="transition hover:text-[#17294b]" href="/vitrine">Espace WUGAMS</Link></li>
+                <li><a className="transition hover:text-[#17294b]" href="#temoignages">Témoignages</a></li>
+                <li><a className="transition hover:text-[#17294b]" href="#contact">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-700">Espace client</p>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                <li><Link className="transition hover:text-[#17294b]" href="/connexion">Se connecter</Link></li>
+                <li><Link className="transition hover:text-[#17294b]" href="/inscription">Créer un compte</Link></li>
+                <li><Link className="transition hover:text-[#17294b]" href="/vitrine">Vitrine interne</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-8 border-t border-slate-100 pt-6 text-center text-[11px] text-slate-400">
+            <p>&copy; 2026 WUGAMS Holding Inc. &mdash; Tous droits réservés.</p>
+          </div>
         </div>
       </footer>
     </main>
