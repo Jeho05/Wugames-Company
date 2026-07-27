@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wugames",
-  description: "Wugames Company",
+  description: "Plateforme web de pilotage multi-filiales de WUGAMS Holding Inc.",
+  title: {
+    default: "WUGAMS | Pilotage multi-filiales",
+    template: "%s | WUGAMS",
+  },
 };
 
 export default function RootLayout({
@@ -24,10 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={[geistSans.variable, geistMono.variable, "h-full", "antialiased"].join(" ")}
+      lang="fr"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full bg-background text-foreground">{children}</body>
     </html>
   );
 }

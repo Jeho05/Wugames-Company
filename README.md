@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WUGAMS - Front-end ERP
 
-## Getting Started
+Fondation front-end de la plateforme multi-filiales WUGAMS, construite avec Next.js 16, React 19 et Tailwind CSS 4.
 
-First, run the development server:
+## Démarrer
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Exécuter npm install puis npm run dev.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrir ensuite http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages livrées
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- / - vitrine institutionnelle WUGAMS.
+- /connexion - connexion de démonstration et choix de profil.
+- /espace - tableau de bord consolidé.
+- /espace/[module] - vues clients, chantiers, missions, ouvriers, devis/factures, stocks, fournisseurs, filiales, messagerie, notifications et rapports.
 
-## Learn More
+Les données affichées sont fictives et centralisées dans app/lib/demo-data.ts. Elles permettent de finaliser la navigation, les états, les listes, la recherche et les modales avant le branchement du back-end.
 
-To learn more about Next.js, take a look at the following resources:
+## Organisation utile
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+app/
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- (workspace)/espace/ : routes du back-office ERP.
+- components/auth/ : interface de connexion.
+- components/ui/ : composants visuels partagés.
+- components/workspace/ : navigation, dashboard et tables métier.
+- lib/api-client.ts : client HTTP générique pour l'API.
+- lib/contracts.ts : contrats TypeScript à partager avec le back-end.
+- lib/demo-data.ts : données provisoires de l'interface.
 
-## Deploy on Vercel
+## Raccordement au back-end
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Ajouter NEXT_PUBLIC_API_URL dans .env.local, par exemple NEXT_PUBLIC_API_URL=http://localhost:3001/api.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Utiliser apiFetch dans app/lib/api-client.ts pour chaque ressource. Le client sérialise les requêtes JSON, ajoute le jeton d'accès si nécessaire et remonte les erreurs API de manière uniforme.
+
+3. Remplacer progressivement les données de app/lib/demo-data.ts par des appels adaptés aux ressources : clients, chantiers, missions, ouvriers, devis, factures, stocks, fournisseurs, filiales, notifications et rapports.
+
+4. Le back-end reste la source de vérité pour le RBAC et le cloisonnement filiale_id. Le front ne doit afficher que les actions autorisées, mais chaque endpoint doit aussi vérifier le rôle et le périmètre serveur.
+
+Pour l'authentification, privilégier un access token court et un refresh token protégé par cookie HttpOnly, avec 2FA obligatoire pour les profils d'administration décrits dans le document technique.
+
+## Vérifications
+
+Exécuter npm run lint puis npm run build.
