@@ -41,8 +41,10 @@ export function ScrollExpansionHero({
     return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
-  const collapsedClip = isCompact ? "inset(25% 5% 19% round 24px)" : "inset(18% 29% 16% round 28px)";
-  const mediaClip = useTransform(scrollYProgress, [0, 0.68, 1], [collapsedClip, "inset(3% 2% round 32px)", "inset(0% 0% round 0px)"]);
+  // Every keyframe must share the exact same inset() structure (4 sides + radius),
+  // otherwise Motion cannot interpolate the strings and the clip snaps or freezes.
+  const collapsedClip = isCompact ? "inset(25% 5% 19% 5% round 24px)" : "inset(18% 29% 16% 29% round 28px)";
+  const mediaClip = useTransform(scrollYProgress, [0, 0.68, 1], [collapsedClip, "inset(3% 2% 3% 2% round 32px)", "inset(0% 0% 0% 0% round 0px)"]);
   const mediaScale = useTransform(scrollYProgress, [0, 0.68, 1], [0.98, 1.02, 1]);
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 0.36, 0.2]);
   const titleOpacity = useTransform(scrollYProgress, [0, 0.56, 0.8], [1, 0.92, 0]);
@@ -66,7 +68,7 @@ export function ScrollExpansionHero({
           <div className="absolute inset-0 ring-1 ring-inset ring-white/20" />
         </motion.div>
 
-        <motion.div className="pointer-events-none absolute inset-x-0 top-[13%] z-20 mx-auto flex max-w-5xl flex-col items-center px-4 text-center text-white sm:top-[24%] sm:px-5" style={{ opacity: prefersReducedMotion ? 1 : titleOpacity, y: prefersReducedMotion ? 0 : contentY }}>
+        <motion.div className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-5xl flex-col items-center justify-center px-4 pb-14 pt-[86px] text-center text-white sm:px-5" style={{ opacity: prefersReducedMotion ? 1 : titleOpacity, y: prefersReducedMotion ? 0 : contentY }}>
           <div className="pointer-events-auto">{eyebrow}</div>
           <h1 className="mt-4 max-w-5xl text-[clamp(2.15rem,6vw,5.75rem)] font-bold leading-[0.92] tracking-[-0.075em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.38)] sm:mt-5">
             <motion.span className="block" style={{ x: prefersReducedMotion ? 0 : firstLineX }}>{titleFirstLine}</motion.span>
