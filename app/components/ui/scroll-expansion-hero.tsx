@@ -85,18 +85,18 @@ export function ScrollExpansionHero({
           <div className="absolute inset-0 ring-1 ring-inset ring-white/20" />
         </motion.div>
 
-        <motion.div className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-5xl flex-col items-center justify-center px-4 pb-14 pt-[86px] text-center text-white sm:px-5" style={{ opacity: titleOpacity, y: contentY }}>
+        <motion.div className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-5xl flex-col items-center justify-center px-4 pb-8 pt-[84px] text-center text-white sm:px-5 sm:pb-14 sm:pt-[86px]" style={{ opacity: titleOpacity, y: contentY }}>
           <div className="pointer-events-auto">{eyebrow}</div>
-          <h1 className="mt-4 max-w-5xl text-[clamp(2.15rem,6vw,5.75rem)] font-bold leading-[0.92] tracking-[-0.075em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.38)] sm:mt-5">
+          <h1 className="mt-3 max-w-5xl text-[clamp(1.8rem,6vw,5.75rem)] font-bold leading-[0.94] tracking-[-0.065em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.38)] sm:mt-5 sm:leading-[0.92] sm:tracking-[-0.075em]">
             <motion.span className="block" style={{ x: firstLineX }}>{titleFirstLine}</motion.span>
-            <motion.span className="mt-2 block" style={{ x: secondLineX }}>{titleSecondLine}</motion.span>
+            <motion.span className="mt-1.5 block sm:mt-2" style={{ x: secondLineX }}>{titleSecondLine}</motion.span>
           </h1>
-          <div className="pointer-events-auto mt-4 max-w-xl text-[13px] leading-5 text-slate-100 sm:mt-6 sm:text-base sm:leading-7">{description}</div>
-          <div className="pointer-events-auto mt-5 sm:mt-7">{actions}</div>
-          <div className="pointer-events-auto mt-5 sm:mt-7">{proof}</div>
+          <div className="pointer-events-auto mt-3 max-w-xl text-[13px] leading-5 text-slate-100 sm:mt-6 sm:text-base sm:leading-7">{description}</div>
+          <div className="pointer-events-auto mt-4 sm:mt-7">{actions}</div>
+          <div className="pointer-events-auto mt-4 sm:mt-7">{proof}</div>
         </motion.div>
 
-        <motion.div aria-hidden="true" className="absolute inset-x-0 bottom-4 z-20 flex flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7" style={{ opacity: titleOpacity }}>
+        <motion.div aria-hidden="true" className="absolute inset-x-0 bottom-4 z-20 hidden flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7 sm:flex" style={{ opacity: titleOpacity }}>
           Faites défiler pour découvrir WUGAMS
           <span className="h-8 w-px bg-gradient-to-b from-white/80 to-transparent" />
         </motion.div>
