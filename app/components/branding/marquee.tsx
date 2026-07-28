@@ -10,7 +10,7 @@ export function Marquee({ items, className = "" }: { items: string[]; className?
       <motion.div
         className="flex w-max"
         animate={prefersReducedMotion ? undefined : { x: ["0%", "-50%"] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
       >
         {[...items, ...items].map((item, i) => (
           <span className="mx-8 shrink-0 text-xs font-bold tracking-wide text-slate-400" key={i}>

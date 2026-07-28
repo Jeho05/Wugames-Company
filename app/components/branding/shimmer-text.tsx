@@ -13,10 +13,10 @@ export function ShimmerText({ text, className = "" }: { text: string; className?
       }
       style={{
         backgroundImage:
-          "linear-gradient(120deg, #17294b 0%, #17294b 40%, #e3a641 50%, #17294b 60%, #17294b 100%)",
+          "linear-gradient(120deg, #17294b 0%, #17294b 30%, #e3a641 45%, #dfc28b 55%, #17294b 70%, #17294b 100%)",
       }}
-      animate={prefersReducedMotion ? undefined : { backgroundPosition: ["200% center", "0% center", "200% center"] }}
-      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      animate={prefersReducedMotion ? undefined : { backgroundPosition: ["200% center", "-100% center"] }}
+      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
     >
       {text}
     </motion.span>

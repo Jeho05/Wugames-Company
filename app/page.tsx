@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
 import { SpotlightCard } from "@/app/components/branding/spotlight-card";
 import { Reveal } from "@/app/components/branding/reveal";
 import { GradientMesh } from "@/app/components/branding/gradient-mesh";
+import { ShaderBeams } from "@/app/components/branding/shader-beams";
 import { Marquee } from "@/app/components/branding/marquee";
 import { ShimmerText } from "@/app/components/branding/shimmer-text";
 import { PulseButton } from "@/app/components/branding/pulse-button";
+import { HeroImage, TestimonialImage } from "@/app/components/branding/images";
 
 const painPoints = [
   "Vous avez déjà fait appel à un artisan qui n&apos;a pas tenu ses promesses ?",
@@ -57,16 +60,19 @@ const testimonials = [
     name: "Koffi Amara",
     role: "Propriétaire, Résidence Cocody",
     text: "Après 3 mauvaises expériences avec des artisans, WUGAMS a tout changé. Le suivi en temps réel, la transparence sur les coûts. Pour la première fois, j&apos;ai pu dormir tranquille pendant mes travaux.",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
   },
   {
     name: "Ahoua Brigitte",
     role: "Directrice, SCI Les Palmiers",
     text: "On ne nous a rien vendu. On nous a écoutés, compris, puis proposé une solution adaptée. C&apos;est ça la différence WUGAMS. Le résultat a dépassé nos attentes.",
+    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
   },
   {
     name: "Koné David",
     role: "Entrepreneur immobilier",
     text: "De la rénovation à la décoration, un seul interlocuteur. Zéro mauvaise surprise. Mon projet a été livré dans les temps et le budget était respecté à l&apos;euro près.",
+    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
   },
 ];
 
@@ -84,6 +90,7 @@ export default function ClientBrandingPage() {
       {/* ═══ HERO ═══ */}
       <section className="relative border-b border-slate-200/80 bg-[#f7f9fc]">
         <GradientMesh />
+        <ShaderBeams />
         <header className="relative z-10 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
           <BrandMark />
           <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-500 md:flex">
@@ -103,7 +110,8 @@ export default function ClientBrandingPage() {
         </header>
 
         <div className="relative z-10 mx-auto max-w-[1240px] px-5 pb-20 pt-16 sm:px-8 lg:pb-28 lg:pt-24">
-          <div className="mx-auto max-w-3xl lg:mx-0">
+          <div className="lg:grid lg:grid-cols-2 lg:items-center lg:gap-14">
+            <div className="mx-auto max-w-3xl lg:mx-0">
             <Reveal>
               <span className="inline-flex items-center gap-2 rounded-full border border-[#e7d3ae] bg-[#fff8eb] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#a5680a]">
                 <Icon name="sparkles" size={14} />
@@ -137,6 +145,10 @@ export default function ClientBrandingPage() {
                 <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Zéro surprise tarifaire</span>
               </div>
             </Reveal>
+          </div>
+          <Reveal delay={200} direction="right" className="hidden lg:block">
+            <HeroImage />
+          </Reveal>
           </div>
         </div>
       </section>
@@ -209,7 +221,16 @@ export default function ClientBrandingPage() {
         <GradientMesh />
         <div className="relative z-10 mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
           <Reveal>
-            <div className="text-center">
+            <div className="relative text-center">
+              <div className="pointer-events-none absolute -right-10 -top-20 hidden h-48 w-72 overflow-hidden rounded-2xl opacity-10 lg:block">
+                <Image
+                  alt="Chantier WUGAMS"
+                  className="size-full object-cover"
+                  height={400}
+                  src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+                  width={600}
+                />
+              </div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos filiales</p>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Un groupe, cinq expertises.</h2>
               <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-slate-500">
@@ -281,9 +302,7 @@ export default function ClientBrandingPage() {
                     </div>
                     <p className="mt-4 text-sm leading-6 text-slate-600">&ldquo;{t.text}&rdquo;</p>
                     <div className="mt-5 flex items-center gap-3">
-                      <span className="grid size-9 place-items-center rounded-full bg-[#dce7f5] text-[10px] font-extrabold text-[#244269]">
-                        {t.name.split(" ").map((n) => n[0]).join("")}
-                      </span>
+                      <TestimonialImage name={t.name} src={t.img} />
                       <div>
                         <p className="text-xs font-bold text-slate-700">{t.name}</p>
                         <p className="mt-0.5 text-[11px] text-slate-400">{t.role}</p>
@@ -378,7 +397,8 @@ export default function ClientBrandingPage() {
       <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="contact">
         <Reveal>
           <div className="relative overflow-hidden rounded-[28px] bg-[#17294b] px-7 py-12 text-white sm:px-12 lg:px-16">
-            <GradientMesh className="opacity-30" />
+            <ShaderBeams />
+            <GradientMesh />
             <div className="relative z-10 max-w-2xl">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f2c56d]">Prêt à commencer ?</p>
               <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.05em] sm:text-4xl">Chaque jour sans action, c&apos;un jour de perdu.</h2>

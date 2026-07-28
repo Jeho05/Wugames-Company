@@ -32,7 +32,8 @@ export function SpotlightCard({
       onMouseLeave={() => setOpacity(0)}
       onMouseMove={handleMouseMove}
       ref={divRef}
-      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -4, scale: 1.01 }}
+      whileTap={prefersReducedMotion ? undefined : { scale: 0.99 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <div
