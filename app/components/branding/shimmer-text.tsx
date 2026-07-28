@@ -1,23 +1,22 @@
 "use client";
 
+import { motion } from "motion/react";
+
 export function ShimmerText({ text, className = "" }: { text: string; className?: string }) {
   return (
-    <span
+    <motion.span
       className={
-        "inline-block bg-[length:200%_100%] bg-clip-text text-transparent animate-[shimmer_4s_ease-in-out_infinite] " +
+        "inline-block bg-[length:200%_100%] bg-clip-text text-transparent " +
         className
       }
       style={{
-        backgroundImage: "linear-gradient(120deg, #17294b 0%, #17294b 40%, #e3a641 50%, #17294b 60%, #17294b 100%)",
+        backgroundImage:
+          "linear-gradient(120deg, #17294b 0%, #17294b 40%, #e3a641 50%, #17294b 60%, #17294b 100%)",
       }}
+      animate={{ backgroundPosition: ["200% center", "0% center", "200% center"] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
     >
       {text}
-      <style>{`
-        @keyframes shimmer {
-          0%, 100% { background-position: 200% center; }
-          50% { background-position: 0% center; }
-        }
-      `}</style>
-    </span>
+    </motion.span>
   );
 }

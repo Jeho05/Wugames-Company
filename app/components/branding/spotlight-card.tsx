@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { motion } from "motion/react";
 
 type SpotlightCardProps = {
   children: React.ReactNode;
@@ -24,12 +25,14 @@ export function SpotlightCard({
   };
 
   return (
-    <div
+    <motion.div
       className={"relative overflow-hidden rounded-2xl bg-white " + className}
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0)}
       onMouseMove={handleMouseMove}
       ref={divRef}
+      whileHover={{ y: -4 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <div
         className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition duration-300"
@@ -39,6 +42,6 @@ export function SpotlightCard({
         }}
       />
       <div className="relative z-10">{children}</div>
-    </div>
+    </motion.div>
   );
 }
