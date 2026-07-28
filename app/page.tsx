@@ -407,7 +407,7 @@ export default function ClientBrandingPage() {
                 <li><a className="transition hover:text-[#17294b]" href="#solution">Nettoyage & Entretien</a></li>
                 <li><a className="transition hover:text-[#17294b]" href="#solution">Matériaux & Fournitures</a></li>
                 <li><a className="transition hover:text-[#17294b]" href="#solution">Mobilier & Design</a></li>
-                <li><a className="transition hover:text-[#17294b]" href="#solution">Diriger & Créer d'entreprises</a></li>
+                <li><a className="transition hover:text-[#17294b]" href="#solution">Diriger &amp; Créer d&apos;entreprises</a></li>
               </ul>
             </div>
             <div>

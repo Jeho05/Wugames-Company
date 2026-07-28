@@ -393,6 +393,7 @@ export const modules: Record<string, ModuleDefinition> = {
     actionLabel: "Créer une filiale",
     columns: [
       { id: "filiale", label: "Filiale" },
+      { id: "domain", label: "Domaine" },
       { id: "manager", label: "Manager" },
       { id: "effectif", label: "Effectif" },
       { id: "activité", label: "Activité du mois" },
@@ -407,10 +408,10 @@ export const modules: Record<string, ModuleDefinition> = {
       { label: "Managers rattachés", value: "14" },
     ],
     rows: [
-      { filiale: "WUGAMS Construction", manager: "A. Bamba", effectif: "38", activité: "18,2 M FCFA", statut: { label: "Active", tone: "success" } },
-      { filiale: "WUGAMS Entretien", manager: "F. Kouamé", effectif: "16", activité: "8,4 M FCFA", statut: { label: "Active", tone: "success" } },
-      { filiale: "WUGAMS Services", manager: "S. Gnahoua", effectif: "19", activité: "9,1 M FCFA", statut: { label: "Active", tone: "success" } },
-      { filiale: "WUGAMS Trading", manager: "C. N'Dri", effectif: "08", activité: "6,1 M FCFA", statut: { label: "À consolider", tone: "warning" } },
+      { filiale: "WUGAMS Construction", domain: "Construction & BTP", manager: "A. Bamba", effectif: "38", activité: "18,2 M FCFA", statut: { label: "Active", tone: "success" } },
+      { filiale: "WUGAMS Entretien", domain: "Nettoyage & Entretien", manager: "F. Kouamé", effectif: "16", activité: "8,4 M FCFA", statut: { label: "Active", tone: "success" } },
+      { filiale: "WUGAMS Services", domain: "Matériaux & Fournitures", manager: "S. Gnahoua", effectif: "19", activité: "9,1 M FCFA", statut: { label: "Active", tone: "success" } },
+      { filiale: "WUGAMS Trading", domain: "Commerce & Distribution", manager: "C. N'Dri", effectif: "08", activité: "6,1 M FCFA", statut: { label: "À consolider", tone: "warning" } },
     ],
     stats: [
       { label: "CA consolidé", value: "41,8 M" },

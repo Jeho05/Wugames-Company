@@ -10,15 +10,21 @@ import type {
   ModuleRow,
 } from "@/app/lib/demo-data";
 
+type CreateFormProps = {
+  onClose: () => void;
+  onSubmit: (row: ModuleRow) => void;
+};
+
 type ModuleScreenProps = {
   definition: ModuleDefinition;
+  renderCreateForm?: (props: CreateFormProps) => React.ReactNode;
 };
 
 function isModuleStatus(value: string | ModuleStatus): value is ModuleStatus {
   return typeof value === "object";
 }
 
-export function ModuleScreen({ definition }: ModuleScreenProps) {
+export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps) {
   const [activeTab, setActiveTab] = useState(definition.tabs[0]);
   const [createOpen, setCreateOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -234,6 +240,16 @@ export function ModuleScreen({ definition }: ModuleScreenProps) {
 
       {createOpen ? (
         <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-950/40 p-4">
+          {renderCreateForm ? (
+            renderCreateForm({
+              onClose: () => setCreateOpen(false),
+              onSubmit: (row: ModuleRow) => {
+                setCreateOpen(false);
+                setToast(definition.actionLabel.replace("Créer ", "") + " créé(e) avec succès.");
+                definition.rows.unshift(row);
+              },
+            })
+          ) : (
           <div
             aria-labelledby="create-title"
             aria-modal="true"
@@ -279,6 +295,7 @@ export function ModuleScreen({ definition }: ModuleScreenProps) {
               </button>
             </div>
           </div>
+          )}
         </div>
       ) : null}
     </div>
