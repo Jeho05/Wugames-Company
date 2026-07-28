@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 type SpotlightCardProps = {
   children: React.ReactNode;
@@ -17,6 +17,7 @@ export function SpotlightCard({
   const divRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [opacity, setOpacity] = useState(0);
+  const prefersReducedMotion = useReducedMotion();
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!divRef.current) return;
@@ -31,7 +32,7 @@ export function SpotlightCard({
       onMouseLeave={() => setOpacity(0)}
       onMouseMove={handleMouseMove}
       ref={divRef}
-      whileHover={{ y: -4 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <div

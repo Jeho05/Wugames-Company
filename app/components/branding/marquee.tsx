@@ -1,13 +1,15 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 export function Marquee({ items, className = "" }: { items: string[]; className?: string }) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <div className={"overflow-hidden " + className}>
       <motion.div
         className="flex w-max"
-        animate={{ x: ["0%", "-50%"] }}
+        animate={prefersReducedMotion ? undefined : { x: ["0%", "-50%"] }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
       >
         {[...items, ...items].map((item, i) => (
