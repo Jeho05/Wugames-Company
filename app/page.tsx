@@ -113,7 +113,7 @@ export default function ClientBrandingPage() {
           backgroundSrc="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1800&q=85"
           mediaAlt="Chantier de construction moderne piloté par WUGAMS"
           mediaSrc="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1800&q=90"
-          eyebrow={<span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#101c32]/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 backdrop-blur-md"><Icon name="sparkles" size={14} /> WUGAMS Holding Inc. — 5 filiales, un seul interlocuteur</span>}
+          eyebrow={<span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#101c32]/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 backdrop-blur-md"><Icon name="sparkles" size={14} /> <span className="sm:hidden">WUGAMS — 5 filiales, 1 interlocuteur</span><span className="hidden sm:inline">WUGAMS Holding Inc. — 5 filiales, un seul interlocuteur</span></span>}
           titleFirstLine="Vous méritez un partenaire"
           titleSecondLine="qui tient ses promesses."
           description={<p>De la première rencontre à la livraison, nous clarifions votre projet et construisons avec vous. Sans surprise. Sans mauvaise foi.</p>}

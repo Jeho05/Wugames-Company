@@ -1,12 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 
 type ClipFrame = { top: number; right: number; bottom: number; left: number; radius: number };
 
-const START_FRAME: ClipFrame = { top: 18, right: 29, bottom: 16, left: 29, radius: 28 };
+// Same animation everywhere; only the opening crop is proportioned to the viewport
+// so the framed image reads as an elegant card on phones instead of a narrow strip.
+const COMPACT_START: ClipFrame = { top: 23, right: 6, bottom: 17, left: 6, radius: 22 };
+const WIDE_START: ClipFrame = { top: 18, right: 29, bottom: 16, left: 29, radius: 28 };
 const MID_FRAME: ClipFrame = { top: 3, right: 2, bottom: 3, left: 2, radius: 32 };
 const OPEN_FRAME: ClipFrame = { top: 0, right: 0, bottom: 0, left: 0, radius: 0 };
 
@@ -17,8 +20,8 @@ function mixClip(from: ClipFrame, to: ClipFrame, t: number) {
   return `inset(${lerp(from.top, to.top, t)}% ${lerp(from.right, to.right, t)}% ${lerp(from.bottom, to.bottom, t)}% ${lerp(from.left, to.left, t)}% round ${lerp(from.radius, to.radius, t)}px)`;
 }
 
-function clipAt(progress: number) {
-  if (progress <= 0.68) return mixClip(START_FRAME, MID_FRAME, Math.max(progress, 0) / 0.68);
+function clipAt(progress: number, start: ClipFrame) {
+  if (progress <= 0.68) return mixClip(start, MID_FRAME, Math.max(progress, 0) / 0.68);
   return mixClip(MID_FRAME, OPEN_FRAME, Math.min((progress - 0.68) / 0.32, 1));
 }
 
@@ -47,10 +50,19 @@ export function ScrollExpansionHero({
   proof,
 }: ScrollExpansionHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const [isCompact, setIsCompact] = useState(false);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
 
-  // Single code path for every viewport: the scroll-linked animation is identical on desktop and mobile.
-  const mediaClip = useTransform(scrollYProgress, clipAt);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const updateViewport = () => setIsCompact(mediaQuery.matches);
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  const startFrame = isCompact ? COMPACT_START : WIDE_START;
+  const mediaClip = useTransform(scrollYProgress, (progress) => clipAt(progress, startFrame));
   const mediaScale = useTransform(scrollYProgress, [0, 0.68, 1], [0.98, 1.02, 1]);
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 0.36, 0.2]);
   const titleOpacity = useTransform(scrollYProgress, [0, 0.56, 0.8], [1, 0.92, 0]);
@@ -69,7 +81,7 @@ export function ScrollExpansionHero({
 
         <motion.div className="absolute inset-0 z-10 overflow-hidden" style={{ clipPath: mediaClip, scale: mediaScale }}>
           <Image alt={mediaAlt} className="object-cover" fill priority sizes="100vw" src={mediaSrc} />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#081323]/70 via-[#081323]/10 to-[#081323]/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#081323]/85 via-[#081323]/25 to-[#081323]/40 sm:from-[#081323]/70 sm:via-[#081323]/10 sm:to-[#081323]/25" />
           <div className="absolute inset-0 ring-1 ring-inset ring-white/20" />
         </motion.div>
 
