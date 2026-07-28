@@ -43,3 +43,273 @@ a {
   background: #dceaf6;
   color: #17294b;
 }
+
+/* ═══════════════════════════════════════════
+   SHADER LINES — animated diagonal gradients
+   ═══════════════════════════════════════════ */
+.shader-line {
+  position: absolute;
+  height: 1px;
+  width: 200%;
+  opacity: 0;
+  animation: shaderSlide linear infinite;
+}
+
+.shader-line-1 {
+  top: 25%;
+  left: -50%;
+  background: linear-gradient(90deg, transparent, rgba(227, 166, 65, 0.15), rgba(66, 107, 149, 0.1), transparent);
+  animation-duration: 12s;
+  animation-delay: 0s;
+  transform: rotate(-3deg);
+}
+
+.shader-line-2 {
+  top: 55%;
+  left: -50%;
+  background: linear-gradient(90deg, transparent, rgba(66, 107, 149, 0.12), rgba(227, 166, 65, 0.08), transparent);
+  animation-duration: 15s;
+  animation-delay: 4s;
+  transform: rotate(2deg);
+}
+
+.shader-line-3 {
+  top: 80%;
+  left: -50%;
+  background: linear-gradient(90deg, transparent, rgba(227, 166, 65, 0.1), transparent);
+  animation-duration: 18s;
+  animation-delay: 8s;
+  transform: rotate(-1deg);
+}
+
+.shader-line-4 {
+  top: 30%;
+  left: -50%;
+  background: linear-gradient(90deg, transparent, rgba(227, 166, 65, 0.1), rgba(123, 163, 204, 0.08), transparent);
+  animation-duration: 14s;
+  animation-delay: 2s;
+  transform: rotate(-2deg);
+}
+
+.shader-line-5 {
+  top: 70%;
+  left: -50%;
+  background: linear-gradient(90deg, transparent, rgba(66, 107, 149, 0.12), transparent);
+  animation-duration: 16s;
+  animation-delay: 6s;
+  transform: rotate(1.5deg);
+}
+
+@keyframes shaderSlide {
+  0% {
+    transform: translateX(-30%) rotate(var(--line-rotate, 0deg));
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(80%) rotate(var(--line-rotate, 0deg));
+    opacity: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CIRCLE ANIMATOR — floating background circles
+   ═══════════════════════════════════════════ */
+.circle-animator {
+  animation: circleFloat ease-in-out infinite;
+}
+
+@keyframes circleFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 15px) scale(0.95);
+  }
+  75% {
+    transform: translate(15px, 25px) scale(1.02);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CARD SHUFFLE — staggered reveal on scroll
+   ═══════════════════════════════════════════ */
+.card-shuffle {
+  opacity: 0;
+  transform: translateY(40px) scale(0.95);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-shuffle--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ═══════════════════════════════════════════
+   CARD SPREAD — fan out from center
+   ═══════════════════════════════════════════ */
+.card-spread {
+  opacity: 0;
+  transform: translateX(calc(var(--spread-offset, 0px) * 3)) translateY(30px) rotate(calc(var(--spread-offset, 0px) * 0.5deg)) scale(0.9);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-spread--visible {
+  opacity: 1;
+  transform: translateX(var(--spread-offset, 0px)) translateY(0) rotate(0deg) scale(1);
+}
+
+/* ═══════════════════════════════════════════
+   CIRCLE HOVER — expanding glow on mouse
+   ═══════════════════════════════════════════ */
+.circle-hover-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.circle-hover-card__glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(227, 166, 65, 0.12), transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.circle-hover-card > *:not(.circle-hover-card__glow) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════════
+   TEXT GRADIENT ANIMATION — hero heading
+   ═══════════════════════════════════════════ */
+.text-shimmer {
+  background: linear-gradient(
+    120deg,
+    #17294b 0%,
+    #17294b 40%,
+    #e3a641 50%,
+    #17294b 60%,
+    #17294b 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    background-position: 200% center;
+  }
+  50% {
+    background-position: 0% center;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   PULSE RING — CTA button pulse
+   ═══════════════════════════════════════════ */
+.pulse-ring {
+  position: relative;
+}
+
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid rgba(227, 166, 65, 0.3);
+  animation: pulseRing 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseRing {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   MARQUEE — scrolling text
+   ═══════════════════════════════════════════ */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 30s linear infinite;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   STAT COUNTER — count-up pulse
+   ═══════════════════════════════════════════ */
+.stat-pulse {
+  animation: statPulse 2s ease-in-out infinite;
+}
+
+@keyframes statPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SECTION REVEAL — fade-in on scroll
+   ═══════════════════════════════════════════ */
+.section-reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.section-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══════════════════════════════════════════
+   ORBIT — rotating decoration
+   ═══════════════════════════════════════════ */
+.orbit {
+  animation: orbitSpin linear infinite;
+}
+
+@keyframes orbitSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
