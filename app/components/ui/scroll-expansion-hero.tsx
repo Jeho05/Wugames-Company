@@ -74,7 +74,7 @@ export function ScrollExpansionHero({
   const contentY = useTransform(scrollYProgress, [0, 0.58], [0, -56]);
 
   return (
-    <section className="relative h-[170vh] bg-[#101c32]" ref={sectionRef}>
+    <section className="relative h-[130vh] bg-[#101c32]" ref={sectionRef}>
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         <motion.div aria-hidden="true" className="absolute inset-0" style={{ opacity: backgroundOpacity }}>
           <Image alt="" className="object-cover scale-110 blur-[2px]" fill priority sizes="100vw" src={backgroundSrc} />
