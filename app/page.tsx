@@ -86,7 +86,7 @@ const guarantees = [
 
 export default function ClientBrandingPage() {
   return (
-    <main className="overflow-x-clip bg-[#fbfcfe] text-[#17294b]">
+    <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
       {/* ═══ HERO ═══ */}
       <section className="relative bg-[#101c32]">
@@ -376,7 +376,7 @@ export default function ClientBrandingPage() {
             <GradientMesh />
             <div className="relative z-10 max-w-2xl">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f2c56d]">Prêt à commencer ?</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.05em] sm:text-4xl">Chaque jour sans action, c&apos;un jour de perdu.</h2>
+              <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.05em] sm:text-4xl">Chaque jour sans action, c&apos;est un jour de perdu.</h2>
               <p className="mt-5 text-sm leading-7 text-slate-300">
                 Votre projet mérite d&apos;avancer. On vous offre 30 minutes pour clarifier les choses. Sans engagement. Sans carte bancaire. Juste un échange humain.
               </p>
