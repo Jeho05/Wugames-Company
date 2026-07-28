@@ -10,9 +10,9 @@ import { Reveal } from "@/app/components/branding/reveal";
 import { GradientMesh } from "@/app/components/branding/gradient-mesh";
 import { ShaderBeams } from "@/app/components/branding/shader-beams";
 import { Marquee } from "@/app/components/branding/marquee";
-import { ShimmerText } from "@/app/components/branding/shimmer-text";
 import { PulseButton } from "@/app/components/branding/pulse-button";
-import { HeroImage, TestimonialImage } from "@/app/components/branding/images";
+import { TestimonialImage } from "@/app/components/branding/images";
+import { ScrollExpansionHero } from "@/app/components/ui/scroll-expansion-hero";
 
 const painPoints = [
   "Vous avez déjà fait appel à un artisan qui n&apos;a pas tenu ses promesses ?",
@@ -85,22 +85,20 @@ const guarantees = [
 
 export default function ClientBrandingPage() {
   return (
-    <main className="overflow-hidden bg-[#fbfcfe] text-[#17294b]">
+    <main className="overflow-x-clip bg-[#fbfcfe] text-[#17294b]">
 
       {/* ═══ HERO ═══ */}
-      <section className="relative border-b border-slate-200/80 bg-[#f7f9fc]">
-        <GradientMesh />
-        <ShaderBeams />
-        <header className="relative z-10 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
-          <BrandMark />
-          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-500 md:flex">
-            <a className="transition hover:text-[#17294b]" href="#probleme">Le problème</a>
-            <a className="transition hover:text-[#17294b]" href="#solution">Notre solution</a>
-            <a className="transition hover:text-[#17294b]" href="#temoignages">Ils nous font confiance</a>
-            <a className="transition hover:text-[#17294b]" href="#rencontre">Rencontrez-nous</a>
+      <section className="relative bg-[#101c32]">
+        <header className="absolute inset-x-0 top-0 z-30 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
+          <BrandMark inverse />
+          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 md:flex">
+            <a className="transition hover:text-white" href="#probleme">Le problème</a>
+            <a className="transition hover:text-white" href="#solution">Notre solution</a>
+            <a className="transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
+            <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
           </nav>
           <div className="flex items-center gap-2.5">
-            <Link className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50 sm:px-4 sm:text-sm" href="/connexion">
+            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:text-sm" href="/connexion">
               Se connecter
             </Link>
             <PulseButton href="#rencontre">
@@ -109,48 +107,18 @@ export default function ClientBrandingPage() {
           </div>
         </header>
 
-        <div className="relative z-10 mx-auto max-w-[1240px] px-5 pb-20 pt-16 sm:px-8 lg:pb-28 lg:pt-24">
-          <div className="lg:grid lg:grid-cols-2 lg:items-center lg:gap-14">
-            <div className="mx-auto max-w-3xl lg:mx-0">
-            <Reveal>
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#e7d3ae] bg-[#fff8eb] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#a5680a]">
-                <Icon name="sparkles" size={14} />
-                WUGAMS Holding Inc. &mdash; 5 filiales, un seul interlocuteur
-              </span>
-            </Reveal>
-            <Reveal delay={100}>
-              <h1 className="mt-6 max-w-2xl text-[42px] font-bold leading-[1.04] tracking-[-0.065em] sm:text-6xl">
-                <ShimmerText text="Vous méritez un partenaire qui tient ses promesses." />
-              </h1>
-            </Reveal>
-            <Reveal delay={200}>
-              <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-                WUGAMS ne vous vend rien. On vous accompagne. De la première rencontre à la livraison, on vous écoute, on clarifie votre projet, et on construit avec vous. Pas de surprise. Pas de mauvaise fois.
-              </p>
-            </Reveal>
-            <Reveal delay={300}>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <PulseButton href="#rencontre">
-                  Consultation gratuite — 30 min
-                </PulseButton>
-                <a className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50" href="#solution">
-                  Voir ce qu&apos;on fait exactement <Icon className="rotate-90" name="arrow-right" size={18} />
-                </a>
-              </div>
-            </Reveal>
-            <Reveal delay={400}>
-              <div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-xs font-semibold text-slate-500">
-                <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> 1 200+ projets livrés</span>
-                <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> 4,7/5 satisfaction</span>
-                <span className="inline-flex items-center gap-2"><Icon className="text-emerald-600" name="check" size={16} /> Zéro surprise tarifaire</span>
-              </div>
-            </Reveal>
-          </div>
-          <Reveal delay={200} direction="right" className="hidden lg:block">
-            <HeroImage />
-          </Reveal>
-          </div>
-        </div>
+        <ScrollExpansionHero
+          backgroundSrc="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1800&q=85"
+          mediaAlt="Chantier de construction moderne piloté par WUGAMS"
+          mediaSrc="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1800&q=90"
+          eyebrow={<span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#101c32]/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 backdrop-blur-md"><Icon name="sparkles" size={14} /> WUGAMS Holding Inc. — 5 filiales, un seul interlocuteur</span>}
+          titleFirstLine="Vous méritez un partenaire"
+          titleSecondLine="qui tient ses promesses."
+          description={<p>De la première rencontre à la livraison, nous clarifions votre projet et construisons avec vous. Sans surprise. Sans mauvaise foi.</p>}
+          actions={<div className="flex flex-col justify-center gap-3 sm:flex-row"><PulseButton href="#rencontre">Consultation gratuite — 30 min</PulseButton><a className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-950/20 backdrop-blur-md transition hover:bg-white/20" href="#solution">Découvrir nos expertises <Icon className="rotate-90" name="arrow-right" size={18} /></a></div>}
+          proof={<div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-100"><span className="inline-flex items-center gap-2"><Icon className="text-emerald-300" name="check" size={16} /> 1 200+ projets livrés</span><span className="inline-flex items-center gap-2"><Icon className="text-emerald-300" name="check" size={16} /> 4,7/5 satisfaction</span><span className="inline-flex items-center gap-2"><Icon className="text-emerald-300" name="check" size={16} /> Zéro surprise tarifaire</span></div>}
+        />
+
       </section>
 
       {/* ═══ MARQUEE ═══ */}
