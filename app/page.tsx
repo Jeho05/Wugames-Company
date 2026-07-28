@@ -13,6 +13,7 @@ import { Marquee } from "@/app/components/branding/marquee";
 import { PulseButton } from "@/app/components/branding/pulse-button";
 import { TestimonialImage } from "@/app/components/branding/images";
 import { ScrollExpansionHero } from "@/app/components/ui/scroll-expansion-hero";
+import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
 
 const painPoints = [
   "Vous avez déjà fait appel à un artisan qui n&apos;a pas tenu ses promesses ?",
@@ -102,6 +103,7 @@ export default function ClientBrandingPage() {
               Se connecter
             </Link>
             <PulseButton href="#rencontre">
+              <span className="sm:hidden">Votre projet</span>
               <span className="hidden sm:inline">Parlons de votre projet</span>
             </PulseButton>
           </div>
@@ -201,6 +203,11 @@ export default function ClientBrandingPage() {
               </div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos filiales</p>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Un groupe, cinq expertises.</h2>
+              <GooeyText
+                className="mx-auto mt-4 h-9 sm:h-11"
+                textClassName="text-xl font-bold tracking-[-0.04em] text-[#426b95] sm:text-3xl"
+                texts={["Construire.", "Rénover.", "Entretenir.", "Aménager.", "Entreprendre."]}
+              />
               <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-slate-500">
                 Chaque filiale WUGAMS est spécialisée. Vous n&apos;avez qu&apos;un seul interlocuteur, mais une équipe complète derrière.
               </p>
