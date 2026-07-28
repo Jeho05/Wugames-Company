@@ -33,7 +33,7 @@ const services = [
   {
     description: "Accompagnement pour diriger, structurer et créer de nouvelles entreprises.",
     icon: "building" as const,
-    title: "Filiales & Entrepreneuriat",
+    title: "Diriger & Créer d'entreprises",
   },
 ];
 
@@ -407,7 +407,7 @@ export default function ClientBrandingPage() {
                 <li><a className="transition hover:text-[#17294b]" href="#solution">Nettoyage & Entretien</a></li>
                 <li><a className="transition hover:text-[#17294b]" href="#solution">Matériaux & Fournitures</a></li>
                 <li><a className="transition hover:text-[#17294b]" href="#solution">Mobilier & Design</a></li>
-                <li><a className="transition hover:text-[#17294b]" href="#solution">Filiales & Entrepreneuriat</a></li>
+                <li><a className="transition hover:text-[#17294b]" href="#solution">Diriger & Créer d'entreprises</a></li>
               </ul>
             </div>
             <div>
