@@ -4,6 +4,25 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 
+type ClipFrame = { top: number; right: number; bottom: number; left: number; radius: number };
+
+const COMPACT_START: ClipFrame = { top: 25, right: 5, bottom: 19, left: 5, radius: 24 };
+const WIDE_START: ClipFrame = { top: 18, right: 29, bottom: 16, left: 29, radius: 28 };
+const MID_FRAME: ClipFrame = { top: 3, right: 2, bottom: 3, left: 2, radius: 32 };
+const OPEN_FRAME: ClipFrame = { top: 0, right: 0, bottom: 0, left: 0, radius: 0 };
+
+const lerp = (from: number, to: number, t: number) => from + (to - from) * t;
+
+/** Numeric clip-path interpolation: avoids Motion string parsing, reliable on all mobile browsers. */
+function mixClip(from: ClipFrame, to: ClipFrame, t: number) {
+  return `inset(${lerp(from.top, to.top, t)}% ${lerp(from.right, to.right, t)}% ${lerp(from.bottom, to.bottom, t)}% ${lerp(from.left, to.left, t)}% round ${lerp(from.radius, to.radius, t)}px)`;
+}
+
+function clipAt(progress: number, start: ClipFrame) {
+  if (progress <= 0.68) return mixClip(start, MID_FRAME, Math.max(progress, 0) / 0.68);
+  return mixClip(MID_FRAME, OPEN_FRAME, Math.min((progress - 0.68) / 0.32, 1));
+}
+
 type ScrollExpansionHeroProps = {
   backgroundSrc: string;
   mediaAlt: string;
@@ -41,20 +60,19 @@ export function ScrollExpansionHero({
     return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
-  // Every keyframe must share the exact same inset() structure (4 sides + radius),
-  // otherwise Motion cannot interpolate the strings and the clip snaps or freezes.
-  const collapsedClip = isCompact ? "inset(25% 5% 19% 5% round 24px)" : "inset(18% 29% 16% 29% round 28px)";
-  const mediaClip = useTransform(scrollYProgress, [0, 0.68, 1], [collapsedClip, "inset(3% 2% 3% 2% round 32px)", "inset(0% 0% 0% 0% round 0px)"]);
+  const startFrame = isCompact ? COMPACT_START : WIDE_START;
+  const mediaClip = useTransform(scrollYProgress, (progress) => clipAt(progress, startFrame));
   const mediaScale = useTransform(scrollYProgress, [0, 0.68, 1], [0.98, 1.02, 1]);
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 0.36, 0.2]);
   const titleOpacity = useTransform(scrollYProgress, [0, 0.56, 0.8], [1, 0.92, 0]);
   const firstLineX = useTransform(scrollYProgress, [0, 0.8], ["0vw", "-28vw"]);
   const secondLineX = useTransform(scrollYProgress, [0, 0.8], ["0vw", "28vw"]);
   const contentY = useTransform(scrollYProgress, [0, 0.6], [0, -26]);
-  const visualStyle = prefersReducedMotion ? { clipPath: collapsedClip, scale: 1 } : { clipPath: mediaClip, scale: mediaScale };
+  const visualStyle = prefersReducedMotion ? { clipPath: mixClip(startFrame, startFrame, 0), scale: 1 } : { clipPath: mediaClip, scale: mediaScale };
 
   return (
-    <section className="relative h-[170vh] bg-[#101c32]" ref={sectionRef}>
+    // With reduced motion the runway collapses to one screen: a static framed hero instead of a frozen scroll scene.
+    <section className={`relative bg-[#101c32] ${prefersReducedMotion ? "h-[100dvh]" : "h-[170vh]"}`} ref={sectionRef}>
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         <motion.div aria-hidden="true" className="absolute inset-0" style={{ opacity: prefersReducedMotion ? 0.7 : backgroundOpacity }}>
           <Image alt="" className="object-cover scale-110 blur-[2px]" fill priority sizes="100vw" src={backgroundSrc} />
