@@ -65,10 +65,13 @@ export function ScrollExpansionHero({
   const mediaClip = useTransform(scrollYProgress, (progress) => clipAt(progress, startFrame));
   const mediaScale = useTransform(scrollYProgress, [0, 0.68, 1], [0.98, 1.02, 1]);
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 0.36, 0.2]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.56, 0.8], [1, 0.92, 0]);
-  const firstLineX = useTransform(scrollYProgress, [0, 0.8], ["0vw", "-28vw"]);
-  const secondLineX = useTransform(scrollYProgress, [0, 0.8], ["0vw", "28vw"]);
-  const contentY = useTransform(scrollYProgress, [0, 0.6], [0, -26]);
+  // The copy fades out completely before the image reaches full screen, so the
+  // opening never fights with text that struggles to fit smaller viewports.
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.3, 0.58], [1, 0.75, 0]);
+  const contentVisibility = useTransform(titleOpacity, (v) => (v < 0.02 ? "hidden" : "visible"));
+  const firstLineX = useTransform(scrollYProgress, [0, 0.58], ["0vw", "-24vw"]);
+  const secondLineX = useTransform(scrollYProgress, [0, 0.58], ["0vw", "24vw"]);
+  const contentY = useTransform(scrollYProgress, [0, 0.58], [0, -56]);
 
   return (
     <section className="relative h-[170vh] bg-[#101c32]" ref={sectionRef}>
@@ -85,7 +88,7 @@ export function ScrollExpansionHero({
           <div className="absolute inset-0 ring-1 ring-inset ring-white/20" />
         </motion.div>
 
-        <motion.div className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-5xl flex-col items-center justify-center px-4 pb-8 pt-[84px] text-center text-white sm:px-5 sm:pb-14 sm:pt-[86px]" style={{ opacity: titleOpacity, y: contentY }}>
+        <motion.div className="pointer-events-none absolute inset-0 z-20 mx-auto flex max-w-5xl flex-col items-center justify-center px-4 pb-8 pt-[84px] text-center text-white sm:px-5 sm:pb-14 sm:pt-[86px]" style={{ opacity: titleOpacity, y: contentY, visibility: contentVisibility }}>
           <div className="pointer-events-auto">{eyebrow}</div>
           <h1 className="mt-3 max-w-5xl text-[clamp(1.8rem,6vw,5.75rem)] font-bold leading-[0.94] tracking-[-0.065em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.38)] sm:mt-5 sm:leading-[0.92] sm:tracking-[-0.075em]">
             <motion.span className="block" style={{ x: firstLineX }}>{titleFirstLine}</motion.span>
@@ -96,7 +99,7 @@ export function ScrollExpansionHero({
           <div className="pointer-events-auto mt-4 sm:mt-7">{proof}</div>
         </motion.div>
 
-        <motion.div aria-hidden="true" className="absolute inset-x-0 bottom-4 z-20 hidden flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7 sm:flex" style={{ opacity: titleOpacity }}>
+        <motion.div aria-hidden="true" className="absolute inset-x-0 bottom-4 z-20 hidden flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7 sm:flex" style={{ opacity: titleOpacity, visibility: contentVisibility }}>
           Faites défiler pour découvrir WUGAMS
           <span className="h-8 w-px bg-gradient-to-b from-white/80 to-transparent" />
         </motion.div>
