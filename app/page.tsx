@@ -96,18 +96,18 @@ export default function ClientBrandingPage() {
   return (
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
-      {/* ═══ HEADER FIXE ═══ */}
-      <header className="fixed inset-x-0 top-0 z-30 flex h-[76px] items-center justify-center bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
-        <div className="flex w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
-          <BrandMark />
-          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-500 md:flex">
-            <a className="transition hover:text-[#17294b]" href="#probleme">Le problème</a>
-            <a className="transition hover:text-[#17294b]" href="#solution">Notre solution</a>
-            <a className="transition hover:text-[#17294b]" href="#temoignages">Ils nous font confiance</a>
-            <a className="transition hover:text-[#17294b]" href="#rencontre">Rencontrez-nous</a>
+      {/* ═══ HERO ═══ */}
+      <section className="relative h-screen">
+        <header className="absolute inset-x-0 top-0 z-20 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
+          <BrandMark inverse />
+          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 md:flex">
+            <a className="transition hover:text-white" href="#probleme">Le problème</a>
+            <a className="transition hover:text-white" href="#solution">Notre solution</a>
+            <a className="transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
+            <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
           </nav>
           <div className="flex items-center gap-2.5">
-            <Link className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
+            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
               Se connecter
             </Link>
             <div className="hidden sm:block">
@@ -115,23 +115,21 @@ export default function ClientBrandingPage() {
                 Parlons de votre projet
               </PulseButton>
             </div>
-            <MobileNav links={navLinks} />
+            <MobileNav inverse links={navLinks} />
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* ═══ WRAPPER 3D (HERO + CONTENU) ═══ */}
-      <HorizonHeroSection
-        title="WUGAMS"
-        subtitle={{
-          line1: "Bâtir, rénover, entreprendre.",
-          line2: "Avec la bonne équipe."
-        }}
-      >
-        <div className="h-[76px]" />
+        <HorizonHeroSection
+          title="WUGAMS"
+          subtitle={{
+            line1: "Bâtir, rénover, entreprendre.",
+            line2: "Avec la bonne équipe."
+          }}
+        />
+      </section>
 
-        {/* ═══ MARQUEE ═══ */}
-        <Marquee
+      {/* ═══ MARQUEE ═══ */}
+      <Marquee
         className="border-y border-slate-200/60 bg-[#f0f4f8] py-3"
         items={["1 200+ projets livrés", "4,7/5 satisfaction", "Zéro surprise tarifaire", "Garantie décennale 10 ans", "5 filiales spécialisées", "Suivi en temps réel", "Consultation gratuite", "Devis transparent"]}
       />
@@ -400,7 +398,8 @@ export default function ClientBrandingPage() {
         </Reveal>
       </section>
 
-      </HorizonHeroSection>
+      {/* Transition hero → contenu */}
+      <div className="h-10 sm:h-16 bg-gradient-to-b from-black to-[#f0f4f8]" />
 
       {/* ═══ FOOTER ═══ */}
       <footer className="border-t border-slate-200 bg-white">
