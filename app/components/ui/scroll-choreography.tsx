@@ -31,33 +31,33 @@ export function ScrollChoreography({
     restDelta: 0.001,
   });
 
-  const xLeft = "-22vw";
-  const xRight = "22vw";
-  const yTop = "-18vh";
-  const yBottom = "18vh";
+  const xLeft = "-16vw";
+  const xRight = "16vw";
+  const yTop = "-11vh";
+  const yBottom = "11vh";
 
-  const tlX = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [xLeft, xLeft, xLeft, "0vw", "0vw"]);
-  const tlY = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [yTop, yBottom, yBottom, "0vh", "0vh"]);
+  const tlX = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [xLeft, xLeft, xLeft, "0vw", "0vw"]);
+  const tlY = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [yTop, yBottom, yBottom, "0vh", "0vh"]);
 
-  const brX = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [xRight, xRight, xRight, "0vw", "0vw"]);
-  const brY = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [yBottom, yTop, yTop, "0vh", "0vh"]);
+  const brX = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [xRight, xRight, xRight, "0vw", "0vw"]);
+  const brY = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [yBottom, yTop, yTop, "0vh", "0vh"]);
 
-  const blX = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [xLeft, xLeft, xLeft, "0vw", "0vw"]);
-  const blY = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [yBottom, yBottom, yBottom, "0vh", "0vh"]);
+  const blX = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [xLeft, xLeft, xLeft, "0vw", "0vw"]);
+  const blY = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [yBottom, yBottom, yBottom, "0vh", "0vh"]);
 
-  const trX = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [xRight, xRight, xRight, "0vw", "0vw"]);
-  const trY = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [yTop, yTop, yTop, "0vh", "0vh"]);
+  const trX = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [xRight, xRight, xRight, "0vw", "0vw"]);
+  const trY = useTransform(smoothProgress, [0, 0.25, 0.3, 0.6, 1], [yTop, yTop, yTop, "0vh", "0vh"]);
 
-  const heroWidth = useTransform(smoothProgress, [0.65, 0.7, 0.9, 1], ["36vw", "36vw", "100vw", "100vw"]);
-  const heroHeight = useTransform(smoothProgress, [0.65, 0.7, 0.9, 1], ["24vh", "24vh", "100vh", "100vh"]);
+  const heroWidth = useTransform(smoothProgress, [0.6, 0.65, 0.9, 1], ["36vw", "36vw", "100vw", "100vw"]);
+  const heroHeight = useTransform(smoothProgress, [0.6, 0.65, 0.9, 1], ["26vh", "26vh", "100vh", "100vh"]);
 
-  const underImagesOpacity = useTransform(smoothProgress, [0.75, 0.85], [1, 0]);
+  const underImagesOpacity = useTransform(smoothProgress, [0.7, 0.8], [1, 0]);
 
   const baseImageClasses =
-    "absolute left-1/2 top-1/2 w-[36vw] h-[24vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 bg-[#1e293b] shadow-2xl will-change-transform rounded-sm";
+    "absolute left-1/2 top-1/2 w-[36vw] h-[26vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 bg-[#1e293b] shadow-2xl will-change-transform rounded-sm";
 
   return (
-    <div ref={containerRef} className={"relative h-[300vh] w-full " + className}>
+    <div ref={containerRef} className={"relative h-[130vh] w-full " + className}>
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
