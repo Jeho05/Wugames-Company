@@ -242,7 +242,7 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
       <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />
 
       <div
-        className="fixed inset-0 z-[1] bg-black pointer-events-none transition-opacity duration-300"
+        className="absolute inset-0 z-[1] bg-black pointer-events-none transition-opacity duration-300"
         style={{ opacity: canvasOverlayOpacity }}
       />
 

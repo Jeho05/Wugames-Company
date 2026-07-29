@@ -141,7 +141,7 @@ export default function ClientBrandingPage() {
       </section>
 
       {/* Transition hero → contenu */}
-      <div className="h-16 sm:h-24 bg-gradient-to-b from-black via-slate-950/95 to-[#f0f4f8]" />
+      <div className="h-12 sm:h-20 bg-gradient-to-b from-black to-[#f0f4f8]" />
 
       {/* ═══ MARQUEE ═══ */}
       <Marquee
