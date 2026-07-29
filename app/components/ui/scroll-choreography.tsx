@@ -31,10 +31,10 @@ export function ScrollChoreography({
     restDelta: 0.001,
   });
 
-  const xLeft = "-20vw";
-  const xRight = "20vw";
-  const yTop = "-14vh";
-  const yBottom = "14vh";
+  const xLeft = "-22vw";
+  const xRight = "22vw";
+  const yTop = "-18vh";
+  const yBottom = "18vh";
 
   const tlX = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [xLeft, xLeft, xLeft, "0vw", "0vw"]);
   const tlY = useTransform(smoothProgress, [0, 0.3, 0.35, 0.65, 1], [yTop, yBottom, yBottom, "0vh", "0vh"]);
@@ -54,7 +54,7 @@ export function ScrollChoreography({
   const underImagesOpacity = useTransform(smoothProgress, [0.75, 0.85], [1, 0]);
 
   const baseImageClasses =
-    "absolute left-1/2 top-1/2 w-[36vw] h-[24vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 bg-[#1e293b] shadow-2xl will-change-transform";
+    "absolute left-1/2 top-1/2 w-[36vw] h-[24vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 bg-[#1e293b] shadow-2xl will-change-transform rounded-sm";
 
   return (
     <div ref={containerRef} className={"relative h-[300vh] w-full " + className}>

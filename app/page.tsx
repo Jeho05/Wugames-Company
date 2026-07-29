@@ -121,10 +121,10 @@ export default function ClientBrandingPage() {
       {/* ═══ HERO ═══ */}
       <ScrollChoreography
         images={{
-          topLeft: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=100&w=2832&fm=webp&auto=format&fit=crop",
-          topRight: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=100&w=2832&fm=webp&auto=format&fit=crop",
-          bottomLeft: "https://images.unsplash.com/photo-1541888946425-d81bb48f931e?q=100&w=2832&fm=webp&auto=format&fit=crop",
-          bottomRight: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          topLeft: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          topRight: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          bottomLeft: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          bottomRight: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=100&w=2832&fm=webp&auto=format&fit=crop",
         }}
       />
 
