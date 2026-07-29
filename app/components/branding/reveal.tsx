@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 type RevealProps = {
@@ -11,57 +10,30 @@ type RevealProps = {
 };
 
 const directionOffset = {
-  up: { y: 40 },
-  down: { y: -40 },
-  left: { x: 40 },
-  right: { x: -40 },
+  up: { y: 28 },
+  down: { y: -28 },
+  left: { x: 28 },
+  right: { x: -28 },
 };
 
 export function Reveal({ children, className = "", delay = 0, direction = "up" }: RevealProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [show, setShow] = useState(false);
   const prefersReducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShow(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -60px 0px" }
-    );
-
-    observer.observe(el);
-
-    const timer = setTimeout(() => {
-      setShow(true);
-      observer.disconnect();
-    }, 1500);
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(timer);
-    };
-  }, []);
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
   }
 
+  const offset = directionOffset[direction];
+
   return (
     <motion.div
       className={className}
-      ref={ref}
-      initial={false}
-      animate={show ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...directionOffset[direction] }}
+      initial={{ opacity: 0, ...offset }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
       transition={{
-        duration: 0.6,
-        delay: show ? delay : 0,
+        duration: 0.5,
+        delay: delay / 1000,
         ease: [0.16, 1, 0.3, 1],
       }}
     >
@@ -69,3 +41,4 @@ export function Reveal({ children, className = "", delay = 0, direction = "up" }
     </motion.div>
   );
 }
+

@@ -48,11 +48,13 @@ export function GooeyText({
     const resetMorph = () => {
       if (!text1Ref.current || !text2Ref.current) return;
       morph = 0;
-      text2Ref.current.style.filter = "";
-      text2Ref.current.style.opacity = "1";
       text1Ref.current.style.filter = "";
-      text1Ref.current.style.opacity = "0";
+      text1Ref.current.style.opacity = "1";
+      text2Ref.current.style.filter = "";
+      text2Ref.current.style.opacity = "0";
     };
+
+    resetMorph();
 
     const animate = (now: number) => {
       const elapsed = (now - lastTime) / 1000;
@@ -72,7 +74,9 @@ export function GooeyText({
         morph += elapsed;
         const fraction = Math.min(morph / morphTime, 1);
         setMorph(fraction);
-        if (fraction === 1) cooldown = cooldownTime;
+        if (fraction >= 1) {
+          cooldown = cooldownTime;
+        }
       } else {
         resetMorph();
       }
@@ -88,20 +92,24 @@ export function GooeyText({
 
   return (
     <div aria-label={texts.join(" · ")} className={`relative ${className}`}>
-      <svg aria-hidden="true" className="absolute size-0" focusable="false">
+      <svg aria-hidden="true" className="pointer-events-none absolute h-0 w-0 overflow-hidden" focusable="false">
         <defs>
           <filter id={filterId}>
             <feColorMatrix
               in="SourceGraphic"
               type="matrix"
-              values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 255 -140"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
             />
           </filter>
         </defs>
       </svg>
       <div aria-hidden="true" className="flex items-center justify-center" style={{ filter: `url(#${filterId})` }}>
-        <span className={`absolute inline-block select-none text-center ${textClassName}`} ref={text1Ref} />
-        <span className={`absolute inline-block select-none text-center ${textClassName}`} ref={text2Ref} />
+        <span className={`absolute inline-block select-none text-center ${textClassName}`} ref={text1Ref}>
+          {texts[0]}
+        </span>
+        <span className={`absolute inline-block select-none text-center opacity-0 ${textClassName}`} ref={text2Ref}>
+          {texts[1] ?? ""}
+        </span>
       </div>
     </div>
   );
