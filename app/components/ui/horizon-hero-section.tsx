@@ -37,6 +37,8 @@ const MOUNTAIN_LAYERS = [
   { distance: -200, height: 120, color: 0x0a4668, opacity: 0.4 },
 ];
 
+const HERO_VH = 3;
+
 export function HorizonHeroSection({ title, subtitle, sections }: {
   title: string;
   subtitle: { line1: string; line2: string };
@@ -47,27 +49,16 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   const smoothCameraPos = useRef({ x: 0, y: 30, z: 100 });
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [currentSection, setCurrentSection] = useState(1);
+  const [heroProgress, setHeroProgress] = useState(0);
   const [isReady, setIsReady] = useState(false);
 
   const threeRefs = useRef<ThreeRefs>({
-    scene: null,
-    camera: null,
-    renderer: null,
-    composer: null,
-    stars: [],
-    nebula: null,
-    mountains: [],
-    atmosphere: null,
-    animationId: null,
-    targetCameraX: 0,
-    targetCameraY: 30,
-    targetCameraZ: 300,
-    mountainBaseZ: [],
+    scene: null, camera: null, renderer: null, composer: null,
+    stars: [], nebula: null, mountains: [], atmosphere: null,
+    animationId: null, targetCameraX: 0, targetCameraY: 30, targetCameraZ: 300, mountainBaseZ: [],
   });
 
   useEffect(() => {
@@ -81,9 +72,7 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
     refs.camera.position.set(0, 20, 100);
 
     refs.renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true,
+      canvas: canvasRef.current, antialias: true, alpha: true,
     });
     refs.renderer.setSize(window.innerWidth, window.innerHeight);
     refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -94,8 +83,7 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
     refs.composer.addPass(new RenderPass(refs.scene, refs.camera));
 
     const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.6, 0.3, 0.85
+      new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.85
     );
     refs.composer.addPass(bloomPass);
     refs.composer.addPass(new OutputPass());
@@ -174,17 +162,15 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
   useEffect(() => {
     if (!isReady) return;
 
-    gsap.set([menuRef.current, titleRef.current, subtitleRef.current, scrollIndicatorRef.current], {
+    gsap.set([titleRef.current, subtitleRef.current, scrollIndicatorRef.current], {
       visibility: 'visible',
     });
 
     const tl = gsap.timeline();
 
-    tl.from(menuRef.current, { x: -80, opacity: 0, duration: 1, ease: 'power3.out' });
-
     const titleChars = titleRef.current?.querySelectorAll('.title-char');
     if (titleChars?.length) {
-      tl.from(titleChars, { y: 200, opacity: 0, duration: 1.5, stagger: 0.05, ease: 'power4.out' }, '-=0.5');
+      tl.from(titleChars, { y: 200, opacity: 0, duration: 1.5, stagger: 0.05, ease: 'power4.out' });
     }
 
     const subtitleLines = subtitleRef.current?.querySelectorAll('.subtitle-line');
@@ -205,10 +191,12 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
       const maxScroll = documentHeight - windowHeight;
       const progress = Math.min(scrollY / Math.max(maxScroll, 1), 1);
 
+      const rawHeroProgress = Math.min(scrollY / (window.innerHeight * HERO_VH), 1);
+
       setScrollProgress(progress);
+      setHeroProgress(rawHeroProgress);
 
       const newSection = Math.min(Math.floor(progress * sections.length), sections.length - 1);
-      setCurrentSection(newSection + 1);
 
       const refs = threeRefs.current;
       const totalProgress = progress * sections.length;
@@ -225,7 +213,6 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
         const baseZ = refs.mountainBaseZ[i] ?? MOUNTAIN_LAYERS[i]?.distance ?? -200;
         const speed = 1 + i * 0.5;
         const targetZ = baseZ + scrollY * speed * 0.3;
-
         mountain.position.z += (targetZ - mountain.position.z) * 0.05;
 
         if (refs.camera) {
@@ -246,41 +233,45 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [sections.length]);
 
+  const overlayOpacity = Math.max(0, 1 - heroProgress * 1.67);
+  const indicatorOpacity = Math.max(0, 1 - heroProgress * 1.25);
+  const canvasOverlayOpacity = Math.min(Math.max(0, (heroProgress - 0.35) / 0.65), 0.92);
+
   return (
     <div ref={containerRef} className="relative min-h-[300vh] bg-black text-white overflow-hidden font-sans">
       <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />
 
-      <div ref={menuRef} className="fixed left-6 top-8 z-20 flex flex-col items-center gap-5" style={{ visibility: 'hidden' }}>
-        <div className="flex flex-col gap-1 cursor-pointer group">
-          <span className="w-5 h-px bg-white/40 group-hover:w-7 transition-all" />
-          <span className="w-3 h-px bg-white/40 group-hover:w-7 transition-all" />
-          <span className="w-5 h-px bg-white/40 group-hover:w-7 transition-all" />
-        </div>
-        <div className="tracking-[0.3em] text-[10px] font-light text-white/30 uppercase [writing-mode:vertical-lr] rotate-180">
-          MENU
-        </div>
-      </div>
+      <div
+        className="fixed inset-0 z-[1] bg-black pointer-events-none transition-opacity duration-300"
+        style={{ opacity: canvasOverlayOpacity }}
+      />
 
-      <div className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none text-center px-4">
-        <h1 ref={titleRef} className="text-6xl md:text-8xl lg:text-9xl font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/40 drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+      <div
+        className="fixed inset-0 z-10 flex flex-col items-center justify-center pointer-events-none text-center px-6 sm:px-8"
+        style={{ opacity: overlayOpacity }}
+      >
+        <h1 ref={titleRef} className="text-[clamp(2.8rem,13vw,8rem)] font-black tracking-[0.08em] leading-none bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/30 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)]">
           {title.split('').map((char, i) => (
             <span key={i} className="title-char inline-block">{char}</span>
           ))}
         </h1>
-        <div ref={subtitleRef} className="mt-5 text-base md:text-lg text-amber-200/60 font-light tracking-wider space-y-1">
+        <div ref={subtitleRef} className="mt-4 sm:mt-6 text-[clamp(0.85rem,2.5vw,1.3rem)] text-amber-200/60 font-light tracking-[0.06em] space-y-1 max-w-2xl">
           <p className="subtitle-line">{subtitle.line1}</p>
           <p className="subtitle-line">{subtitle.line2}</p>
         </div>
       </div>
 
-      <div ref={scrollIndicatorRef} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2" style={{ visibility: 'hidden' }}>
-        <div className="text-[10px] tracking-[0.25em] text-white/30 font-mono uppercase">DÉFILER</div>
-        <div className="w-28 h-px bg-white/10 overflow-hidden backdrop-blur-sm">
-          <div className="h-full bg-gradient-to-r from-amber-400 to-blue-500 transition-all duration-150"
-            style={{ width: `${scrollProgress * 100}%` }} />
-        </div>
-        <div className="text-[10px] font-mono text-white/40">
-          {String(currentSection).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}
+      <div
+        ref={scrollIndicatorRef}
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+        style={{ opacity: indicatorOpacity, visibility: indicatorOpacity > 0 ? 'visible' : 'hidden' }}
+      >
+        <div className="text-[10px] tracking-[0.3em] text-white/30 font-mono uppercase">DÉCOUVRIR</div>
+        <div className="w-20 sm:w-28 h-px bg-white/10 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-400/80 to-blue-500/80 transition-all duration-150"
+            style={{ width: `${scrollProgress * 100}%` }}
+          />
         </div>
       </div>
 
@@ -382,7 +373,7 @@ function createNebula(refs: ThreeRefs) {
       time: { value: 0 },
       color1: { value: new THREE.Color(0x17294b) },
       color2: { value: new THREE.Color(0xe3a641) },
-      opacity: { value: 0.25 },
+      opacity: { value: 0.2 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -454,7 +445,7 @@ function createMountains(refs: ThreeRefs) {
 
     const mountain = new THREE.Mesh(geometry, material);
     mountain.position.z = layer.distance;
-    mountain.position.y = layer.distance + 100;
+    mountain.position.y = layer.distance + 120;
     scene.add(mountain);
     refs.mountains.push(mountain);
   });
