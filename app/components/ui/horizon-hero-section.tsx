@@ -239,7 +239,7 @@ export function HorizonHeroSection({ title, subtitle, sections }: {
 
   return (
     <div ref={containerRef} className="relative min-h-[300vh] bg-black text-white overflow-hidden font-sans">
-      <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
       <div
         className="absolute inset-0 z-[1] bg-black pointer-events-none transition-opacity duration-300"
