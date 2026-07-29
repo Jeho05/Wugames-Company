@@ -31,8 +31,8 @@ export function ScrollChoreography({
     restDelta: 0.001,
   });
 
-  const xLeft = "-18vw";
-  const xRight = "18vw";
+  const xLeft = "-24vw";
+  const xRight = "24vw";
   const yTop = "-15vh";
   const yBottom = "15vh";
 
@@ -57,7 +57,7 @@ export function ScrollChoreography({
     "absolute left-1/2 top-1/2 w-[36vw] h-[26vh] overflow-hidden -translate-x-1/2 -translate-y-1/2 bg-[#1e293b] shadow-2xl will-change-transform rounded-sm";
 
   return (
-    <div ref={containerRef} className={"relative h-[110vh] w-full " + className}>
+    <div ref={containerRef} className={"relative h-[105vh] w-full " + className}>
       <div className="sticky top-20 h-[calc(100vh-80px)] w-full overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
