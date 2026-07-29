@@ -14,7 +14,7 @@ import { PulseButton } from "@/app/components/branding/pulse-button";
 import { TestimonialImage } from "@/app/components/branding/images";
 import { MobileNav } from "@/app/components/ui/mobile-nav";
 import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
-import { HorizonHeroSection } from "@/app/components/ui/horizon-hero-section";
+import { ScrollChoreography } from "@/app/components/ui/scroll-choreography";
 
 const navLinks = [
   { label: "Le problème", href: "#probleme" },
@@ -96,37 +96,37 @@ export default function ClientBrandingPage() {
   return (
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative h-screen">
-        <header className="absolute inset-x-0 top-0 z-20 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
-          <BrandMark inverse />
-          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 md:flex">
-            <a className="transition hover:text-white" href="#probleme">Le problème</a>
-            <a className="transition hover:text-white" href="#solution">Notre solution</a>
-            <a className="transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
-            <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
-          </nav>
-          <div className="flex items-center gap-2.5">
-            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
-              Se connecter
-            </Link>
-            <div className="hidden sm:block">
-              <PulseButton href="#rencontre">
-                Parlons de votre projet
-              </PulseButton>
-            </div>
-            <MobileNav inverse links={navLinks} />
+      {/* ═══ HEADER ═══ */}
+      <header className="fixed inset-x-0 top-0 z-50 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8 bg-black/10 backdrop-blur-sm">
+        <BrandMark inverse />
+        <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 md:flex">
+          <a className="transition hover:text-white" href="#probleme">Le problème</a>
+          <a className="transition hover:text-white" href="#solution">Notre solution</a>
+          <a className="transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
+          <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
+        </nav>
+        <div className="flex items-center gap-2.5">
+          <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
+            Se connecter
+          </Link>
+          <div className="hidden sm:block">
+            <PulseButton href="#rencontre">
+              Parlons de votre projet
+            </PulseButton>
           </div>
-        </header>
+          <MobileNav inverse links={navLinks} />
+        </div>
+      </header>
 
-        <HorizonHeroSection
-          title="WUGAMS"
-          subtitle={{
-            line1: "Bâtir, rénover, entreprendre.",
-            line2: "Avec la bonne équipe."
-          }}
-        />
-      </section>
+      {/* ═══ HERO ═══ */}
+      <ScrollChoreography
+        images={{
+          topLeft: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          topRight: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          bottomLeft: "https://images.unsplash.com/photo-1541888946425-d81bb48f931e?q=100&w=2832&fm=webp&auto=format&fit=crop",
+          bottomRight: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=100&w=2832&fm=webp&auto=format&fit=crop",
+        }}
+      />
 
       {/* ═══ MARQUEE ═══ */}
       <Marquee
@@ -397,9 +397,6 @@ export default function ClientBrandingPage() {
           </div>
         </Reveal>
       </section>
-
-      {/* Transition hero → contenu */}
-      <div className="h-10 sm:h-16 bg-gradient-to-b from-black to-[#f0f4f8]" />
 
       {/* ═══ FOOTER ═══ */}
       <footer className="border-t border-slate-200 bg-white">
