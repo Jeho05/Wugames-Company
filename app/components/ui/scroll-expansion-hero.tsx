@@ -73,7 +73,7 @@ export function ScrollExpansionHero({
   const contentY = useTransform(scrollYProgress, [0, 0.72], [0, -48]);
 
   return (
-    <section className="relative h-[175vh] bg-[#101c32]" ref={sectionRef}>
+    <section className="relative sm:h-[175vh] h-[130vh] bg-[#101c32]" ref={sectionRef}>
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         <motion.div aria-hidden="true" className="absolute inset-0" style={{ opacity: backgroundOpacity }}>
           <Image alt="" className="object-cover scale-110 blur-[2px]" fill priority sizes="100vw" src={backgroundSrc} />
@@ -103,7 +103,7 @@ export function ScrollExpansionHero({
 
         <motion.div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-4 z-20 hidden flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7 sm:flex"
+          className="absolute inset-x-0 bottom-4 z-20 flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7 flex"
           style={{ opacity: titleOpacity }}
         >
           Faites défiler pour découvrir WUGAMS
