@@ -13,8 +13,8 @@ import { Marquee } from "@/app/components/branding/marquee";
 import { PulseButton } from "@/app/components/branding/pulse-button";
 import { TestimonialImage } from "@/app/components/branding/images";
 import { MobileNav } from "@/app/components/ui/mobile-nav";
-import { ScrollExpansionHero } from "@/app/components/ui/scroll-expansion-hero";
 import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
+import { HorizonHeroSection } from "@/app/components/ui/horizon-hero-section";
 
 const navLinks = [
   { label: "Le problème", href: "#probleme" },
@@ -97,7 +97,7 @@ export default function ClientBrandingPage() {
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
       {/* ═══ HERO ═══ */}
-      <section className="relative bg-[#101c32]">
+      <section className="relative">
         <header className="absolute inset-x-0 top-0 z-30 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
           <BrandMark inverse />
           <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 md:flex">
@@ -119,18 +119,25 @@ export default function ClientBrandingPage() {
           </div>
         </header>
 
-        <ScrollExpansionHero
-          backgroundSrc="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1800&q=85"
-          mediaAlt="Chantier de construction moderne piloté par WUGAMS"
-          mediaSrc="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1800&q=90"
-          eyebrow={<span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-[#101c32]/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 backdrop-blur-md"><Icon name="sparkles" size={14} /> <span className="sm:hidden">WUGAMS — 5 filiales, 1 interlocuteur</span><span className="hidden sm:inline">WUGAMS Holding Inc. — 5 filiales, un seul interlocuteur</span></span>}
-          titleFirstLine="Vous méritez un partenaire"
-          titleSecondLine="qui tient ses promesses."
-          description={<p>De la première rencontre à la livraison, nous clarifions votre projet et construisons avec vous. Sans surprise. Sans mauvaise foi.</p>}
-          actions={<div className="flex flex-col justify-center gap-2.5 sm:flex-row sm:gap-3"><PulseButton href="#rencontre">Consultation gratuite — 30 min</PulseButton><a className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-950/20 backdrop-blur-md transition hover:bg-white/20 sm:px-6 sm:py-3.5" href="#solution">Découvrir nos expertises <Icon className="rotate-90" name="arrow-right" size={18} /></a></div>}
-          proof={<div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[11px] font-semibold text-slate-100 sm:gap-x-6 sm:gap-y-2 sm:text-xs"><span className="inline-flex items-center gap-1.5 sm:gap-2"><Icon className="text-emerald-300" name="check" size={14} /> 1 200+ projets livrés</span><span className="inline-flex items-center gap-1.5 sm:gap-2"><Icon className="text-emerald-300" name="check" size={14} /> 4,7/5 satisfaction</span><span className="inline-flex items-center gap-1.5 sm:gap-2"><Icon className="text-emerald-300" name="check" size={14} /> Zéro surprise tarifaire</span></div>}
+        <HorizonHeroSection
+          title="WUGAMS"
+          subtitle={{
+            line1: "Bâtir, rénover, entreprendre.",
+            line2: "Avec la bonne équipe."
+          }}
+          sections={[
+            {
+              title: "CONSTRUIRE",
+              line1: "De la première pierre à la livraison,",
+              line2: "nous donnons vie à vos projets."
+            },
+            {
+              title: "INNOVER",
+              line1: "5 filiales, un seul interlocuteur.",
+              line2: "Votre vision, notre engagement."
+            }
+          ]}
         />
-
       </section>
 
       {/* ═══ MARQUEE ═══ */}
