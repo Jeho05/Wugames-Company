@@ -2,6 +2,13 @@ import Link from "next/link";
 
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
+import { MobileNav } from "@/app/components/ui/mobile-nav";
+
+const vitrineNavLinks = [
+  { label: "Solutions", href: "#solutions" },
+  { label: "Méthode", href: "#methode" },
+  { label: "Contact", href: "#contact" },
+];
 
 const benefits = [
   {
@@ -38,12 +45,15 @@ export default function VitrinePage() {
             <a className="transition hover:text-[#17294b]" href="#methode">Méthode</a>
             <a className="transition hover:text-[#17294b]" href="#contact">Contact</a>
           </nav>
-          <Link
-            className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-3.5 py-2.5 text-xs font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#243a61] sm:px-4 sm:text-sm"
-            href="/connexion"
-          >
-            Espace WUGAMS <Icon name="arrow-right" size={16} />
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <Link
+              className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-3.5 py-2.5 text-xs font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#243a61] sm:px-4 sm:text-sm"
+              href="/connexion"
+            >
+              Espace WUGAMS <Icon name="arrow-right" size={16} />
+            </Link>
+            <MobileNav links={vitrineNavLinks} />
+          </div>
         </header>
 
         <div className="mx-auto grid max-w-[1240px] gap-12 px-5 pb-20 pt-16 sm:px-8 lg:grid-cols-[1fr_0.88fr] lg:items-center lg:pb-28 lg:pt-24">

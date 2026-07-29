@@ -199,8 +199,40 @@ export function DashboardScreen() {
               Tout voir <Icon name="arrow-right" size={15} />
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-[720px] w-full text-left">
+          {/* Mobile Card View */}
+          <div className="divide-y divide-slate-100 md:hidden">
+            {dashboardProjects.map((project) => (
+              <div className="p-4 space-y-3" key={project.client}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">{project.client}</p>
+                    <p className="mt-0.5 text-xs text-slate-400">{project.location}</p>
+                  </div>
+                  <StatusBadge tone={project.status.tone}>{project.status.label}</StatusBadge>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>Équipe : <strong className="text-slate-700">{project.lead}</strong></span>
+                  <span className="font-semibold text-slate-800">{project.value}</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Avancement</span>
+                    <span className="font-bold text-[#3e638e]">{project.progress}%</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-[#4a759f]"
+                      style={{ width: project.progress + "%" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
                   <th className="px-5 py-3 sm:px-6">Dossier</th>

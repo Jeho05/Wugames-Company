@@ -149,8 +149,53 @@ export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-[770px] w-full text-left">
+          {/* Mobile Card List View */}
+          <div className="divide-y divide-slate-100 md:hidden">
+            {visibleRows.map((row: ModuleRow, rowIndex) => {
+              const primaryCol = definition.columns[0];
+              const primaryVal = row[primaryCol?.id] ?? "";
+
+              return (
+                <div
+                  className="cursor-pointer p-4 space-y-2 transition hover:bg-slate-50/70"
+                  key={definition.title + rowIndex}
+                  onClick={() => setToast("Détail du dossier prêt à être relié à l'API.")}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-bold text-slate-800">
+                      {isModuleStatus(primaryVal) ? primaryVal.label : primaryVal}
+                    </p>
+                    {definition.columns.map((col) => {
+                      const val = row[col.id];
+                      return isModuleStatus(val) ? (
+                        <StatusBadge key={col.id} tone={val.tone}>
+                          {val.label}
+                        </StatusBadge>
+                      ) : null;
+                    })}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-600">
+                    {definition.columns.slice(1).map((col) => {
+                      const val = row[col.id];
+                      if (isModuleStatus(val)) return null;
+                      return (
+                        <div key={col.id}>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            {col.label}
+                          </span>
+                          <span className="font-semibold text-slate-700">{val}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
                   {definition.columns.map((column) => (

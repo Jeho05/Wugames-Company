@@ -6,8 +6,8 @@ import { Icon } from "@/app/components/ui/app-icon";
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-[#f5f7fb] p-4 sm:p-6">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1360px] overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[1.08fr_0.92fr] sm:min-h-[calc(100vh-3rem)]">
+    <main className="min-h-[100dvh] bg-[#f5f7fb] p-3 sm:p-6">
+      <div className="mx-auto grid min-h-[calc(100dvh-1.5rem)] max-w-[1360px] overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[1.08fr_0.92fr] sm:min-h-[calc(100dvh-3rem)] sm:rounded-[28px]">
         <section className="relative hidden overflow-hidden bg-[#17294b] p-10 text-white lg:flex lg:flex-col">
           <div className="relative z-10">
             <BrandMark inverse />

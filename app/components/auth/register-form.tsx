@@ -17,6 +17,8 @@ export function RegisterForm() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -26,8 +28,8 @@ export function RegisterForm() {
   }
 
   return (
-    <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-      <div className="grid gap-4 sm:grid-cols-2">
+    <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+      <div className="grid gap-3.5 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="first-name">
             Prénom
@@ -97,18 +99,28 @@ export function RegisterForm() {
         <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="register-password">
           Créer un mot de passe
         </label>
-        <input
-          autoComplete="new-password"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-          id="register-password"
-          minLength={8}
-          name="password"
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="8 caractères minimum"
-          required
-          type="password"
-          value={password}
-        />
+        <div className="relative">
+          <input
+            autoComplete="new-password"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 pr-10 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
+            id="register-password"
+            minLength={8}
+            name="password"
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="8 caractères minimum"
+            required
+            type={showPassword ? "text" : "password"}
+            value={password}
+          />
+          <button
+            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            onClick={() => setShowPassword(!showPassword)}
+            type="button"
+          >
+            <Icon name={showPassword ? "close" : "shield"} size={16} />
+          </button>
+        </div>
       </div>
       <div className="rounded-xl border border-sky-100 bg-[#edf6ff] px-3.5 py-2.5">
         <p className="text-[11px] leading-5 text-sky-800">

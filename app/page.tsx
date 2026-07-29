@@ -12,8 +12,16 @@ import { ShaderBeams } from "@/app/components/branding/shader-beams";
 import { Marquee } from "@/app/components/branding/marquee";
 import { PulseButton } from "@/app/components/branding/pulse-button";
 import { TestimonialImage } from "@/app/components/branding/images";
+import { MobileNav } from "@/app/components/ui/mobile-nav";
 import { ScrollExpansionHero } from "@/app/components/ui/scroll-expansion-hero";
 import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
+
+const navLinks = [
+  { label: "Le problème", href: "#probleme" },
+  { label: "Notre solution", href: "#solution" },
+  { label: "Ils nous font confiance", href: "#temoignages" },
+  { label: "Rencontrez-nous", href: "#rencontre" },
+];
 
 const painPoints = [
   "Vous avez déjà fait appel à un artisan qui n&apos;a pas tenu ses promesses ?",
@@ -99,13 +107,15 @@ export default function ClientBrandingPage() {
             <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
           </nav>
           <div className="flex items-center gap-2.5">
-            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:text-sm" href="/connexion">
+            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
               Se connecter
             </Link>
-            <PulseButton href="#rencontre">
-              <span className="sm:hidden">Votre projet</span>
-              <span className="hidden sm:inline">Parlons de votre projet</span>
-            </PulseButton>
+            <div className="hidden sm:block">
+              <PulseButton href="#rencontre">
+                Parlons de votre projet
+              </PulseButton>
+            </div>
+            <MobileNav inverse links={navLinks} />
           </div>
         </header>
 
