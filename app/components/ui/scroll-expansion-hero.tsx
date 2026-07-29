@@ -6,10 +6,11 @@ import { motion, useScroll, useTransform } from "motion/react";
 
 type ClipFrame = { top: number; right: number; bottom: number; left: number; radius: number };
 
-// Same animation everywhere; only the opening crop is proportioned to the viewport
-// so the framed image reads as an elegant card on phones instead of a narrow strip.
-const COMPACT_START: ClipFrame = { top: 23, right: 6, bottom: 17, left: 6, radius: 22 };
-const WIDE_START: ClipFrame = { top: 18, right: 29, bottom: 16, left: 29, radius: 28 };
+// Same animation everywhere; only the opening crop is proportioned to the viewport.
+// The media opens as a wide cinematic card in the lower half so the copy above
+// never overlaps it before the full-screen expansion.
+const COMPACT_START: ClipFrame = { top: 62, right: 5, bottom: 4, left: 5, radius: 20 };
+const WIDE_START: ClipFrame = { top: 56, right: 20, bottom: 6, left: 20, radius: 24 };
 const MID_FRAME: ClipFrame = { top: 3, right: 2, bottom: 3, left: 2, radius: 32 };
 const OPEN_FRAME: ClipFrame = { top: 0, right: 0, bottom: 0, left: 0, radius: 0 };
 
@@ -65,12 +66,11 @@ export function ScrollExpansionHero({
   const mediaClip = useTransform(scrollYProgress, (progress) => clipAt(progress, startFrame));
   const mediaScale = useTransform(scrollYProgress, [0, 0.68, 1], [0.98, 1.02, 1]);
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 0.36, 0.2]);
-  // Copy stays visible longer during scroll on PC for optimal readability
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.35, 0.72], [1, 0.8, 0]);
+  // Copy fades out before the expanding media reaches it, so text and image never collide
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.25, 0.55], [1, 0.85, 0]);
+  const contentVisibility = useTransform(titleOpacity, (v) => (v < 0.03 ? "hidden" : "visible"));
   const pointerEvents = useTransform(titleOpacity, (v) => (v < 0.05 ? "none" : "auto"));
-  const firstLineX = useTransform(scrollYProgress, [0, 0.72], ["0vw", "-20vw"]);
-  const secondLineX = useTransform(scrollYProgress, [0, 0.72], ["0vw", "20vw"]);
-  const contentY = useTransform(scrollYProgress, [0, 0.72], [0, -48]);
+  const contentY = useTransform(scrollYProgress, [0, 0.55], [0, -56]);
 
   return (
     <section className="relative sm:h-[175vh] h-[130vh] bg-[#101c32]" ref={sectionRef}>
@@ -83,31 +83,31 @@ export function ScrollExpansionHero({
 
         <motion.div className="absolute inset-0 z-10 overflow-hidden" style={{ clipPath: mediaClip, scale: mediaScale }}>
           <Image alt={mediaAlt} className="object-cover" fill priority sizes="100vw" src={mediaSrc} />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#081323]/85 via-[#081323]/25 to-[#081323]/40 sm:from-[#081323]/70 sm:via-[#081323]/10 sm:to-[#081323]/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#081323]/60 via-transparent to-[#081323]/20" />
           <div className="absolute inset-0 ring-1 ring-inset ring-white/20" />
         </motion.div>
 
         <motion.div
-          className="absolute inset-0 z-20 mx-auto flex max-w-5xl flex-col items-center justify-center px-4 pb-8 pt-[84px] text-center text-white sm:px-5 sm:pb-14 sm:pt-[86px]"
-          style={{ opacity: titleOpacity, y: contentY, pointerEvents }}
+          className="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-4xl flex-col items-center px-4 pt-[92px] text-center text-white sm:px-5 sm:pt-[102px]"
+          style={{ opacity: titleOpacity, y: contentY, pointerEvents, visibility: contentVisibility }}
         >
-          <div className="pointer-events-auto">{eyebrow}</div>
-          <h1 className="mt-3 max-w-5xl text-[clamp(1.8rem,6vw,5.75rem)] font-bold leading-[0.94] tracking-[-0.065em] text-white drop-shadow-[0_5px_24px_rgba(0,0,0,0.38)] sm:mt-5 sm:leading-[0.92] sm:tracking-[-0.075em]">
-            <motion.span className="block" style={{ x: firstLineX }}>{titleFirstLine}</motion.span>
-            <motion.span className="mt-1.5 block sm:mt-2" style={{ x: secondLineX }}>{titleSecondLine}</motion.span>
+          {eyebrow}
+          <h1 className="mt-3.5 text-[clamp(1.9rem,4.7vw,4.4rem)] font-bold leading-[1.04] tracking-[-0.04em] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.35)] sm:mt-5 sm:leading-[1] sm:tracking-[-0.05em]">
+            {titleFirstLine}
+            <span className="block">{titleSecondLine}</span>
           </h1>
-          <div className="pointer-events-auto mt-3 max-w-xl text-[13px] leading-5 text-slate-100 sm:mt-6 sm:text-base sm:leading-7">{description}</div>
-          <div className="pointer-events-auto mt-4 sm:mt-7">{actions}</div>
-          <div className="pointer-events-auto mt-4 sm:mt-7">{proof}</div>
+          <div className="mt-3 max-w-md text-[13px] leading-5 text-slate-200 sm:mt-4 sm:max-w-xl sm:text-base sm:leading-7">{description}</div>
+          <div className="mt-5 sm:mt-6">{actions}</div>
+          <div className="mt-4 sm:mt-5">{proof}</div>
         </motion.div>
 
         <motion.div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-4 z-20 flex-col items-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/75 sm:bottom-7 flex"
+          className="absolute inset-x-0 bottom-3 z-20 flex flex-col items-center gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/80 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] sm:bottom-5"
           style={{ opacity: titleOpacity }}
         >
           Faites défiler pour découvrir WUGAMS
-          <span className="h-8 w-px bg-gradient-to-b from-white/80 to-transparent" />
+          <span className="h-7 w-px bg-gradient-to-b from-white/80 to-transparent" />
         </motion.div>
       </div>
     </section>
