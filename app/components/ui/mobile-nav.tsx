@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -26,6 +27,9 @@ export function MobileNav({
   ctaHref = "/connexion",
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [portalTarget] = useState(() =>
+    typeof document !== "undefined" ? document.body : null,
+  );
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
@@ -56,14 +60,17 @@ export function MobileNav({
         <Icon name={isOpen ? "close" : "menu"} size={22} />
       </button>
 
-      {/* Mobile Menu Overlay & Drawer */}
-      <AnimatePresence>
-        {isOpen ? (
-          <div className="fixed inset-0 z-50 flex flex-col">
+      {/* Mobile Menu Overlay & Drawer — portaled to <body> so backdrop-filter on the
+          header can't trap the fixed positioning (containing block bug). */}
+      {portalTarget
+        ? createPortal(
+            <AnimatePresence>
+              {isOpen ? (
+          <div className="fixed inset-0 z-[70] flex flex-col" data-lenis-prevent>
             {/* Backdrop Blur */}
             <motion.div
               animate={{ opacity: 1 }}
-              className="absolute inset-0 bg-slate-950/70 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-950/85 backdrop-blur-md"
               exit={{ opacity: 0 }}
               initial={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
@@ -124,10 +131,13 @@ export function MobileNav({
                   {ctaText}
                 </Link>
               </div>
-            </motion.div>
-          </div>
-        ) : null}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -12,6 +12,9 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     const lenis = new Lenis({
       anchors: true,
       smoothWheel: true,
+      lerp: 0.07,
+      wheelMultiplier: 0.9,
+      touchMultiplier: 0.9,
     });
 
     lenis.on("scroll", ScrollTrigger.update);

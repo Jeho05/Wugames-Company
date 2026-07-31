@@ -49,14 +49,14 @@ const INJECTED_STYLES = `
 
 
   .text-silver-matte {
-      background: linear-gradient(180deg, var(--color-foreground) 0%, color-mix(in srgb, var(--color-foreground) 40%, transparent) 100%);
+      background: linear-gradient(180deg, var(--color-foreground) 0%, color-mix(in srgb, var(--color-foreground) 72%, transparent) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       transform: translateZ(0); /* Hardware acceleration to prevent WebKit clipping bug */
       filter: 
-          drop-shadow(0px 10px 20px color-mix(in srgb, var(--color-foreground) 15%, transparent)) 
-          drop-shadow(0px 2px 4px color-mix(in srgb, var(--color-foreground) 10%, transparent));
+          drop-shadow(0px 10px 20px color-mix(in srgb, var(--color-foreground) 18%, transparent)) 
+          drop-shadow(0px 2px 4px color-mix(in srgb, var(--color-foreground) 12%, transparent));
   }
 
 
@@ -106,12 +106,12 @@ const INJECTED_STYLES = `
 
 
   .hardware-btn {
-      background: linear-gradient(90deg, #404040 0%, #171717 100%);
+      background: linear-gradient(90deg, #5a5a5a 0%, #262626 45%, #171717 100%);
       box-shadow: 
-          -2px 0 5px rgba(0,0,0,0.8),
-          inset -1px 0 1px rgba(255,255,255,0.15),
-          inset 1px 0 2px rgba(0,0,0,0.8);
-      border-left: 1px solid rgba(255,255,255,0.05);
+          -2px 0 6px rgba(0,0,0,0.6),
+          inset -1px 0 1px rgba(255,255,255,0.25),
+          inset 1px 0 2px rgba(0,0,0,0.9);
+      border-left: 1px solid rgba(255,255,255,0.1);
   }
   
   .screen-glare {
@@ -360,7 +360,7 @@ export function CinematicHero({
         <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-silver-matte">
           {ctaHeading}
         </h2>
-        <p className="text-muted-foreground text-lg md:text-xl mb-12 max-w-xl mx-auto font-light leading-relaxed">
+        <p className="text-slate-600 text-lg md:text-xl mb-12 max-w-xl mx-auto font-normal leading-relaxed">
           {ctaDescription}
         </p>
         <div className="flex flex-col sm:flex-row gap-6">
@@ -420,10 +420,10 @@ export function CinematicHero({
                   className="relative w-[280px] h-[580px] rounded-[3rem] iphone-bezel flex flex-col will-change-transform transform-style-3d"
                 >
                   {/* Physical Hardware Buttons */}
-                  <div className="absolute top-[120px] -left-[3px] w-[3px] h-[25px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
-                  <div className="absolute top-[160px] -left-[3px] w-[3px] h-[45px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
-                  <div className="absolute top-[220px] -left-[3px] w-[3px] h-[45px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
-                  <div className="absolute top-[170px] -right-[3px] w-[3px] h-[70px] hardware-btn rounded-r-md z-0 scale-x-[-1]" aria-hidden="true" />
+                  <div className="absolute top-[112px] -left-[4px] w-[4px] h-[26px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
+                  <div className="absolute top-[152px] -left-[4px] w-[4px] h-[42px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
+                  <div className="absolute top-[202px] -left-[4px] w-[4px] h-[42px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
+                  <div className="absolute top-[168px] -right-[4px] w-[4px] h-[72px] hardware-btn rounded-r-md z-0" aria-hidden="true" />
 
 
                   {/* Inner Screen Container */}
@@ -525,7 +525,7 @@ export function CinematicHero({
                 {cardHeading}
               </h3>
               {/* HIDDEN ON MOBILE (added hidden md:block) */}
-              <p className="hidden md:block text-blue-100/70 text-sm md:text-base lg:text-lg font-normal leading-relaxed mx-auto lg:mx-0 max-w-sm lg:max-w-none">
+              <p className="hidden md:block text-blue-100/85 text-sm md:text-base lg:text-lg font-normal leading-relaxed mx-auto lg:mx-0 max-w-sm lg:max-w-none">
                 {cardDescription}
               </p>
             </div>
