@@ -18,6 +18,43 @@ interface ThreeRefs {
   mountains: THREE.Mesh[];
   atmosphere: THREE.Mesh | null;
   animationId: number | null;
+  targetCameraX: number;
+  targetCameraY: number;
+  targetCameraZ: number;
+  mountainBaseZ: number[];
+  performanceMode: PerformanceMode;
+  frameCount: number;
+  lastFrameTime: number;
+}
+
+type PerformanceMode = 'high' | 'medium' | 'low' | 'fallback';
+
+const CAMERA_POSITIONS = [
+  { x: 0, y: 30, z: 300 },
+  { x: 0, y: 40, z: -50 },
+  { x: 0, y: 50, z: -700 },
+];
+
+// Detect device capabilities
+function detectPerformanceMode(): PerformanceMode {
+  // Check WebGL availability
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  
+  if (!gl) {
+    return 'fallback';
+  }
+
+  // Check hardware concurrency
+  const cores = navigator.hardwareConcurrency || 2;
+  
+  if (cores >= 8) {
+    return 'high';
+  } else if (cores >= 4) {
+    return 'medium';
+  } else {
+    return 'low';
+  }
 }
 
 const MOUNTAIN_LAYERS = [
@@ -27,55 +64,117 @@ const MOUNTAIN_LAYERS = [
   { distance: -200, height: 120, color: 0x0a4668, opacity: 0.4 },
 ];
 
-export function HorizonHeroSection({ title, subtitle }: {
+export function HorizonHeroSection({ title, subtitle, sections = [] }: {
   title: string;
   subtitle: { line1: string; line2: string };
+  sections?: Array<{ title: string; line1: string; line2: string }>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
+  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
+  const [heroProgress, setHeroProgress] = useState(0);
   const [isReady, setIsReady] = useState(false);
+
+  const smoothCameraPos = useRef({ x: 0, y: 30, z: 100 });
 
   const threeRefs = useRef<ThreeRefs>({
     scene: null, camera: null, renderer: null, composer: null,
-    stars: [], nebula: null, mountains: [], atmosphere: null, animationId: null,
+    stars: [], nebula: null, mountains: [], atmosphere: null,
+    animationId: null, targetCameraX: 0, targetCameraY: 30, targetCameraZ: 300, mountainBaseZ: [],
+    performanceMode: 'high', frameCount: 0, lastFrameTime: performance.now(),
   });
 
   useEffect(() => {
     const refs = threeRefs.current;
     if (!canvasRef.current) return;
 
+    // Detect performance mode
+    refs.performanceMode = detectPerformanceMode();
+
+    // Use fallback gradient if WebGL unavailable
+    if (refs.performanceMode === 'fallback') {
+      console.warn('WebGL unavailable, using 2D fallback');
+      // Component will render without Three.js
+      setIsReady(true);
+      return;
+    }
+
     refs.scene = new THREE.Scene();
-    refs.scene.fog = new THREE.FogExp2(0x000000, 0.00025);
+    refs.scene.fog = new THREE.FogExp2(0x000000, 0.00015);
 
     refs.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
     refs.camera.position.set(0, 20, 100);
 
-    refs.renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current, antialias: true, alpha: true,
-    });
-    refs.renderer.setSize(window.innerWidth, window.innerHeight);
-    refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    refs.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    refs.renderer.toneMappingExposure = 0.5;
+    try {
+      refs.renderer = new THREE.WebGLRenderer({
+        canvas: canvasRef.current, antialias: true, alpha: true,
+      });
+      refs.renderer.setSize(window.innerWidth, window.innerHeight);
+      refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      refs.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      refs.renderer.toneMappingExposure = 0.5;
+    } catch (error) {
+      console.warn('Three.js initialization failed, using 2D fallback', error);
+      refs.performanceMode = 'fallback';
+      setIsReady(true);
+      return;
+    }
 
     refs.composer = new EffectComposer(refs.renderer);
     refs.composer.addPass(new RenderPass(refs.scene, refs.camera));
 
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.85
-    );
-    refs.composer.addPass(bloomPass);
+    // Only add bloom on high/medium performance modes
+    if (refs.performanceMode === 'high' || refs.performanceMode === 'medium') {
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight), 0.6, 0.3, 0.85
+      );
+      refs.composer.addPass(bloomPass);
+    }
+    
     refs.composer.addPass(new OutputPass());
 
-    createStarField(refs);
+    // Adjust star count and detail based on performance mode
+    const starMultiplier = refs.performanceMode === 'high' ? 1 : refs.performanceMode === 'medium' ? 0.6 : 0.3;
+    createStarField(refs, starMultiplier);
     createNebula(refs);
     createMountains(refs);
-    createAtmosphere(refs);
+    
+    // Only create atmosphere on high performance mode
+    if (refs.performanceMode === 'high') {
+      createAtmosphere(refs);
+    }
+    
+    refs.mountainBaseZ = refs.mountains.map((m) => m.position.z);
 
     const animate = () => {
       refs.animationId = requestAnimationFrame(animate);
       const time = Date.now() * 0.001;
+
+      // FPS monitoring (development mode)
+      if (process.env.NODE_ENV === 'development') {
+        refs.frameCount++;
+        const now = performance.now();
+        if (now - refs.lastFrameTime >= 1000) {
+          const fps = refs.frameCount;
+          refs.frameCount = 0;
+          refs.lastFrameTime = now;
+          
+          // Reduce quality if FPS drops below 30
+          if (fps < 30 && refs.performanceMode !== 'low') {
+            console.warn(`Low FPS detected (${fps}), reducing animation complexity`);
+            refs.performanceMode = 'low';
+            
+            // Remove atmosphere if it exists
+            if (refs.atmosphere) {
+              refs.scene?.remove(refs.atmosphere);
+              refs.atmosphere.geometry.dispose();
+              (refs.atmosphere.material as THREE.Material).dispose();
+              refs.atmosphere = null;
+            }
+          }
+        }
+      }
 
       refs.stars.forEach((starField) => {
         if (starField.material instanceof THREE.ShaderMaterial && starField.material.uniforms.time) {
@@ -92,10 +191,22 @@ export function HorizonHeroSection({ title, subtitle }: {
       }
 
       if (refs.camera) {
-        refs.camera.position.x = Math.sin(time * 0.05) * 5;
-        refs.camera.position.y = 20 + Math.cos(time * 0.08) * 2;
+        const sp = smoothCameraPos.current;
+        sp.x += (refs.targetCameraX - sp.x) * 0.03;
+        sp.y += (refs.targetCameraY - sp.y) * 0.03;
+        sp.z += (refs.targetCameraZ - sp.z) * 0.03;
+
+        refs.camera.position.x = sp.x + Math.sin(time * 0.1) * 2;
+        refs.camera.position.y = sp.y + Math.cos(time * 0.15) * 1;
+        refs.camera.position.z = sp.z;
         refs.camera.lookAt(0, 10, -600);
       }
+
+      refs.mountains.forEach((mountain, i) => {
+        const pf = 1 + i * 0.5;
+        mountain.position.x = Math.sin(time * 0.1) * 2 * pf;
+        mountain.position.y = 50 + Math.cos(time * 0.15) * 1 * pf;
+      });
 
       refs.composer?.render();
     };
@@ -112,24 +223,100 @@ export function HorizonHeroSection({ title, subtitle }: {
     };
 
     window.addEventListener('resize', handleResize);
+
+    const sectionCount = sections.length + 1;
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const documentHeight = document.documentElement.scrollHeight;
+      const maxScroll = documentHeight - window.innerHeight;
+      const progress = Math.min(scrollY / Math.max(maxScroll, 1), 1);
+
+      setHeroProgress(Math.min(scrollY / (window.innerHeight * sectionCount), 1));
+
+      const refs = threeRefs.current;
+      const cameraCount = CAMERA_POSITIONS.length - 1;
+      const cameraIndex = Math.min(Math.floor(progress * cameraCount), cameraCount - 1);
+      const cameraFrac = (progress * cameraCount) % 1;
+
+      const cur = CAMERA_POSITIONS[cameraIndex];
+      const next = CAMERA_POSITIONS[Math.min(cameraIndex + 1, cameraCount)];
+
+      refs.targetCameraX = cur.x + (next.x - cur.x) * cameraFrac;
+      refs.targetCameraY = cur.y + (next.y - cur.y) * cameraFrac;
+      refs.targetCameraZ = cur.z + (next.z - cur.z) * cameraFrac;
+
+      refs.mountains.forEach((mountain, i) => {
+        const baseZ = refs.mountainBaseZ[i] ?? MOUNTAIN_LAYERS[i]?.distance ?? -200;
+        const targetZ = baseZ + scrollY * (1 + i * 0.5) * 0.15;
+        mountain.position.z += (targetZ - mountain.position.z) * 0.05;
+
+        if (refs.camera) {
+          const behind = Math.max(0, (mountain.position.z - refs.camera.position.z) / 150);
+          (mountain.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 1 - behind);
+        }
+      });
+
+      if (refs.nebula && refs.mountains[3]) {
+        refs.nebula.position.z = refs.mountains[3].position.z - 800;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
     setIsReady(true);
 
     return () => {
       if (refs.animationId) cancelAnimationFrame(refs.animationId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
 
-      refs.stars.forEach((s) => { s.geometry.dispose(); (s.material as THREE.Material).dispose(); });
-      refs.mountains.forEach((m) => { m.geometry.dispose(); (m.material as THREE.Material).dispose(); });
-      if (refs.nebula) { refs.nebula.geometry.dispose(); (refs.nebula.material as THREE.Material).dispose(); }
-      if (refs.atmosphere) { refs.atmosphere.geometry.dispose(); (refs.atmosphere.material as THREE.Material).dispose(); }
+      // Proper cleanup of all Three.js resources
+      refs.stars.forEach((s) => {
+        s.geometry.dispose();
+        if (s.material instanceof THREE.Material) {
+          s.material.dispose();
+        }
+      });
+      
+      refs.mountains.forEach((m) => {
+        m.geometry.dispose();
+        if (m.material instanceof THREE.Material) {
+          m.material.dispose();
+        }
+      });
+      
+      if (refs.nebula) {
+        refs.nebula.geometry.dispose();
+        if (refs.nebula.material instanceof THREE.Material) {
+          refs.nebula.material.dispose();
+        }
+      }
+      
+      if (refs.atmosphere) {
+        refs.atmosphere.geometry.dispose();
+        if (refs.atmosphere.material instanceof THREE.Material) {
+          refs.atmosphere.material.dispose();
+        }
+      }
+      
+      // Dispose composer passes
+      if (refs.composer) {
+        refs.composer.passes.forEach((pass) => {
+          if ('dispose' in pass && typeof pass.dispose === 'function') {
+            pass.dispose();
+          }
+        });
+      }
+      
       refs.renderer?.dispose();
     };
-  }, []);
+  }, [sections.length]);
 
   useEffect(() => {
     if (!isReady) return;
 
-    gsap.set([titleRef.current, subtitleRef.current], { visibility: 'visible' });
+    gsap.set([titleRef.current, subtitleRef.current, scrollIndicatorRef.current], { visibility: 'visible' });
 
     const tl = gsap.timeline();
     const titleChars = titleRef.current?.querySelectorAll('.title-char');
@@ -142,13 +329,21 @@ export function HorizonHeroSection({ title, subtitle }: {
       tl.from(subtitleLines, { y: 50, opacity: 0, duration: 1, stagger: 0.2, ease: 'power3.out' }, '-=0.8');
     }
 
+    tl.from(scrollIndicatorRef.current, { opacity: 0, y: 50, duration: 1, ease: 'power2.out' }, '-=0.5');
+
     return () => { tl.kill(); };
   }, [isReady]);
 
+  const overlayOpacity = Math.max(0, 1 - heroProgress * 1.5);
+  const indicatorOpacity = Math.max(0, 1 - heroProgress * 1.1);
+
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-black">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none text-center px-6 sm:px-8">
+    <div className="relative">
+      <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none -z-10" />
+
+      <div className="absolute inset-0 z-[-1] bg-gradient-to-b from-black/10 via-transparent to-black/30 pointer-events-none" />
+
+      <div className="relative h-screen flex flex-col items-center justify-center pointer-events-none text-center px-6 sm:px-8" style={{ opacity: overlayOpacity }}>
         <h1 ref={titleRef} className="text-[clamp(2.8rem,13vw,8rem)] font-black tracking-[0.08em] leading-none bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/30 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)]" style={{ visibility: 'hidden' }}>
           {title.split('').map((char, i) => (
             <span key={i} className="title-char inline-block">{char}</span>
@@ -159,14 +354,38 @@ export function HorizonHeroSection({ title, subtitle }: {
           <p className="subtitle-line">{subtitle.line2}</p>
         </div>
       </div>
+
+      <div ref={scrollIndicatorRef} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+        style={{ opacity: indicatorOpacity, visibility: indicatorOpacity > 0 ? 'visible' : 'hidden' }}
+      >
+        <div className="text-[10px] tracking-[0.3em] text-white/30 font-mono uppercase">DÉCOUVRIR</div>
+        <div className="w-20 sm:w-28 h-px bg-white/10 overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-amber-400/80 to-blue-500/80 transition-all duration-150"
+            style={{ width: `${heroProgress * 100}%` }} />
+        </div>
+      </div>
+
+      {sections.map((section, i) => (
+        <section key={i} className="relative min-h-screen flex items-center justify-center px-6 sm:px-8">
+          <div className="max-w-3xl w-full rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 p-8 sm:p-12 md:p-16 text-center shadow-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300/80 mb-4">{section.title}</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight">
+              {section.line1}
+            </h2>
+            <p className="mt-4 text-lg sm:text-xl text-white/70 font-light">
+              {section.line2}
+            </p>
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
 
-function createStarField(refs: ThreeRefs) {
+function createStarField(refs: ThreeRefs, multiplier: number = 1) {
   const scene = refs.scene;
   if (!scene) return;
-  const starCount = 5000;
+  const starCount = Math.floor(5000 * multiplier);
 
   for (let i = 0; i < 3; i++) {
     const geometry = new THREE.BufferGeometry();
@@ -240,7 +459,7 @@ function createNebula(refs: ThreeRefs) {
       time: { value: 0 },
       color1: { value: new THREE.Color(0x17294b) },
       color2: { value: new THREE.Color(0xe3a641) },
-      opacity: { value: 0.2 },
+      opacity: { value: 0.15 },
     },
     vertexShader: `
       varying vec2 vUv; varying float vElevation; uniform float time;
