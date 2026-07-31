@@ -9,6 +9,9 @@ export type { AnimatedButtonProps } from './animated-button';
 export { AnimatedCard } from './animated-card';
 export type { AnimatedCardProps } from './animated-card';
 
+export { CinematicHeroSection } from './cinematic-hero-section';
+export type { CinematicHeroSectionProps, CinematicScene } from './cinematic-hero-section';
+
 export { EnhancedHeroSection } from './enhanced-hero-section';
 export type { EnhancedHeroSectionProps } from './enhanced-hero-section';
 

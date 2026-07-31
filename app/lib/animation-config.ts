@@ -63,6 +63,16 @@ export interface AnimationConfig {
     autoplay: boolean;
     defaultLoop: boolean;
   };
+  cinematic: {
+    hero: {
+      wrapperHeightVh: number; // 300
+      letterboxTopVh: number; // 11
+      letterboxBottomVh: number; // 11
+      letterboxRetract: number; // 0.22
+      sceneFadeEdge: number; // 0.22
+      contentParallax: number; // 50
+    };
+  };
 }
 
 export const ANIMATION_CONFIG: AnimationConfig = {
@@ -148,5 +158,15 @@ export const ANIMATION_CONFIG: AnimationConfig = {
     lazyLoadThreshold: 0.1,
     autoplay: true,
     defaultLoop: true,
+  },
+  cinematic: {
+    hero: {
+      wrapperHeightVh: 300,
+      letterboxTopVh: 11,
+      letterboxBottomVh: 11,
+      letterboxRetract: 0.22,
+      sceneFadeEdge: 0.22,
+      contentParallax: 50,
+    },
   },
 };
