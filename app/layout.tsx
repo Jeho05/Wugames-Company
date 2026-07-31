@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { AuthProvider } from "@/app/lib/auth-context";
+import { SmoothScroll } from "@/app/components/ui/smooth-scroll";
 
 import "./globals.css";
 
@@ -34,7 +35,9 @@ export default function RootLayout({
       lang="fr"
     >
       <body className="min-h-full bg-background text-foreground">
-        <AuthProvider>{children}</AuthProvider>
+        <SmoothScroll>
+          <AuthProvider>{children}</AuthProvider>
+        </SmoothScroll>
       </body>
     </html>
   );

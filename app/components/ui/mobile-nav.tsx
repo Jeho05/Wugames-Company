@@ -92,7 +92,7 @@ export function MobileNav({
               </div>
 
               {/* Navigation Links */}
-              <nav className="my-6 space-y-2 overflow-y-auto">
+              <nav className="my-6 space-y-2 overflow-y-auto" data-lenis-prevent>
                 {links.map((link) => (
                   <a
                     className="flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3.5 text-base font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white"
