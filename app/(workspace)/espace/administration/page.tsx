@@ -1,38 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
 import { useAuth } from "@/app/lib/auth-context";
+import { listAuditLogs } from "@/app/lib/api/audit-logs";
+import { listUsers } from "@/app/lib/api/users";
+import type { AuditLog, RoleCode, User } from "@/app/lib/contracts";
 
 const adminRoles = new Set(["ROLE_GERANT", "ROLE_DEV_DIGITAL"]);
 
-const accounts = [
-  { name: "Jéhovani Olouwatossi", email: "gerant@wugams.ci", role: "Gérant", filiale: "Siège", status: { label: "Actif", tone: "success" as const } },
-  { name: "Aimé Bamba", email: "manager@wugams.ci", role: "Manager Opérations", filiale: "WUGAMS Construction", status: { label: "Actif", tone: "success" as const } },
-  { name: "Céline N'Dri", email: "comptable@wugams.ci", role: "Comptable", filiale: "Siège", status: { label: "Actif", tone: "success" as const } },
-  { name: "Dev Digital", email: "dev@wugams.ci", role: "Dev Digital", filiale: "Siège", status: { label: "Actif", tone: "success" as const } },
-  { name: "Sarah Gnahoua", email: "secretary@wugams.ci", role: "Secrétaire", filiale: "WUGAMS Construction", status: { label: "Actif", tone: "success" as const } },
-  { name: "Manager Partenariats", email: "mgr-partenaires@wugams.ci", role: "Manager Partenariats", filiale: "WUGAMS Matériaux", status: { label: "Actif", tone: "success" as const } },
-  { name: "Manager Filiale", email: "mgr-filiale@wugams.ci", role: "Manager Filiale", filiale: "WUGAMS Entretien", status: { label: "Actif", tone: "success" as const } },
-  { name: "Compte à attribuer", email: "—", role: "Manager Filiale", filiale: "—", status: { label: "En création", tone: "warning" as const } },
-];
+const roleLabels: Record<RoleCode, string> = {
+  ROLE_CLIENT_STD: "Client standard",
+  ROLE_CLIENT_MEMBRE: "Client membre",
+  ROLE_OUVRIER: "Ouvrier",
+  ROLE_RESP_OUVRIERS: "Resp. ouvriers",
+  ROLE_FOURNISSEUR: "Fournisseur",
+  ROLE_SECRETAIRE: "Secrétaire",
+  ROLE_COMPTABLE: "Comptable",
+  ROLE_MGR_OPS: "Manager Opérations",
+  ROLE_MGR_PARTENAIRE: "Manager Partenariats",
+  ROLE_MGR_FILIALE: "Manager Filiale",
+  ROLE_DEV_DIGITAL: "Dev Digital",
+  ROLE_GERANT: "Gérant",
+};
 
-const auditLog = [
-  { action: "Connexion au back-office", who: "gerant@wugams.ci", when: "Aujourd'hui · 08:12", detail: "IP 197.210.xx.xx" },
-  { action: "Création de compte manager", who: "gerant@wugams.ci", when: "Aujourd'hui · 09:40", detail: "Rôle proposé : Manager Filiale" },
-  { action: "Export CSV du module Stocks", who: "manager@wugams.ci", when: "Hier · 16:03", detail: "23 lignes exportées" },
-  { action: "Modification des seuils BR-03/BR-04", who: "dev@wugams.ci", when: "Hier · 11:27", detail: "Valeur modifiée : stock faible" },
-  { action: "Connexion au back-office", who: "comptable@wugams.ci", when: "Hier · 09:15", detail: "IP 197.210.xx.xx" },
-];
+const auditActionLabels: Record<AuditLog["action"], string> = {
+  CREATE: "Création",
+  UPDATE: "Modification",
+  DELETE: "Suppression",
+};
 
 const tabs = ["Comptes & rôles", "Audit & journaux", "Paramètres"];
+
+function formatAuditDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 export default function AdministrationPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [toast, setToast] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [live, setLive] = useState(false);
+
+  useEffect(() => {
+    if (!user || !adminRoles.has(user.role)) return;
+    let cancelled = false;
+    Promise.allSettled([listUsers(), listAuditLogs()]).then(([usersResult, auditResult]) => {
+      if (cancelled) return;
+      if (usersResult.status === "fulfilled") setUsers(usersResult.value);
+      if (auditResult.status === "fulfilled") setAuditLogs(auditResult.value);
+      setLive(usersResult.status === "fulfilled" || auditResult.status === "fulfilled");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   if (!user) {
     return null;
@@ -53,12 +86,14 @@ export default function AdministrationPage() {
             Votre rôle actuel ({user.role}) ne permet pas d&apos;y accéder.
           </p>
           <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500">
-            Démo : connectez-vous avec <strong>gerant@wugams.ci</strong> pour découvrir le module.
+            Connectez-vous avec <strong>admin@wugams.com</strong> pour découvrir le module.
           </p>
         </div>
       </div>
     );
   }
+
+  const actifs = users.filter((u) => u.is_active).length;
 
   return (
     <div className="space-y-6">
@@ -99,10 +134,10 @@ export default function AdministrationPage() {
 
       <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
         {[
-          { label: "Comptes actifs", value: "11" },
-          { label: "Rôles définis", value: "11" },
-          { label: "Connexions aujourd'hui", value: "04" },
-          { label: "Actions auditées", value: "127" },
+          { label: "Comptes (API)", value: String(users.length) },
+          { label: "Actifs", value: String(actifs) },
+          { label: "Rôles en usage", value: String(new Set(users.map((u) => u.role)).size) },
+          { label: "Actions auditées", value: String(auditLogs.length) },
         ].map((stat, index) => (
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" key={stat.label}>
             <p className="text-xs font-semibold text-slate-500">{stat.label}</p>
@@ -113,6 +148,15 @@ export default function AdministrationPage() {
           </article>
         ))}
       </section>
+
+      {live ? (
+        <div className="flex justify-end">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+            <Icon name="check" size={13} />
+            Données en direct · API WUGAMS
+          </span>
+        </div>
+      ) : null}
 
       <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 px-5 pt-5 sm:px-6 sm:pt-6">
@@ -149,39 +193,48 @@ export default function AdministrationPage() {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((account) => (
-                  <tr
-                    className="cursor-pointer border-b border-slate-100 transition last:border-0 hover:bg-sky-50/50"
-                    key={account.email}
-                    onClick={() => setToast("Gestion du compte " + account.name + " prête à être reliée à l'API.")}
-                  >
-                    <td className="px-5 py-4 sm:px-6">
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-8 place-items-center rounded-lg bg-[#dce7f5] text-[10px] font-extrabold text-[#244269]">
-                          {account.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}
-                        </span>
-                        <div>
-                          <p className="text-xs font-bold text-slate-700">{account.name}</p>
-                          <p className="text-[11px] text-slate-400">{account.email}</p>
+                {users.map((account) => {
+                  const name = [account.first_name, account.last_name].filter(Boolean).join(" ") || account.email;
+                  return (
+                    <tr
+                      className="cursor-pointer border-b border-slate-100 transition last:border-0 hover:bg-sky-50/50"
+                      key={account.id}
+                      onClick={() => setToast("Gestion du compte " + name + " à venir.")}
+                    >
+                      <td className="px-5 py-4 sm:px-6">
+                        <div className="flex items-center gap-3">
+                          <span className="grid size-8 place-items-center rounded-lg bg-[#dce7f5] text-[10px] font-extrabold text-[#244269]">
+                            {name.split(" ").map((part) => part[0]).join("").slice(0, 2)}
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold text-slate-700">{name}</p>
+                            <p className="text-[11px] text-slate-400">{account.email}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-xs font-medium text-slate-600">{account.role}</td>
-                    <td className="px-5 py-4 text-xs font-medium text-slate-600">{account.filiale}</td>
-                    <td className="px-5 py-4">
-                      <StatusBadge tone={account.status.tone}>{account.status.label}</StatusBadge>
-                    </td>
-                    <td className="px-3 py-4 text-slate-400">
-                      <Icon name="dots" size={17} />
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-5 py-4 text-xs font-medium text-slate-600">
+                        {roleLabels[account.role] ?? account.role}
+                      </td>
+                      <td className="px-5 py-4 text-xs font-medium text-slate-600">
+                        {account.filiale?.nom ?? "—"}
+                      </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge tone={account.is_active ? "success" : "neutral"}>
+                          {account.is_active ? "Actif" : "Inactif"}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-3 py-4 text-slate-400">
+                        <Icon name="dots" size={17} />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <div className="border-t border-slate-100 px-5 py-4 sm:px-6">
               <button
                 className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
-                onClick={() => setToast("Formulaire de création de compte prêt à être relié à l'API.")}
+                onClick={() => setToast("Création de compte : utilisez les modules Clients ou Fournisseurs depuis le menu.")}
                 type="button"
               >
                 <Icon name="plus" size={15} />
@@ -193,22 +246,38 @@ export default function AdministrationPage() {
 
         {activeTab === "Audit & journaux" ? (
           <div className="divide-y divide-slate-100">
-            {auditLog.map((entry, index) => (
-              <div className="flex items-start justify-between gap-4 px-5 py-4 sm:px-6" key={index}>
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-[#edf3f9] text-[#426b95]">
-                    <Icon name={entry.action.startsWith("Connexion") ? "lock" : "clipboard"} size={15} />
-                  </span>
-                  <div>
-                    <p className="text-xs font-bold text-[#233856]">{entry.action}</p>
-                    <p className="mt-0.5 text-[11px] text-slate-500">
-                      {entry.who} · {entry.detail}
+            {auditLogs.length === 0 ? (
+              <p className="px-5 py-6 text-xs text-slate-500 sm:px-6">
+                Aucune action journalisée pour le moment.
+              </p>
+            ) : (
+              auditLogs.map((entry) => {
+                const who = entry.user
+                  ? [entry.user.first_name, entry.user.last_name].filter(Boolean).join(" ") || entry.user.email
+                  : "Système";
+                const detail = entry.ip ? `IP ${entry.ip}` : `Table ${entry.table_cible}`;
+                return (
+                  <div className="flex items-start justify-between gap-4 px-5 py-4 sm:px-6" key={entry.id}>
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-[#edf3f9] text-[#426b95]">
+                        <Icon name={entry.action === "DELETE" ? "trash" : "clipboard"} size={15} />
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-[#233856]">
+                          {auditActionLabels[entry.action]} · {entry.table_cible}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-slate-500">
+                          {who} · {detail}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="shrink-0 text-[11px] font-medium text-slate-400">
+                      {formatAuditDate(entry.created_at)}
                     </p>
                   </div>
-                </div>
-                <p className="shrink-0 text-[11px] font-medium text-slate-400">{entry.when}</p>
-              </div>
-            ))}
+                );
+              })
+            )}
             <div className="px-5 py-4 sm:px-6">
               <button
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#426b95] hover:text-[#17294b]"
@@ -244,7 +313,7 @@ export default function AdministrationPage() {
                   aria-label={setting.title}
                   aria-pressed="true"
                   className="mt-1 h-6 w-11 shrink-0 rounded-full bg-[#3fa77e] p-0.5 transition"
-                  onClick={() => setToast("Réglage modifié dans la démo (persistance après branchement API).")}
+                  onClick={() => setToast("Réglage actif côté back-end.")}
                   type="button"
                 >
                   <span className="block size-5 translate-x-5 rounded-full bg-white shadow" />

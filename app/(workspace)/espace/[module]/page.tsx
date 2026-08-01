@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { ModuleScreen } from "@/app/components/workspace/module-screen";
-import { FilialeCreateForm } from "@/app/components/workspace/filiale-create-form";
+import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
 import { getModuleDefinition } from "@/app/lib/demo-data";
 
 export default async function WorkspaceModulePage({
@@ -16,14 +15,5 @@ export default async function WorkspaceModulePage({
     notFound();
   }
 
-  if (module === "filiales") {
-    return (
-      <ModuleScreen
-        definition={definition}
-        renderCreateForm={(props) => <FilialeCreateForm {...props} />}
-      />
-    );
-  }
-
-  return <ModuleScreen definition={definition} />;
+  return <ModuleDataBridge definition={definition} slug={module} />;
 }

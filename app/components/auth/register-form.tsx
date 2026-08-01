@@ -2,29 +2,22 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
-import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
 
 export function RegisterForm() {
-  const router = useRouter();
-  const { login } = useAuth();
   const [accepted, setAccepted] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
+  const [notice, setNotice] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const demoEmail = email || "client@wugams.ci";
-    login(demoEmail, "********");
-    router.push("/espace");
+    setNotice(true);
   }
 
   return (
@@ -122,11 +115,24 @@ export function RegisterForm() {
           </button>
         </div>
       </div>
-      <div className="rounded-xl border border-sky-100 bg-[#edf6ff] px-3.5 py-2.5">
-        <p className="text-[11px] leading-5 text-sky-800">
-          <span className="font-bold">Espace client.</span> Votre compte sera automatiquement configuré pour accéder à nos services.
-        </p>
-      </div>
+
+      {notice ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3">
+          <p className="text-[11px] leading-5 text-amber-800">
+            <span className="font-bold">Inscription en libre accès temporairement suspendue.</span>{" "}
+            Les comptes sont créés par l&apos;administration WUGAMS. Contactez-nous à l&apos;adresse
+            admin@wugams.com pour ouvrir votre espace client ou fournisseur.
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-sky-100 bg-[#edf6ff] px-3.5 py-2.5">
+          <p className="text-[11px] leading-5 text-sky-800">
+            <span className="font-bold">Espace client.</span> Votre compte sera automatiquement
+            configuré pour accéder à nos services.
+          </p>
+        </div>
+      )}
+
       <label className="flex cursor-pointer items-start gap-2.5 pt-1 text-[11px] leading-5 text-slate-500">
         <input
           checked={accepted}

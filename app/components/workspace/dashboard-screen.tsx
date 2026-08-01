@@ -1,17 +1,131 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
 import { useAuth } from "@/app/lib/auth-context";
+import { getFacturesConsolidation } from "@/app/lib/api/factures";
+import { getFilialesConsolidation } from "@/app/lib/api/filiales";
+import { listMissions } from "@/app/lib/api/missions";
+import { unreadCount } from "@/app/lib/api/notifications";
+import { listProduits } from "@/app/lib/api/stocks";
 import {
   dashboardMetrics,
   dashboardProjects,
   schedule,
   stockAlerts,
+  type StatusTone,
 } from "@/app/lib/demo-data";
+import type { Produit } from "@/app/lib/contracts";
+import { formatFcfa } from "@/app/lib/store-data";
+
+type DashboardMetric = (typeof dashboardMetrics)[number];
+type ScheduleItem = (typeof schedule)[number];
+type StockAlert = (typeof stockAlerts)[number] & { depot?: string };
+
+type DashboardLiveData = {
+  source: "api" | "demo";
+  metrics: DashboardMetric[];
+  schedule: ScheduleItem[];
+  alerts: StockAlert[];
+};
+
+const produitAlertMapping: Record<string, { stock: string; tone: StatusTone }> = {
+  REAPPROVISIONNEMENT_REQUIS: { stock: "À commander", tone: "warning" },
+  COMMANDE_EN_COURS: { stock: "En commande", tone: "info" },
+  RUPTURE: { stock: "Rupture", tone: "danger" },
+};
+
+function produitToAlert(produit: Produit): StockAlert | null {
+  const mapping = produitAlertMapping[produit.statut];
+  if (!mapping) return null;
+  return {
+    title: `${produit.nom} · ${produit.reference}`,
+    stock: mapping.stock,
+    tone: mapping.tone,
+    depot: produit.filiale?.nom ?? "Dépôt principal",
+  };
+}
+
+function missionToSchedule(mission: Awaited<ReturnType<typeof listMissions>>[number]): ScheduleItem {
+  const date = mission.date_planifiee ? new Date(mission.date_planifiee) : null;
+  const time = date && !Number.isNaN(date.getTime())
+    ? new Intl.DateTimeFormat("fr-FR", { weekday: "short", day: "numeric", month: "short" }).format(date)
+    : "Non planifiée";
+  return {
+    time,
+    title: mission.titre,
+    type: mission.filiale ? `Mission · ${mission.filiale.nom}` : "Mission WUGAMS",
+  };
+}
+
+function loadDashboardLive(): Promise<DashboardLiveData> {
+  return Promise.allSettled([
+    getFilialesConsolidation(),
+    getFacturesConsolidation(),
+    unreadCount(),
+    listProduits(),
+    listMissions(),
+  ]).then(([filialesResult, facturesResult, notificationsResult, produitsResult, missionsResult]) => {
+    const filiales = filialesResult.status === "fulfilled" ? filialesResult.value : null;
+    const factures = facturesResult.status === "fulfilled" ? facturesResult.value : null;
+    const unread = notificationsResult.status === "fulfilled" ? notificationsResult.value : 0;
+    const produits = produitsResult.status === "fulfilled" ? produitsResult.value : [];
+    const missions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
+
+    if (!filiales || !factures) {
+      return { source: "demo", metrics: dashboardMetrics, schedule, alerts: stockAlerts };
+    }
+
+    const alerts = produits.map(produitToAlert).filter((alert) => alert !== null) as StockAlert[];
+    const liveSchedule = missions
+      .filter((m) => ["EN_COURS", "ACCEPTE", "NOTIFIE"].includes(m.statut))
+      .slice(0, 3)
+      .map(missionToSchedule);
+
+    return {
+      source: "api",
+      metrics: [
+        {
+          caption: "factures consolidées",
+          change: `${factures.totals.total_factures} factures`,
+          icon: "chart",
+          label: "Chiffre d'affaires TTC",
+          tone: "success",
+          value: formatFcfa(factures.totals.total_ttc),
+        },
+        {
+          caption: "tout le groupe",
+          change: `${filiales.summary.total_commandes} commandes`,
+          icon: "building",
+          label: "Filiales",
+          tone: "info",
+          value: String(filiales.summary.total_filiales),
+        },
+        {
+          caption: "missions sur le groupe",
+          change: `${filiales.summary.total_missions} missions`,
+          icon: "users",
+          label: "Utilisateurs",
+          tone: "success",
+          value: String(filiales.summary.total_users),
+        },
+        {
+          caption: "stocks + notifications",
+          change: `${unread} non lues`,
+          icon: "warning",
+          label: "Points d'attention",
+          tone: "danger",
+          value: String(alerts.length + unread),
+        },
+      ],
+      schedule: liveSchedule.length > 0 ? liveSchedule : schedule,
+      alerts: alerts.slice(0, 4),
+    };
+  });
+}
 
 const chartBars = [34, 44, 38, 58, 49, 70, 64, 83, 72, 91, 82, 96];
 
@@ -61,6 +175,22 @@ const roleFraming: Record<string, { eyebrow: string; description: string }> = {
 export function DashboardScreen() {
   const { user } = useAuth();
   const [period, setPeriod] = useState("Ce mois");
+  const [live, setLive] = useState<DashboardLiveData>({
+    source: "demo",
+    metrics: dashboardMetrics,
+    schedule,
+    alerts: stockAlerts,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    loadDashboardLive().then((data) => {
+      if (!cancelled) setLive(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const framing = user ? (roleFraming[user.role] ?? roleFraming.ROLE_MGR_OPS) : roleFraming.ROLE_MGR_OPS;
   const firstName = user ? user.name.split(" ")[0] : "Jéhovani";
@@ -119,17 +249,37 @@ export function DashboardScreen() {
         </div>
       </section>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-sky-100 bg-[#edf6ff] px-4 py-3 text-sm text-sky-900">
-        <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-white text-sky-600 shadow-sm">
-          <Icon name="sparkles" size={15} />
+      <div
+        className={
+          "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm " +
+          (live.source === "api"
+            ? "border-emerald-100 bg-emerald-50 text-emerald-900"
+            : "border-sky-100 bg-[#edf6ff] text-sky-900")
+        }
+      >
+        <span
+          className={
+            "mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg shadow-sm " +
+            (live.source === "api" ? "bg-white text-emerald-600" : "bg-white text-sky-600")
+          }
+        >
+          <Icon name={live.source === "api" ? "check" : "sparkles"} size={15} />
         </span>
         <p className="leading-5">
-          <span className="font-bold">Base d&apos;interface prête.</span> Les chiffres et dossiers affichés sont fictifs pour le moment ; les vues sont structurées pour recevoir les données de l&apos;API.
+          {live.source === "api" ? (
+            <>
+              <span className="font-bold">Données en direct.</span> Les indicateurs, missions et alertes de stock proviennent de l&apos;API WUGAMS.
+            </>
+          ) : (
+            <>
+              <span className="font-bold">Base d&apos;interface prête.</span> Les chiffres et dossiers affichés sont fictifs pour le moment ; les vues sont structurées pour recevoir les données de l&apos;API.
+            </>
+          )}
         </p>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-        {dashboardMetrics.map((metric) => (
+        {live.metrics.map((metric) => (
           <article
             className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             key={metric.label}
@@ -211,11 +361,11 @@ export function DashboardScreen() {
             </span>
           </div>
           <div className="mt-5 space-y-4">
-            {schedule.map((item, index) => (
+            {live.schedule.map((item, index) => (
               <div className="flex gap-3" key={item.title}>
                 <div className="flex flex-col items-center">
                   <span className="mt-1 size-2.5 rounded-full border-2 border-[#17294b] bg-[#e5aa49] ring-1 ring-[#e5aa49]" />
-                  {index !== schedule.length - 1 ? <span className="mt-1 h-10 w-px bg-white/15" /> : null}
+                  {index !== live.schedule.length - 1 ? <span className="mt-1 h-10 w-px bg-white/15" /> : null}
                 </div>
                 <div className="pb-2">
                   <p className="text-[11px] font-bold text-[#f2c56d]">{item.time}</p>
@@ -336,15 +486,22 @@ export function DashboardScreen() {
             </span>
           </div>
           <div className="mt-5 space-y-3">
-            {stockAlerts.map((alert) => (
-              <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3" key={alert.title}>
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-bold text-slate-700">{alert.title}</p>
-                  <p className="mt-1 text-[11px] text-slate-400">Dépôt Treichville</p>
+            {live.alerts.length > 0 ? (
+              live.alerts.map((alert) => (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/60 p-3" key={alert.title}>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-slate-700">{alert.title}</p>
+                    <p className="mt-1 text-[11px] text-slate-400">{alert.depot ?? "Dépôt Treichville"}</p>
+                  </div>
+                  <StatusBadge tone={alert.tone}>{alert.stock}</StatusBadge>
                 </div>
-                <StatusBadge tone={alert.tone}>{alert.stock}</StatusBadge>
+              ))
+            ) : (
+              <div className="grid place-items-center rounded-xl border border-slate-100 bg-slate-50/60 p-5 text-center">
+                <p className="text-xs font-bold text-slate-600">Stocks au niveau</p>
+                <p className="mt-1 text-[11px] text-slate-400">Aucun seuil minimum atteint sur les dépôts.</p>
               </div>
-            ))}
+            )}
           </div>
           <Link
             className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-[#3e638e] transition hover:border-[#9fb6cf] hover:bg-sky-50"

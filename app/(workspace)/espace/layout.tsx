@@ -8,16 +8,16 @@ import { useAuth } from "@/app/lib/auth-context";
 import { BackOfficeShell } from "@/app/components/workspace/back-office-shell";
 
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { ready, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (ready && !user) {
       router.push("/connexion");
     }
-  }, [user, router]);
+  }, [ready, user, router]);
 
-  if (!user) {
+  if (!ready || !user) {
     return null;
   }
 

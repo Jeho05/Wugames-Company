@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
-import { ModuleScreen } from "@/app/components/workspace/module-screen";
-import { getModuleDefinition, ouvriersPerformance } from "@/app/lib/demo-data";
+import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
+import { getModuleDefinition, type OuvrierPerformance } from "@/app/lib/demo-data";
+import { listEvaluations } from "@/app/lib/api/evaluations";
 
 const criteria: { code: string; label: string }[] = [
   { code: "S1", label: "Sécurité sur site" },
@@ -34,34 +35,78 @@ function rendementGlobal(semaines: number[], noteTexte: number) {
   return rendement9S(semaines) * 0.7 + rendementTexte(noteTexte) * 0.3;
 }
 
+function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluations>>): OuvrierPerformance[] {
+  return evaluations.map((evaluation) => {
+    const notes = [evaluation.s1, evaluation.s2, evaluation.s3, evaluation.s4, evaluation.s5, evaluation.s6, evaluation.s7, evaluation.s8, evaluation.s9].map((note) => Number(note));
+    const sur10 = notes.every((note) => note <= 10);
+    return {
+      nom: evaluation.personne_nom,
+      noteTexte: Number(evaluation.note_texte ?? 0),
+      semaines: sur10 ? notes.map((note) => note * 4) : notes,
+    };
+  });
+}
+
 export default function OuvriersPage() {
   const definition = getModuleDefinition("ouvriers");
-  const [selected, setSelected] = useState(ouvriersPerformance[0].nom);
-  const [scores, setScores] = useState<Record<string, number[]>>(
-    Object.fromEntries(
-      ouvriersPerformance.map((worker) => [
-        worker.nom,
-        criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6),
-      ])
-    )
-  );
+  const [workers, setWorkers] = useState<OuvrierPerformance[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [scores, setScores] = useState<Record<string, number[]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    listEvaluations()
+      .then((evaluations) => {
+        if (cancelled) return;
+        if (evaluations.length === 0) return;
+        const mapped = evaluationsToWorkers(evaluations);
+        setWorkers(mapped);
+        setSelected(mapped[0].nom);
+        setScores(
+          Object.fromEntries(
+            mapped.map((worker) => [
+              worker.nom,
+              criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6),
+            ])
+          )
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const ranking = useMemo(
     () =>
-      [...ouvriersPerformance]
+      [...workers]
         .sort((a, b) => rendement9S(b.semaines) - rendement9S(a.semaines))
         .map((worker) => ({
           nom: worker.nom,
           rang: rendement9S(worker.semaines),
         })),
-    []
+    [workers]
   );
 
   if (!definition) {
     return null;
   }
 
-  const worker = ouvriersPerformance.find((w) => w.nom === selected) ?? ouvriersPerformance[0];
+  const worker = workers.find((w) => w.nom === selected) ?? workers[0];
+
+  if (!worker) {
+    return (
+      <div className="space-y-6">
+        <ModuleDataBridge definition={definition} slug="ouvriers" />
+        <p className="rounded-2xl border border-slate-200 bg-white px-5 py-6 text-center text-xs text-slate-500 shadow-sm">
+          Aucune évaluation S1-S9 n&apos;a encore été publiée par le back-end. La grille apparaîtra ici dès que des cycles seront saisis.
+        </p>
+      </div>
+    );
+  }
+
   const rend9S = rendement9S(worker.semaines);
   const rendTexte = rendementTexte(worker.noteTexte);
   const global = rendementGlobal(worker.semaines, worker.noteTexte);
@@ -70,7 +115,7 @@ export default function OuvriersPage() {
 
   return (
     <div className="space-y-6">
-      <ModuleScreen definition={definition} />
+      <ModuleDataBridge definition={definition} slug="ouvriers" />
 
       <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-100 px-5 pt-5 sm:px-6 sm:pt-6 xl:flex-row xl:items-center">
@@ -87,7 +132,7 @@ export default function OuvriersPage() {
             </p>
           </div>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
-            {ouvriersPerformance.map((w) => (
+            {workers.map((w) => (
               <button
                 aria-pressed={selected === w.nom}
                 className={
@@ -97,7 +142,17 @@ export default function OuvriersPage() {
                     : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300")
                 }
                 key={w.nom}
-                onClick={() => setSelected(w.nom)}
+                onClick={() => {
+                  setSelected(w.nom);
+                  setScores((prev) =>
+                    prev[w.nom]
+                      ? prev
+                      : {
+                          ...prev,
+                          [w.nom]: criteria.map((_, index) => (w.semaines[index] ?? 28) % 10 + 6),
+                        }
+                  );
+                }}
                 type="button"
               >
                 {w.nom.split(" ")[0]}
@@ -112,7 +167,7 @@ export default function OuvriersPage() {
               <p className="text-sm font-bold text-[#1a2943]">{worker.nom}</p>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-[#edf3f9] px-2.5 py-1 text-[11px] font-bold text-[#426b95]">
-                  Rang BR-08 : <span className="text-[#17294b]">n°{rank} / {ouvriersPerformance.length}</span>
+                  Rang BR-08 : <span className="text-[#17294b]">n°{rank} / {workers.length}</span>
                 </span>
                 <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-[#a06a1e]">
                   Global : <span className="text-[#17294b]">{global.toFixed(1)} %</span>
@@ -135,7 +190,7 @@ export default function OuvriersPage() {
 
             <div className="mt-5 space-y-3.5">
               {criteria.map((criterion, index) => {
-                const score = (scores[selected] ?? [])[index] ?? 7;
+                const score = (scores[worker.nom] ?? [])[index] ?? 7;
                 const pct = score * 10;
                 const color = score >= 8 ? "bg-[#3fa77e]" : score >= 6 ? "bg-[#e3a641]" : "bg-[#db6d5b]";
                 return (
@@ -154,7 +209,7 @@ export default function OuvriersPage() {
                           onClick={() =>
                             setScores((prev) => ({
                               ...prev,
-                              [selected]: (prev[selected] ?? []).map((s, i) => (i === index ? Math.max(1, s - 1) : s)),
+                              [worker.nom]: (prev[worker.nom] ?? []).map((s, i) => (i === index ? Math.max(1, s - 1) : s)),
                             }))
                           }
                           type="button"
@@ -168,7 +223,7 @@ export default function OuvriersPage() {
                           onClick={() =>
                             setScores((prev) => ({
                               ...prev,
-                              [selected]: (prev[selected] ?? []).map((s, i) => (i === index ? Math.min(10, s + 1) : s)),
+                              [worker.nom]: (prev[worker.nom] ?? []).map((s, i) => (i === index ? Math.min(10, s + 1) : s)),
                             }))
                           }
                           type="button"

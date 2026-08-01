@@ -1,11 +1,25 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
+import { getCommandes, getDevis, getFactures, getMissions } from "@/app/lib/api/client-space";
+import { formatFcfa } from "@/app/lib/store-data";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 
 type ClientDashboardScreenProps = {
   user: WorkspaceUser;
+};
+
+type ClientLiveData = {
+  live: boolean;
+  factures: number;
+  totalTtc: number;
+  devis: number;
+  commandes: number;
+  missions: number;
 };
 
 const projectSteps = [
@@ -22,6 +36,36 @@ const clientDocuments = [
 
 export function ClientDashboardScreen({ user }: ClientDashboardScreenProps) {
   const firstName = user.name.split(" ")[0];
+  const [live, setLive] = useState<ClientLiveData>({
+    live: false,
+    factures: 0,
+    totalTtc: 0,
+    devis: 0,
+    commandes: 0,
+    missions: 0,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([getFactures(), getDevis(), getCommandes(), getMissions()]).then(
+      ([factures, devis, commandes, missions]) => {
+        if (cancelled) return;
+        setLive({
+          live: factures.status === "fulfilled",
+          factures: factures.status === "fulfilled" ? factures.value.length : 0,
+          totalTtc: factures.status === "fulfilled"
+            ? factures.value.reduce((sum, facture) => sum + Number(facture.montant_ttc), 0)
+            : 0,
+          devis: devis.status === "fulfilled" ? devis.value.length : 0,
+          commandes: commandes.status === "fulfilled" ? commandes.value.length : 0,
+          missions: missions.status === "fulfilled" ? missions.value.length : 0,
+        });
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -60,15 +104,15 @@ export function ClientDashboardScreen({ user }: ClientDashboardScreenProps) {
 
       <section className="grid gap-4 md:grid-cols-3">
         {[
-          ["Projet en cours", "01", "Rénovation résidence"],
-          ["Prochaine visite", "29 juil.", "09:30 · Cocody"],
-          ["Documents disponibles", "06", "Devis, rapports et photos"],
+          ["Factures émises", live.live ? String(live.factures) : "—", live.live ? formatFcfa(live.totalTtc) : "Chargement…"],
+          ["Devis", live.live ? String(live.devis) : "—", "Vos demandes de devis"],
+          ["Commandes", live.live ? String(live.commandes) : "—", live.live ? "Depuis votre espace client" : "Chargement…"],
         ].map(([label, value, detail], index) => (
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" key={label}>
             <div className="flex items-start justify-between">
               <p className="text-xs font-semibold text-slate-500">{label}</p>
               <span className={"grid size-9 place-items-center rounded-xl " + (index === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
-                <Icon name={index === 0 ? "folder" : index === 1 ? "calendar" : "file-text"} size={18} />
+                <Icon name={index === 0 ? "file-text" : index === 1 ? "sparkles" : "shopping-bag"} size={18} />
               </span>
             </div>
             <p className="mt-5 text-[27px] font-bold tracking-[-0.05em] text-[#17294b]">{value}</p>

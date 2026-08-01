@@ -3,7 +3,10 @@
 import { useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { ApiError } from "@/app/lib/api-client";
+import { createFiliale } from "@/app/lib/api/filiales";
 import type { ModuleRow } from "@/app/lib/demo-data";
+import { filialeRow } from "@/app/lib/module-data";
 
 type FilialeCreateFormProps = {
   onClose: () => void;
@@ -25,31 +28,49 @@ const domainSuggestions = [
   "Hôtellerie & Tourisme",
 ];
 
+function slugCode(name: string): string {
+  return (
+    name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 8) || "FIL"
+  );
+}
+
 export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps) {
   const [name, setName] = useState("");
+  const [code, setCode] = useState("");
   const [domain, setDomain] = useState("");
-  const [manager, setManager] = useState("");
-  const [effectif, setEffectif] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const filteredSuggestions = domainSuggestions.filter((s) =>
     s.toLowerCase().includes(domain.toLowerCase())
   );
 
-  const canSubmit = name.trim().length > 0 && domain.trim().length > 0;
+  const canSubmit = name.trim().length > 0 && domain.trim().length > 0 && !submitting;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
 
-    onSubmit({
-      filiale: name.trim(),
-      domain: domain.trim(),
-      manager: manager.trim() || "Non assigné",
-      effectif: effectif.trim() || "0",
-      activité: "0 FCFA",
-      statut: { label: "En création", tone: "warning" as const },
-    });
+    setSubmitting(true);
+    setApiError(null);
+    try {
+      const filiale = await createFiliale({
+        nom: name.trim(),
+        code: code.trim() || `${slugCode(name)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+        description: domain.trim(),
+      });
+      onSubmit(filialeRow(filiale));
+    } catch (error) {
+      setApiError(error instanceof ApiError ? error.message : "Échec de la création. Réessayez.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -81,7 +102,7 @@ export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps)
         </button>
       </div>
 
-      <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+      <form className="mt-6 space-y-5" onSubmit={(event) => void handleSubmit(event)}>
         <div>
           <label
             className="block text-xs font-bold text-slate-700"
@@ -92,11 +113,32 @@ export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps)
           <input
             className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
             id="filiale-name"
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setName(value);
+              setCode(slugCode(value));
+            }}
             placeholder="ex: WUGAMS Énergie"
             required
             type="text"
             value={name}
+          />
+        </div>
+
+        <div>
+          <label
+            className="block text-xs font-bold text-slate-700"
+            htmlFor="filiale-code"
+          >
+            Code (unique)
+          </label>
+          <input
+            className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
+            id="filiale-code"
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Généré automatiquement"
+            type="text"
+            value={code}
           />
         </div>
 
@@ -142,43 +184,17 @@ export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps)
           )}
         </div>
 
-        <div>
-          <label
-            className="block text-xs font-bold text-slate-700"
-            htmlFor="filiale-manager"
-          >
-            Manager responsable
-          </label>
-          <input
-            className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-            id="filiale-manager"
-            onChange={(e) => setManager(e.target.value)}
-            placeholder="Nom du manager (optionnel)"
-            type="text"
-            value={manager}
-          />
-        </div>
-
-        <div>
-          <label
-            className="block text-xs font-bold text-slate-700"
-            htmlFor="filiale-effectif"
-          >
-            Effectif initial
-          </label>
-          <input
-            className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-            id="filiale-effectif"
-            onChange={(e) => setEffectif(e.target.value)}
-            placeholder="ex: 12"
-            type="text"
-            value={effectif}
-          />
-        </div>
+        {apiError ? (
+          <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs font-medium text-rose-700">
+            <Icon className="mt-0.5 shrink-0" name="warning" size={15} />
+            <span>{apiError}</span>
+          </div>
+        ) : null}
 
         <div className="flex justify-end gap-2.5 pt-2">
           <button
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:border-slate-300"
+            disabled={submitting}
             onClick={onClose}
             type="button"
           >
@@ -190,8 +206,12 @@ export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps)
             type="submit"
           >
             <span className="inline-flex items-center gap-2">
-              <Icon name="building" size={16} />
-              Créer la filiale
+              {submitting ? (
+                <span className="size-3.5 animate-spin rounded-full border-2 border-[#14223b]/30 border-t-[#14223b]" />
+              ) : (
+                <Icon name="building" size={16} />
+              )}
+              {submitting ? "Création…" : "Créer la filiale"}
             </span>
           </button>
         </div>

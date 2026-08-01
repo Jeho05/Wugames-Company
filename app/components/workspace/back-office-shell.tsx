@@ -56,8 +56,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const roleLabel = roleLabels[user.role] ?? user.role;
 
   function handleLogout() {
-    logout();
-    router.push("/connexion");
+    void logout().then(() => router.push("/connexion"));
   }
 
   return (
@@ -180,8 +179,8 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                 {user.filiale}
               </p>
             </div>
-            <span className="hidden rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-700 md:inline-flex">
-              Démonstration
+            <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 md:inline-flex">
+              API connectée
             </span>
           </div>
 
