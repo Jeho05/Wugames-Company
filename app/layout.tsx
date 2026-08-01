@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { AuthProvider } from "@/app/lib/auth-context";
 import { SmoothScroll } from "@/app/components/ui/smooth-scroll";
+import { ChatWidget } from "@/app/components/ui/chat-widget";
 
 import "./globals.css";
 
@@ -36,7 +37,10 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-background text-foreground">
         <SmoothScroll>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            <ChatWidget />
+          </AuthProvider>
         </SmoothScroll>
       </body>
     </html>

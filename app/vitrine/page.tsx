@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
@@ -141,6 +142,9 @@ export default function VitrinePage() {
             <a className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="#mantra">Le mantra</a>
             <a className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="#principes">Les principes</a>
             <a className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="#focus">Le focus</a>
+            <Link className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="/boutique">Boutique</Link>
+            <Link className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="/realisations">Réalisations</Link>
+            <Link className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="/blog">Blog</Link>
           </nav>
           <div className="flex items-center gap-2.5">
             <AnimatedButton

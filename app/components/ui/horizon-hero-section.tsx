@@ -82,7 +82,7 @@ export function HorizonHeroSection({ title, subtitle, sections = [] }: {
     scene: null, camera: null, renderer: null, composer: null,
     stars: [], nebula: null, mountains: [], atmosphere: null,
     animationId: null, targetCameraX: 0, targetCameraY: 30, targetCameraZ: 300, mountainBaseZ: [],
-    performanceMode: 'high', frameCount: 0, lastFrameTime: performance.now(),
+    performanceMode: 'high', frameCount: 0, lastFrameTime: 0,
   });
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export function HorizonHeroSection({ title, subtitle, sections = [] }: {
     if (refs.performanceMode === 'fallback') {
       console.warn('WebGL unavailable, using 2D fallback');
       // Component will render without Three.js
-      setIsReady(true);
+      window.setTimeout(() => setIsReady(true), 0);
       return;
     }
 
@@ -117,7 +117,7 @@ export function HorizonHeroSection({ title, subtitle, sections = [] }: {
     } catch (error) {
       console.warn('Three.js initialization failed, using 2D fallback', error);
       refs.performanceMode = 'fallback';
-      setIsReady(true);
+      window.setTimeout(() => setIsReady(true), 0);
       return;
     }
 
@@ -264,7 +264,7 @@ export function HorizonHeroSection({ title, subtitle, sections = [] }: {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
-    setIsReady(true);
+    window.setTimeout(() => setIsReady(true), 0);
 
     return () => {
       if (refs.animationId) cancelAnimationFrame(refs.animationId);

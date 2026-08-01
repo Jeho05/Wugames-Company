@@ -12,18 +12,18 @@ export function useReducedMotion(): boolean {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
-    // Set initial value
-    setPrefersReducedMotion(mediaQuery.matches);
 
     // Listen for changes
     const handleChange = (event: MediaQueryListEvent) => {
       setPrefersReducedMotion(event.matches);
     };
 
+    const initial = window.setTimeout(() => setPrefersReducedMotion(mediaQuery.matches), 0);
+
     mediaQuery.addEventListener('change', handleChange);
 
     return () => {
+      window.clearTimeout(initial);
       mediaQuery.removeEventListener('change', handleChange);
     };
   }, []);

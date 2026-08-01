@@ -24,6 +24,25 @@ function isModuleStatus(value: string | ModuleStatus): value is ModuleStatus {
   return typeof value === "object";
 }
 
+function exportCsv(rows: ModuleRow[], definition: ModuleDefinition) {
+  const header = definition.columns.map((column) => column.label).join(";");
+  const lines = rows.map((row) =>
+    definition.columns
+      .map((column) => {
+        const value = row[column.id];
+        return `"${String(isModuleStatus(value) ? value.label : value).replace(/"/g, '""')}"`;
+      })
+      .join(";")
+  );
+  const csv = "\uFEFF" + [header, ...lines].join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = definition.title.toLowerCase().replace(/\s+/g, "-") + "-export.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps) {
   const [activeTab, setActiveTab] = useState(definition.tabs[0]);
   const [createOpen, setCreateOpen] = useState(false);
@@ -142,10 +161,20 @@ export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps
               <p className="font-medium text-slate-400">
                 {visibleRows.length} élément{visibleRows.length > 1 ? "s" : ""} affiché{visibleRows.length > 1 ? "s" : ""}
               </p>
-              <button className="inline-flex items-center gap-1.5 font-bold text-[#426b95] hover:text-[#17294b]" type="button">
-                <Icon name="dots" size={16} />
-                Filtres
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  className="inline-flex items-center gap-1.5 font-bold text-[#426b95] hover:text-[#17294b]"
+                  onClick={() => exportCsv(visibleRows, definition)}
+                  type="button"
+                >
+                  <Icon name="download" size={16} />
+                  Exporter en CSV
+                </button>
+                <button className="inline-flex items-center gap-1.5 font-bold text-[#426b95] hover:text-[#17294b]" type="button">
+                  <Icon name="dots" size={16} />
+                  Filtres
+                </button>
+              </div>
             </div>
           </div>
 

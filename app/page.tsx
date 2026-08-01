@@ -15,12 +15,19 @@ import { TestimonialImage } from "@/app/components/branding/images";
 import { MobileNav } from "@/app/components/ui/mobile-nav";
 import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
 import { ScrollChoreography } from "@/app/components/ui/scroll-choreography";
+import { ContactForm } from "@/app/components/branding/contact-form";
 
 const navLinks = [
   { label: "Le problème", href: "#probleme" },
   { label: "Notre solution", href: "#solution" },
   { label: "Ils nous font confiance", href: "#temoignages" },
   { label: "Rencontrez-nous", href: "#rencontre" },
+];
+
+const siteLinks = [
+  { label: "Boutique", href: "/boutique" },
+  { label: "Réalisations", href: "/realisations" },
+  { label: "Blog", href: "/blog" },
 ];
 
 const painPoints = [
@@ -104,6 +111,11 @@ export default function ClientBrandingPage() {
           <a className="transition hover:text-white" href="#solution">Notre solution</a>
           <a className="transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
           <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
+          {siteLinks.map((link) => (
+            <Link className="text-white transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2.5">
           <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
@@ -371,6 +383,9 @@ export default function ClientBrandingPage() {
             </div>
           </Reveal>
         </div>
+        <Reveal>
+          <ContactForm />
+        </Reveal>
       </section>
 
       {/* ═══ CTA ═══ */}
@@ -422,6 +437,14 @@ export default function ClientBrandingPage() {
                 <li><a className="transition hover:text-[#17294b]" href="#rencontre">Rencontrez WUGAMS</a></li>
                 <li><a className="transition hover:text-[#17294b]" href="#temoignages">Témoignages</a></li>
                 <li><Link className="transition hover:text-[#17294b]" href="/vitrine">Espace WUGAMS (interne)</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-700">Site</p>
+              <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                <li><Link className="transition hover:text-[#17294b]" href="/boutique">Boutique matériaux</Link></li>
+                <li><Link className="transition hover:text-[#17294b]" href="/realisations">Nos réalisations</Link></li>
+                <li><Link className="transition hover:text-[#17294b]" href="/blog">Blog &amp; conseils</Link></li>
               </ul>
             </div>
             <div>

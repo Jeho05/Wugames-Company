@@ -7,6 +7,7 @@ export type IconName =
   | "boxes"
   | "building"
   | "calendar"
+  | "camera"
   | "chart"
   | "check"
   | "chevron-down"
@@ -15,6 +16,7 @@ export type IconName =
   | "close"
   | "dashboard"
   | "dots"
+  | "download"
   | "file-text"
   | "folder"
   | "hardhat"
@@ -22,12 +24,16 @@ export type IconName =
   | "map"
   | "menu"
   | "message"
+  | "minus"
+  | "newspaper"
   | "package"
   | "plus"
   | "search"
   | "settings"
   | "shield"
+  | "shopping-bag"
   | "sparkles"
+  | "trash"
   | "truck"
   | "users"
   | "warning";
@@ -89,6 +95,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <path d="M16 2v4M8 2v4M3 10h18" />
         </svg>
       );
+    case "camera":
+      return (
+        <svg {...common}>
+          <path d="M4 8h3l2-2.5h6L17 8h3v12H4V8Z" />
+          <circle cx="12" cy="13.5" r="3.5" />
+        </svg>
+      );
     case "chart":
       return (
         <svg {...common}>
@@ -144,6 +157,12 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <circle cx="19" cy="12" fill="currentColor" r="1" />
         </svg>
       );
+    case "download":
+      return (
+        <svg {...common}>
+          <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+        </svg>
+      );
     case "file-text":
       return (
         <svg {...common}>
@@ -190,6 +209,19 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <path d="M8 10h8M8 14h5" />
         </svg>
       );
+    case "minus":
+      return (
+        <svg {...common}>
+          <path d="M5 12h14" />
+        </svg>
+      );
+    case "newspaper":
+      return (
+        <svg {...common}>
+          <rect height="16" rx="2" width="18" x="3" y="4" />
+          <path d="M7 8h10M7 12h6M7 16h9" />
+        </svg>
+      );
     case "package":
       return (
         <svg {...common}>
@@ -224,10 +256,23 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <path d="m9 12 2 2 4-4" />
         </svg>
       );
+    case "shopping-bag":
+      return (
+        <svg {...common}>
+          <path d="M6 8h12l1 12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20.5L6 8Z" />
+          <path d="M9 10V6a3 3 0 0 1 6 0v4" />
+        </svg>
+      );
     case "sparkles":
       return (
         <svg {...common}>
           <path d="m12 3 1.2 4.8L18 9l-4.8 1.2L12 15l-1.2-4.8L6 9l4.8-1.2L12 3ZM19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7L19 15Z" />
+        </svg>
+      );
+    case "trash":
+      return (
+        <svg {...common}>
+          <path d="M4 7h16M9 7V5h6v2M6.5 7l1 13h9l1-13M10 11v5M14 11v5" />
         </svg>
       );
     case "truck":

@@ -8,9 +8,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
+import { WorkspaceCommandSearch } from "@/app/components/workspace/workspace-command-search";
 import {
-  navigationGroups,
+  adminNavigationGroup,
   clientNavigationGroups,
+  navigationGroups,
 } from "@/app/lib/demo-data";
 
 type BackOfficeShellProps = {
@@ -45,7 +47,11 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   }
 
   const isClient = clientRoles.has(user.role);
-  const groups = isClient ? clientNavigationGroups : navigationGroups;
+  const isAdmin = user.role === "ROLE_GERANT" || user.role === "ROLE_DEV_DIGITAL";
+  const groups = [
+    ...(isClient ? clientNavigationGroups : navigationGroups),
+    ...(isAdmin ? [adminNavigationGroup] : []),
+  ];
   const roleLabel = roleLabels[user.role] ?? user.role;
 
   function handleLogout() {
@@ -179,6 +185,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <WorkspaceCommandSearch />
             {!isClient ? (
               <Link
                 aria-label="Notifications"

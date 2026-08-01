@@ -47,6 +47,7 @@ export const navigationGroups: {
       { href: "/espace", icon: "dashboard", label: "Vue d'ensemble" },
       { href: "/espace/rapports", icon: "chart", label: "Rapports" },
       { href: "/espace/filiales", icon: "building", label: "Filiales" },
+      { href: "/espace/managers", icon: "users", label: "Managers" },
     ],
   },
   {
@@ -56,6 +57,7 @@ export const navigationGroups: {
       { href: "/espace/chantiers", icon: "folder", label: "Chantiers" },
       { href: "/espace/missions", icon: "clipboard", label: "Missions" },
       { href: "/espace/ouvriers", icon: "hardhat", label: "Ouvriers" },
+      { href: "/espace/carte", icon: "map", label: "Carte terrain" },
       { href: "/espace/devis", icon: "file-text", label: "Devis & factures" },
     ],
   },
@@ -69,6 +71,18 @@ export const navigationGroups: {
     ],
   },
 ];
+
+export const adminNavigationGroup: {
+  label: string;
+  items: {
+    href: string;
+    icon: IconName;
+    label: string;
+  }[];
+} = {
+  label: "Administration",
+  items: [{ href: "/espace/administration", icon: "shield", label: "Administration" }],
+};
 
 export const clientNavigationGroups: {
   label: string;
@@ -91,6 +105,7 @@ export const clientNavigationGroups: {
     items: [
       { href: "/espace/documents", icon: "file-text", label: "Documents" },
       { href: "/espace/factures", icon: "chart", label: "Factures & paiements" },
+      { href: "/espace/commandes", icon: "boxes", label: "Mes commandes" },
       { href: "/espace/messages", icon: "message", label: "Messages" },
       { href: "/espace/notifications", icon: "bell", label: "Notifications" },
     ],
@@ -663,7 +678,127 @@ export const modules: Record<string, ModuleDefinition> = {
     tabs: ["Boîte de réception", "Projets", "Archivées"],
     title: "Messages",
   },
+  managers: {
+    actionLabel: "Créer un compte manager",
+    columns: [
+      { id: "manager", label: "Manager" },
+      { id: "role", label: "Rôle" },
+      { id: "filiale", label: "Filiale" },
+      { id: "perimetre", label: "Périmètre" },
+      { id: "activite", label: "Activité du mois" },
+      { id: "statut", label: "Statut" },
+    ],
+    description: "Créez et administrez les comptes managers, leurs périmètres et leur activité.",
+    eyebrow: "Pilotage des équipes",
+    icon: "users",
+    insights: [
+      { label: "Managers actifs", value: "14" },
+      { label: "Équipes supervisées", value: "16" },
+      { label: "Comptes à activer", value: "02" },
+    ],
+    rows: [
+      { manager: "Aimé Bamba", role: "Manager Opérations", filiale: "Construction", perimetre: "Clientèle & chantiers", activite: "18 missions", statut: { label: "Actif", tone: "success" } },
+      { manager: "Sarah Gnahoua", role: "Manager Opérations", filiale: "Construction", perimetre: "Qualité & conformité", activite: "12 contrôles", statut: { label: "Actif", tone: "success" } },
+      { manager: "Manager Partenariats", role: "Manager Partenariats", filiale: "Matériaux", perimetre: "Fournisseurs & stocks", activite: "38 commandes", statut: { label: "Actif", tone: "success" } },
+      { manager: "Firmin Kouamé", role: "Responsable Ouvriers", filiale: "Construction", perimetre: "Équipes Atlas & Horizon", activite: "76 pointages", statut: { label: "Actif", tone: "success" } },
+      { manager: "Manager Filiale", role: "Manager de Filiale", filiale: "Entretien", perimetre: "Périmètre Entretien", activite: "8 chantiers", statut: { label: "Actif", tone: "success" } },
+      { manager: "Compte à attribuer", role: "Manager de Filiale", filiale: "—", perimetre: "À définir", activite: "—", statut: { label: "En création", tone: "warning" } },
+    ],
+    stats: [
+      { label: "Opérations", value: "06" },
+      { label: "Partenariats", value: "03" },
+      { label: "Filiales & RH", value: "05" },
+    ],
+    tabs: ["Tous", "Opérations", "Partenariats", "Filiales"],
+    title: "Managers",
+  },
+  commandes: {
+    actionLabel: "Commander des matériaux",
+    columns: [
+      { id: "reference", label: "Référence" },
+      { id: "articles", label: "Articles" },
+      { id: "montant", label: "Montant" },
+      { id: "livraison", label: "Livraison" },
+      { id: "status", label: "Statut" },
+    ],
+    description: "Suivez vos commandes de matériaux, de la validation au livreur.",
+    eyebrow: "Boutique WUGAMS",
+    icon: "boxes",
+    insights: [
+      { label: "En préparation", value: "01" },
+      { label: "Prochaine livraison", value: "Demain" },
+      { label: "Commandes", value: "04" },
+    ],
+    rows: [
+      { reference: "CMD-2026-118", articles: "Ciment 50 kg ×10 · Peinture 25L ×2", montant: "148 500 FCFA", livraison: "Demain · Dépôt Cocody", status: { label: "En préparation", tone: "info" } },
+      { reference: "CMD-2026-102", articles: "Carrelage grès 60×60 ×8 cartons", montant: "96 000 FCFA", livraison: "Livré · 12 juil.", status: { label: "Livrée", tone: "success" } },
+      { reference: "CMD-2026-087", articles: "Câble 2,5 mm ×3 rouleaux", montant: "27 600 FCFA", livraison: "Livré · 28 juin", status: { label: "Livrée", tone: "success" } },
+      { reference: "CMD-2026-064", articles: "Fauteuil mobilier ×2", montant: "210 000 FCFA", livraison: "Annulée · 14 juin", status: { label: "Annulée", tone: "neutral" } },
+    ],
+    stats: [
+      { label: "Total commandé", value: "482 100 F" },
+      { label: "En cours", value: "01" },
+      { label: "Livraisons", value: "03" },
+    ],
+    tabs: ["Toutes", "En préparation", "Expédiées", "Livrées"],
+    title: "Mes commandes",
+  },
 };
+
+export type MapSite = {
+  adresse: string;
+  client: string;
+  equipe: string;
+  effectif: number;
+  filiale: string;
+  id: string;
+  statut: string;
+  tone: StatusTone;
+  x: number;
+  y: number;
+};
+
+export const mapSites: MapSite[] = [
+  { id: "KOFFI-041", client: "Maison Kouassi", equipe: "Atlas", effectif: 4, filiale: "Construction", adresse: "Cocody, Abidjan", statut: "En cours", tone: "info", x: 62, y: 38 },
+  { id: "AHO-012", client: "Groupe Ahoua", equipe: "Horizon", effectif: 2, filiale: "Construction", adresse: "Marcory, Abidjan", statut: "Pointé", tone: "success", x: 74, y: 55 },
+  { id: "KON-005", client: "David Koné", equipe: "Sirocco", effectif: 3, filiale: "Rénovation", adresse: "Bingerville", statut: "Notifiée", tone: "neutral", x: 81, y: 30 },
+  { id: "PAL-003", client: "SCI Les Palmiers", equipe: "Atlas", effectif: 2, filiale: "Entretien", adresse: "Treichville", statut: "À valider", tone: "warning", x: 66, y: 62 },
+  { id: "NDR-021", client: "Bureaux N'Dri", equipe: "Horizon", effectif: 3, filiale: "Matériaux", adresse: "Plateau, Abidjan", statut: "En cours", tone: "info", x: 56, y: 47 },
+  { id: "SCI-008", client: "SCI Les Palmiers", equipe: "Sirocco", effectif: 5, filiale: "Construction", adresse: "Yopougon", statut: "Rapport soumis", tone: "warning", x: 45, y: 68 },
+  { id: "VIL-015", client: "Villa Koné", equipe: "Atlas", effectif: 3, filiale: "Rénovation", adresse: "Bingerville", statut: "Planifié", tone: "neutral", x: 84, y: 24 },
+];
+
+export type PointageRecord = {
+  horodatage: string;
+  lat: string;
+  lng: string;
+  mission: string;
+  ouvrier: string;
+  statut: "À vérifier" | "Vérifié";
+  type: "Arrivée" | "Sortie";
+};
+
+export const pointagesHistory: PointageRecord[] = [
+  { ouvrier: "Kouamé Firmin", mission: "KOFFI-041", type: "Arrivée", horodatage: "Aujourd'hui · 07:58", lat: "5.3482", lng: "-4.0185", statut: "Vérifié" },
+  { ouvrier: "Yao Christian", mission: "AHO-012", type: "Arrivée", horodatage: "Aujourd'hui · 09:12", lat: "5.3121", lng: "-3.9936", statut: "Vérifié" },
+  { ouvrier: "N'Dri Mireille", mission: "KON-005", type: "Arrivée", horodatage: "Aujourd'hui · 08:41", lat: "5.3580", lng: "-3.8850", statut: "À vérifier" },
+  { ouvrier: "Kouassi Didier", mission: "PAL-003", type: "Arrivée", horodatage: "Aujourd'hui · 10:05", lat: "5.2960", lng: "-4.0120", statut: "Vérifié" },
+  { ouvrier: "Kouamé Firmin", mission: "KOFFI-041", type: "Sortie", horodatage: "Hier · 17:31", lat: "5.3483", lng: "-4.0186", statut: "Vérifié" },
+  { ouvrier: "N'Dri Mireille", mission: "KON-005", type: "Sortie", horodatage: "Hier · 16:44", lat: "5.3902", lng: "-3.8701", statut: "À vérifier" },
+];
+
+export type OuvrierPerformance = {
+  nom: string;
+  noteTexte: number;
+  semaines: number[];
+};
+
+export const ouvriersPerformance: OuvrierPerformance[] = [
+  { nom: "Kouamé Firmin", noteTexte: 44, semaines: [36, 38, 40, 34, 39, 37, 38, 36, 40] },
+  { nom: "Yao Christian", noteTexte: 41, semaines: [33, 35, 34, 38, 36, 35, 37, 34, 36] },
+  { nom: "N'Dri Mireille", noteTexte: 47, semaines: [39, 40, 38, 40, 39, 40, 38, 39, 40] },
+  { nom: "Kouassi Didier", noteTexte: 35, semaines: [30, 32, 31, 29, 34, 30, 28, 31, 30] },
+];
 
 export function getModuleDefinition(slug: string) {
   return modules[slug];

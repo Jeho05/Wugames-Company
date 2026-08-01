@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
+import { useAuth } from "@/app/lib/auth-context";
 import {
   dashboardMetrics,
   dashboardProjects,
@@ -22,21 +23,61 @@ const trendColor = {
   warning: "text-amber-700",
 };
 
+const roleFraming: Record<string, { eyebrow: string; description: string }> = {
+  ROLE_COMPTABLE: {
+    eyebrow: "Vue financière",
+    description: "Voici ce qui mérite votre attention sur les factures, paiements et encaissements aujourd'hui.",
+  },
+  ROLE_DEV_DIGITAL: {
+    eyebrow: "Vue système",
+    description: "État des modules, journaux et paramètres : voici ce qui mérite votre attention aujourd'hui.",
+  },
+  ROLE_MGR_FILIALE: {
+    eyebrow: "Vue filiale",
+    description: "Voici ce qui mérite votre attention sur votre filiale et ses équipes aujourd'hui.",
+  },
+  ROLE_MGR_OPS: {
+    eyebrow: "Vue opérations",
+    description: "Voici ce qui mérite votre attention sur les chantiers, missions et équipes aujourd'hui.",
+  },
+  ROLE_MGR_PARTENAIRE: {
+    eyebrow: "Vue partenariats",
+    description: "Voici ce qui mérite votre attention sur les fournisseurs et les stocks aujourd'hui.",
+  },
+  ROLE_OUVRIER: {
+    eyebrow: "Vue terrain",
+    description: "Voici vos missions du jour, votre pointage et votre performance récente.",
+  },
+  ROLE_RESP_OUVRIERS: {
+    eyebrow: "Vue équipes",
+    description: "Voici ce qui mérite votre attention sur les équipes, présences et évaluations aujourd'hui.",
+  },
+  ROLE_SECRETAIRE: {
+    eyebrow: "Vue secrétariat",
+    description: "Voici ce qui mérite votre attention sur les demandes, devis et rendez-vous aujourd'hui.",
+  },
+};
+
 export function DashboardScreen() {
+  const { user } = useAuth();
   const [period, setPeriod] = useState("Ce mois");
+
+  const framing = user ? (roleFraming[user.role] ?? roleFraming.ROLE_MGR_OPS) : roleFraming.ROLE_MGR_OPS;
+  const firstName = user ? user.name.split(" ")[0] : "Jéhovani";
+  const isWorker = user?.role === "ROLE_OUVRIER";
 
   return (
     <div className="space-y-6">
       <section className="flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">
-            Vue groupe
+            {framing.eyebrow}
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-[-0.045em] text-[#17294b] sm:text-[30px]">
-            Bonjour, Jéhovani.
+            Bonjour, {firstName}.
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
-            Voici ce qui mérite votre attention sur les filiales et les équipes aujourd&apos;hui.
+            {framing.description}
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -58,13 +99,23 @@ export function DashboardScreen() {
               </button>
             ))}
           </div>
-          <Link
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
-            href="/espace/rapports"
-          >
-            <Icon name="chart" size={17} />
-            Voir les rapports
-          </Link>
+          {!isWorker ? (
+            <Link
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
+              href="/espace/rapports"
+            >
+              <Icon name="chart" size={17} />
+              Voir les rapports
+            </Link>
+          ) : (
+            <Link
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
+              href="/espace/ouvriers"
+            >
+              <Icon name="hardhat" size={17} />
+              Ma performance S1-S9
+            </Link>
+          )}
         </div>
       </section>
 

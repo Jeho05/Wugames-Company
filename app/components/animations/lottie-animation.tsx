@@ -38,13 +38,8 @@ export function LottieAnimation({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted] = useState(() => typeof window !== "undefined");
   const prefersReducedMotion = useReducedMotion();
-
-  // Check if mounted (client-side)
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Intersection observer for lazy loading
   useEffect(() => {
