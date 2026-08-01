@@ -7,6 +7,7 @@ import { FilialeCreateForm } from "@/app/components/workspace/filiale-create-for
 import { ModuleScreen } from "@/app/components/workspace/module-screen";
 import { Icon } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
+import { markAsRead } from "@/app/lib/api/notifications";
 import type { ModuleDefinition, ModuleRow } from "@/app/lib/demo-data";
 import type { ModuleCreateConfig } from "@/app/lib/module-create";
 import { getModuleCreateConfig } from "@/app/lib/module-create";
@@ -72,6 +73,18 @@ export function ModuleDataBridge({ definition, slug }: ModuleDataBridgeProps) {
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
 
+  const handleRowClick = useCallback(
+    (row: ModuleRow) => {
+      if (slug !== "notifications") return;
+      const id = (row.id as string) ?? "";
+      if (!id) return;
+      markAsRead(id)
+        .then(() => refresh())
+        .catch(() => undefined);
+    },
+    [slug, refresh]
+  );
+
   const createConfig = getModuleCreateConfig(slug);
 
   function renderCreateForm(props: CreateRenderProps): ReactNode {
@@ -102,7 +115,7 @@ export function ModuleDataBridge({ definition, slug }: ModuleDataBridgeProps) {
         </div>
       ) : null}
 
-      <ModuleScreen definition={mergedDefinition} renderCreateForm={renderCreateForm} />
+      <ModuleScreen definition={mergedDefinition} renderCreateForm={renderCreateForm} onRowClick={slug === "notifications" ? handleRowClick : undefined} />
     </div>
   );
 }

@@ -30,6 +30,10 @@ export async function annulerFacture(id: string, motif?: string): Promise<Messag
   });
 }
 
+export async function removeFacture(id: string): Promise<MessageResponse> {
+  return apiFetch<MessageResponse>(`/factures/${id}`, { method: "DELETE" });
+}
+
 export async function getFacturesConsolidation(): Promise<FactureConsolidation> {
   return apiFetch<FactureConsolidation>("/factures/consolidation");
 }

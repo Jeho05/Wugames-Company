@@ -45,3 +45,16 @@ export async function logout(): Promise<MessageResponse> {
 export async function register(payload: RegisterPayload): Promise<AuthUserDto> {
   return apiFetch<AuthUserDto>("/auth/register", { method: "POST", body: payload });
 }
+
+export type TwoFaSetup = {
+  secret: string;
+  qr_code: string;
+};
+
+export async function setup2fa(): Promise<TwoFaSetup> {
+  return apiFetch<TwoFaSetup>("/auth/2fa/setup", { method: "POST" });
+}
+
+export async function enable2fa(token: string): Promise<MessageResponse> {
+  return apiFetch<MessageResponse>("/auth/2fa/enable", { method: "POST", body: { token: token.trim() } });
+}

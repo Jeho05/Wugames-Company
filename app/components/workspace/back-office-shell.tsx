@@ -1,14 +1,16 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
+import { TwoFaForm } from "@/app/components/workspace/two-fa-form";
 import { useAuth } from "@/app/lib/auth-context";
 import { WorkspaceCommandSearch } from "@/app/components/workspace/workspace-command-search";
+import { getHealth } from "@/app/lib/api/health";
 import {
   adminNavigationGroup,
   clientNavigationGroups,
@@ -39,9 +41,26 @@ const roleLabels: Record<string, string> = {
 
 export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showTwoFa, setShowTwoFa] = useState(false);
+  const [healthOk, setHealthOk] = useState<boolean | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+    getHealth()
+      .then(() => {
+        if (!cancelled) setHealthOk(true);
+      })
+      .catch(() => {
+        if (!cancelled) setHealthOk(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!user) {
     return null;
@@ -179,8 +198,15 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                 {user.filiale}
               </p>
             </div>
-            <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 md:inline-flex">
-              API connectée
+            <span
+              className={
+                "hidden rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide md:inline-flex " +
+                (healthOk === false
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700")
+              }
+            >
+              {healthOk === false ? "API hors ligne" : healthOk === null ? "Vérification API…" : "API connectée"}
             </span>
           </div>
 
@@ -196,27 +222,72 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                 <span className="absolute right-2 top-2 size-1.5 rounded-full bg-[#db6d5b] ring-2 ring-white" />
               </Link>
             ) : null}
-            <button
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-2.5 shadow-sm transition hover:border-slate-300"
-              type="button"
-              onClick={handleLogout}
-              title="Se déconnecter"
-            >
-              <span className="grid size-7 place-items-center rounded-lg bg-[#dce7f5] text-[10px] font-extrabold text-[#244269]">
-                {user.initials}
-              </span>
-              <span className="hidden text-left sm:block">
-                <span className="block text-[11px] font-bold text-slate-700">{user.name}</span>
-                <span className="block text-[9px] font-medium text-slate-400">{roleLabel}</span>
-              </span>
-              <Icon className="hidden text-slate-400 sm:block" name="chevron-down" size={14} />
-            </button>
+            <div className="relative">
+              {userMenuOpen ? (
+                <button
+                  aria-label="Fermer le menu utilisateur"
+                  className="fixed inset-0 z-40 cursor-default"
+                  onClick={() => setUserMenuOpen(false)}
+                  type="button"
+                />
+              ) : null}
+              <button
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-2.5 shadow-sm transition hover:border-slate-300"
+                type="button"
+                onClick={() => setUserMenuOpen((open) => !open)}
+                title="Menu du compte"
+              >
+                <span className="grid size-7 place-items-center rounded-lg bg-[#dce7f5] text-[10px] font-extrabold text-[#244269]">
+                  {user.initials}
+                </span>
+                <span className="hidden text-left sm:block">
+                  <span className="block text-[11px] font-bold text-slate-700">{user.name}</span>
+                  <span className="block text-[9px] font-medium text-slate-400">{roleLabel}</span>
+                </span>
+                <Icon className="hidden text-slate-400 sm:block" name="chevron-down" size={14} />
+              </button>
+              {userMenuOpen ? (
+                <div className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10">
+                  <div className="border-b border-slate-100 px-4 py-3">
+                    <p className="text-xs font-bold text-[#17294b]">{user.name}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-400">{user.email}</p>
+                  </div>
+                  <div className="p-1.5">
+                    <button
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-[#17294b]"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        setShowTwoFa(true);
+                      }}
+                      type="button"
+                    >
+                      <span className="grid size-7 place-items-center rounded-lg bg-[#edf3f9] text-[#426b95]">
+                        <Icon name="shield" size={15} />
+                      </span>
+                      Sécurité · Activer la 2FA
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-red-600 transition hover:bg-red-50"
+                      onClick={handleLogout}
+                      type="button"
+                    >
+                      <span className="grid size-7 place-items-center rounded-lg bg-red-50 text-red-500">
+                        <Icon name="arrow-right" className="rotate-180" size={15} />
+                      </span>
+                      Se déconnecter
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1680px] px-4 py-5 pb-10 sm:px-6 lg:px-8 lg:py-8">
           {children}
         </main>
       </div>
+
+      {showTwoFa ? <TwoFaForm onClose={() => setShowTwoFa(false)} /> : null}
     </div>
   );
 }

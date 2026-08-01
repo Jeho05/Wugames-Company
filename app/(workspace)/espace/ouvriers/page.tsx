@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
+import { ApiError } from "@/app/lib/api-client";
+import { listEvaluations, updateEvaluation } from "@/app/lib/api/evaluations";
 import { getModuleDefinition, type OuvrierPerformance } from "@/app/lib/demo-data";
-import { listEvaluations } from "@/app/lib/api/evaluations";
 
 const criteria: { code: string; label: string }[] = [
   { code: "S1", label: "Sécurité sur site" },
@@ -35,8 +36,10 @@ function rendementGlobal(semaines: number[], noteTexte: number) {
   return rendement9S(semaines) * 0.7 + rendementTexte(noteTexte) * 0.3;
 }
 
-function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluations>>): OuvrierPerformance[] {
-  return evaluations.map((evaluation) => {
+function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluations>>) {
+  const ids: Record<string, string> = {};
+  const workers = evaluations.map((evaluation) => {
+    ids[evaluation.personne_nom] = evaluation.id;
     const notes = [evaluation.s1, evaluation.s2, evaluation.s3, evaluation.s4, evaluation.s5, evaluation.s6, evaluation.s7, evaluation.s8, evaluation.s9].map((note) => Number(note));
     const sur10 = notes.every((note) => note <= 10);
     return {
@@ -45,13 +48,17 @@ function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluat
       semaines: sur10 ? notes.map((note) => note * 4) : notes,
     };
   });
+  return { workers, ids };
 }
 
 export default function OuvriersPage() {
   const definition = getModuleDefinition("ouvriers");
   const [workers, setWorkers] = useState<OuvrierPerformance[]>([]);
+  const [evaluationIds, setEvaluationIds] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [scores, setScores] = useState<Record<string, number[]>>({});
+  const [toast, setToast] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +66,8 @@ export default function OuvriersPage() {
       .then((evaluations) => {
         if (cancelled) return;
         if (evaluations.length === 0) return;
-        const mapped = evaluationsToWorkers(evaluations);
+        const { workers: mapped, ids } = evaluationsToWorkers(evaluations);
+        setEvaluationIds(ids);
         setWorkers(mapped);
         setSelected(mapped[0].nom);
         setScores(
@@ -96,6 +104,38 @@ export default function OuvriersPage() {
 
   const worker = workers.find((w) => w.nom === selected) ?? workers[0];
 
+  async function handleSave(worker: OuvrierPerformance) {
+    const id = evaluationIds[worker.nom];
+    if (!id) {
+      setToast("Évaluation introuvable pour " + worker.nom + ".");
+      return;
+    }
+    const current = scores[worker.nom] ?? [];
+    if (current.length !== criteria.length) return;
+    setSaving(true);
+    try {
+      await updateEvaluation(id, {
+        s1: current[0] * 4,
+        s2: current[1] * 4,
+        s3: current[2] * 4,
+        s4: current[3] * 4,
+        s5: current[4] * 4,
+        s6: current[5] * 4,
+        s7: current[6] * 4,
+        s8: current[7] * 4,
+        s9: current[8] * 4,
+      });
+      const saved = current.map((score) => score * 4);
+      setWorkers((prev) => prev.map((w) => (w.nom === worker.nom ? { ...w, semaines: saved } : w)));
+      setToast("Grille S1-S9 enregistrée pour " + worker.nom + ".");
+    } catch (cause) {
+      const apiError = cause as ApiError;
+      setToast("Échec de l'enregistrement : " + apiError.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (!worker) {
     return (
       <div className="space-y-6">
@@ -116,6 +156,23 @@ export default function OuvriersPage() {
   return (
     <div className="space-y-6">
       <ModuleDataBridge definition={definition} slug="ouvriers" />
+
+      {toast ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <span className="flex items-center gap-2">
+            <Icon name="check" size={17} />
+            {toast}
+          </span>
+          <button
+            aria-label="Fermer le message"
+            className="rounded-md p-1 text-emerald-700 hover:bg-emerald-100"
+            onClick={() => setToast("")}
+            type="button"
+          >
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      ) : null}
 
       <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-100 px-5 pt-5 sm:px-6 sm:pt-6 xl:flex-row xl:items-center">
@@ -295,6 +352,15 @@ export default function OuvriersPage() {
               >
                 <Icon name="download" size={14} />
                 Exporter la grille
+              </button>
+              <button
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] disabled:opacity-60"
+                disabled={saving}
+                onClick={() => handleSave(worker)}
+                type="button"
+              >
+                <Icon name="check" size={14} />
+                {saving ? "Enregistrement…" : "Enregistrer la grille (API)"}
               </button>
             </div>
           </aside>

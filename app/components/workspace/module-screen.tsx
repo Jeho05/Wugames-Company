@@ -18,6 +18,7 @@ type CreateFormProps = {
 type ModuleScreenProps = {
   definition: ModuleDefinition;
   renderCreateForm?: (props: CreateFormProps) => React.ReactNode;
+  onRowClick?: (row: ModuleRow) => void;
 };
 
 function isModuleStatus(value: string | ModuleStatus): value is ModuleStatus {
@@ -43,7 +44,7 @@ function exportCsv(rows: ModuleRow[], definition: ModuleDefinition) {
   URL.revokeObjectURL(url);
 }
 
-export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps) {
+export function ModuleScreen({ definition, renderCreateForm, onRowClick }: ModuleScreenProps) {
   const [activeTab, setActiveTab] = useState(definition.tabs[0]);
   const [createOpen, setCreateOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -188,7 +189,7 @@ export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps
                 <div
                   className="cursor-pointer p-4 space-y-2 transition hover:bg-slate-50/70"
                   key={definition.title + rowIndex}
-                  onClick={() => setToast("Détail du dossier prêt à être relié à l'API.")}
+                  onClick={() => (onRowClick ? onRowClick(row) : setToast("Détail du dossier prêt à être relié à l'API."))}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-bold text-slate-800">
@@ -240,7 +241,7 @@ export function ModuleScreen({ definition, renderCreateForm }: ModuleScreenProps
                   <tr
                     className="cursor-pointer border-b border-slate-100 transition last:border-0 hover:bg-sky-50/50"
                     key={definition.title + rowIndex}
-                    onClick={() => setToast("Détail du dossier prêt à être relié à l'API.")}
+                    onClick={() => (onRowClick ? onRowClick(row) : setToast("Détail du dossier prêt à être relié à l'API."))}
                   >
                     {definition.columns.map((column, columnIndex) => {
                       const cell = row[column.id];

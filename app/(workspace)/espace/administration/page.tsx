@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
+import { CreateAccountForm } from "@/app/components/workspace/create-account-form";
 import { useAuth } from "@/app/lib/auth-context";
 import { listAuditLogs } from "@/app/lib/api/audit-logs";
 import { listUsers } from "@/app/lib/api/users";
@@ -52,6 +53,7 @@ export default function AdministrationPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [live, setLive] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
     if (!user || !adminRoles.has(user.role)) return;
@@ -234,7 +236,7 @@ export default function AdministrationPage() {
             <div className="border-t border-slate-100 px-5 py-4 sm:px-6">
               <button
                 className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
-                onClick={() => setToast("Création de compte : utilisez les modules Clients ou Fournisseurs depuis le menu.")}
+                onClick={() => setShowCreate(true)}
                 type="button"
               >
                 <Icon name="plus" size={15} />
@@ -323,6 +325,18 @@ export default function AdministrationPage() {
           </div>
         ) : null}
       </article>
+
+      {showCreate ? (
+        <CreateAccountForm
+          onClose={() => setShowCreate(false)}
+          onCreated={(account) => {
+            const name = [account.first_name, account.last_name].filter(Boolean).join(" ") || account.email;
+            setUsers((current) => [account, ...current]);
+            setShowCreate(false);
+            setToast("Compte " + name + " créé avec succès.");
+          }}
+        />
+      ) : null}
     </div>
   );
 }

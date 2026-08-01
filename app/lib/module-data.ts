@@ -142,6 +142,7 @@ function notificationRow(notification: unknown): ModuleRow {
   const record = notification as Record<string, unknown>;
   const message = (record.message ?? record.titre ?? "Notification") as string;
   return {
+    id: (record.id as string) ?? "",
     notification: message,
     module: (record.type ?? "Système") as string,
     destinataire: "—",
@@ -306,6 +307,51 @@ const apiLoaders: Record<string, Loader> = {
         { label: "Traitées", value: String(notifications.length - unread) },
       ],
       insights: [
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  rapports: async () => {
+    const [consolidation, cloture] = await Promise.all([
+      facturesApi.getFacturesConsolidation(),
+      facturesApi.rapportCloture().catch(() => null),
+    ]);
+    const monthLabel = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date());
+    const rows: ModuleRow[] = [
+      {
+        rapport: "Synthèse financière consolidée",
+        période: monthLabel,
+        auteur: "API WUGAMS",
+        dernièreédition: "Automatique",
+        statut: status("Prêt", "success"),
+      },
+      ...consolidation.filiales.map((filiale) => ({
+        rapport: `Détail filiale — ${filiale.nom} (${filiale.code})`,
+        période: monthLabel,
+        auteur: "API WUGAMS",
+        dernièreédition: `${filiale.count} facture${filiale.count > 1 ? "s" : ""}`,
+        statut: filiale.total_ttc > 0 ? status("Prêt", "success") : status("À vide", "neutral"),
+      })),
+    ];
+    if (cloture) {
+      rows.push({
+        rapport: "Rapport de clôture",
+        période: "Exercice en cours",
+        auteur: "API WUGAMS",
+        dernièreédition: "Généré à la demande",
+        statut: status("Exportable", "info"),
+      });
+    }
+    return {
+      rows,
+      stats: [
+        { label: "Total HT", value: formatFcfa(consolidation.totals.total_ht) },
+        { label: "Total TTC", value: formatFcfa(consolidation.totals.total_ttc) },
+        { label: "Factures", value: String(consolidation.totals.total_factures) },
+      ],
+      insights: [
+        { label: "Filiales consolidées", value: String(consolidation.filiales.length) },
+        { label: "Clôture", value: cloture ? "Disponible" : "—" },
         { label: "Source", value: "API WUGAMS" },
       ],
     };
