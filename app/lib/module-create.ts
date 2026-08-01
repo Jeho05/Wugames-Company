@@ -4,6 +4,7 @@ import * as fournisseursApi from "@/app/lib/api/fournisseurs";
 import * as filialesApi from "@/app/lib/api/filiales";
 import * as missionsApi from "@/app/lib/api/missions";
 import * as stocksApi from "@/app/lib/api/stocks";
+import * as usersApi from "@/app/lib/api/users";
 import {
   clientRow,
   factureRow,
@@ -56,6 +57,16 @@ const fournisseurOptions: () => Promise<CreateFieldOption[]> = async () => {
     value: f.id,
     label: f.raison_sociale ?? f.user?.email ?? f.id.slice(0, 8),
   }));
+};
+
+const ouvrierOptions: () => Promise<CreateFieldOption[]> = async () => {
+  const users = await usersApi.listUsers();
+  return users
+    .filter((u) => u.role === "ROLE_OUVRIER")
+    .map((u) => ({
+      value: u.ouvrier_profile?.id ?? u.id,
+      label: `${[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email}${u.ouvrier_profile?.specialite ? ` · ${u.ouvrier_profile.specialite}` : ""}`,
+    }));
 };
 
 export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
@@ -150,6 +161,7 @@ export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
       { name: "titre", label: "Titre de la mission", type: "text", required: true, placeholder: "Nettoyage Chantier A" },
       { name: "description", label: "Description", type: "textarea", placeholder: "Détails de l'intervention" },
       { name: "filiale_id", label: "Filiale", type: "select", required: true, optionsLoader: filialeOptions },
+      { name: "ouvrier_id", label: "Ouvrier affecté", type: "select", optionsLoader: ouvrierOptions, help: "Optionnel au départ" },
       { name: "date_planifiee", label: "Date planifiée", type: "date" },
     ],
     submit: async (values) =>
@@ -157,6 +169,7 @@ export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
         titre: values.titre.trim(),
         description: values.description?.trim() || undefined,
         filiale_id: values.filiale_id,
+        ouvrier_id: values.ouvrier_id || null,
         date_planifiee: values.date_planifiee ? new Date(values.date_planifiee).toISOString() : undefined,
       }),
     rowMapper: (entity) => missionRow(entity as Parameters<typeof missionRow>[0]),
