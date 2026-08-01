@@ -104,6 +104,18 @@ export function ContactForm() {
                 required
               />
             </label>
+            <label className="block">
+              <span className="text-xs font-bold text-slate-600">
+                Pièces jointes <span className="font-medium text-slate-400">(photos, plans — 5 max)</span>
+              </span>
+              <input
+                accept="image/*,.pdf,.dwg"
+                className="mt-1.5 w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-500 outline-none transition file:mr-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-[#17294b] file:px-3.5 file:py-2 file:text-xs file:font-bold file:text-white hover:border-[#7ea5ca] focus:border-[#7ea5ca]"
+                multiple
+                name="pieces-jointes"
+                type="file"
+              />
+            </label>
             <button
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#243a61] sm:w-auto"
               type="submit"

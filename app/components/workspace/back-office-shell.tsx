@@ -13,13 +13,14 @@ import {
   adminNavigationGroup,
   clientNavigationGroups,
   navigationGroups,
+  supplierNavigationGroup,
 } from "@/app/lib/demo-data";
 
 type BackOfficeShellProps = {
   children: ReactNode;
 };
 
-const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR"]);
+const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
 
 const roleLabels: Record<string, string> = {
   ROLE_CLIENT_MEMBRE: "Client Membre",
@@ -49,7 +50,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const isClient = clientRoles.has(user.role);
   const isAdmin = user.role === "ROLE_GERANT" || user.role === "ROLE_DEV_DIGITAL";
   const groups = [
-    ...(isClient ? clientNavigationGroups : navigationGroups),
+    ...(isClient ? clientNavigationGroups : user.role === "ROLE_FOURNISSEUR" ? supplierNavigationGroup : navigationGroups),
     ...(isAdmin ? [adminNavigationGroup] : []),
   ];
   const roleLabel = roleLabels[user.role] ?? user.role;

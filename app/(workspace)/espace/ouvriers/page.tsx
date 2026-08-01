@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ModuleScreen } from "@/app/components/workspace/module-screen";
@@ -18,6 +18,22 @@ const criteria: { code: string; label: string }[] = [
   { code: "S9", label: "Rigueur administrative" },
 ];
 
+const WEEK_BASE = 40;
+const TOTAL_BASE = WEEK_BASE * 9;
+const TEXT_BASE = 50;
+
+function rendement9S(semaines: number[]) {
+  return (semaines.reduce((sum, note) => sum + note, 0) / TOTAL_BASE) * 100;
+}
+
+function rendementTexte(noteTexte: number) {
+  return (noteTexte / TEXT_BASE) * 100;
+}
+
+function rendementGlobal(semaines: number[], noteTexte: number) {
+  return rendement9S(semaines) * 0.7 + rendementTexte(noteTexte) * 0.3;
+}
+
 export default function OuvriersPage() {
   const definition = getModuleDefinition("ouvriers");
   const [selected, setSelected] = useState(ouvriersPerformance[0].nom);
@@ -25,9 +41,20 @@ export default function OuvriersPage() {
     Object.fromEntries(
       ouvriersPerformance.map((worker) => [
         worker.nom,
-        criteria.map((_, index) => (worker.semaines[index] ?? 34) % 10 + 6),
+        criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6),
       ])
     )
+  );
+
+  const ranking = useMemo(
+    () =>
+      [...ouvriersPerformance]
+        .sort((a, b) => rendement9S(b.semaines) - rendement9S(a.semaines))
+        .map((worker) => ({
+          nom: worker.nom,
+          rang: rendement9S(worker.semaines),
+        })),
+    []
   );
 
   if (!definition) {
@@ -35,10 +62,11 @@ export default function OuvriersPage() {
   }
 
   const worker = ouvriersPerformance.find((w) => w.nom === selected) ?? ouvriersPerformance[0];
-  const average =
-    Math.round(
-      (scores[selected] ?? []).reduce((sum, score) => sum + score, 0) / criteria.length
-    ) / 10;
+  const rend9S = rendement9S(worker.semaines);
+  const rendTexte = rendementTexte(worker.noteTexte);
+  const global = rendementGlobal(worker.semaines, worker.noteTexte);
+  const rank = ranking.findIndex((entry) => entry.nom === worker.nom) + 1;
+  const totalSemaines = worker.semaines.reduce((sum, note) => sum + note, 0);
 
   return (
     <div className="space-y-6">
@@ -48,14 +76,14 @@ export default function OuvriersPage() {
         <div className="flex flex-col justify-between gap-4 border-b border-slate-100 px-5 pt-5 sm:px-6 sm:pt-6 xl:flex-row xl:items-center">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">
-              Moteur d&apos;évaluation · BR-08
+              Moteur d&apos;évaluation · BR-08 / BR-14
             </p>
             <h2 className="mt-1 text-xl font-bold tracking-[-0.035em] text-[#17294b]">
               Performance S1 à S9
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Grille d&apos;évaluation continue : chaque critère est noté de 1 à 10 par l&apos;équipe
-              encadrante.
+              Cycle de 9 semaines (base 40 / semaine) · note texte (base 50) · rendement global
+              70/30 (BR-14).
             </p>
           </div>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -80,13 +108,32 @@ export default function OuvriersPage() {
 
         <div className="grid gap-6 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_300px]">
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-bold text-[#1a2943]">{worker.nom}</p>
-              <span className="rounded-full bg-[#edf3f9] px-2.5 py-1 text-[11px] font-bold text-[#426b95]">
-                Note générale : <span className="text-[#17294b]">{average.toFixed(1)} / 10</span>
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#edf3f9] px-2.5 py-1 text-[11px] font-bold text-[#426b95]">
+                  Rang BR-08 : <span className="text-[#17294b]">n°{rank} / {ouvriersPerformance.length}</span>
+                </span>
+                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-[#a06a1e]">
+                  Global : <span className="text-[#17294b]">{global.toFixed(1)} %</span>
+                </span>
+              </div>
             </div>
-            <div className="mt-4 space-y-3.5">
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {[
+                { label: "Total S1-S9 (Σ)", value: String(totalSemaines) + " / " + String(TOTAL_BASE) },
+                { label: "Rendement 9S (BR-08)", value: rend9S.toFixed(1) + " %" },
+                { label: "Rendement texte /50", value: rendTexte.toFixed(1) + " %" },
+              ].map((stat) => (
+                <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5" key={stat.label}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
+                  <p className="mt-1 text-lg font-bold text-[#17294b]">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 space-y-3.5">
               {criteria.map((criterion, index) => {
                 const score = (scores[selected] ?? [])[index] ?? 7;
                 const pct = score * 10;
@@ -142,33 +189,59 @@ export default function OuvriersPage() {
             </div>
           </div>
 
-          <aside className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
-              Tendance 9 semaines
-            </p>
-            <div className="mt-4 flex h-36 items-end gap-1.5">
-              {worker.semaines.map((value, index) => (
-                <div className="flex flex-1 flex-col items-center gap-1.5" key={index}>
+          <aside className="space-y-4">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                Classement du cycle (BR-08)
+              </p>
+              <div className="mt-3 space-y-2">
+                {ranking.map((entry, index) => (
                   <div
-                    className="w-full rounded-t-md bg-[#7ba3cc] transition-all duration-300"
-                    style={{ height: (value / 40) * 100 + "%", minHeight: 8 }}
-                  />
-                  <span className="text-[9px] font-bold text-slate-400">S{index + 1}</span>
-                </div>
-              ))}
+                    className={
+                      "flex items-center justify-between rounded-lg px-3 py-2 text-xs " +
+                      (entry.nom === worker.nom ? "bg-white shadow-sm ring-1 ring-amber-200" : "bg-white/60")
+                    }
+                    key={entry.nom}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="grid size-5 place-items-center rounded-md bg-[#17294b] text-[10px] font-extrabold text-white">
+                        {index + 1}
+                      </span>
+                      <span className="font-bold text-[#233856]">{entry.nom}</span>
+                    </span>
+                    <span className="font-semibold text-slate-500">{entry.rang.toFixed(1)} %</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="mt-4 rounded-lg bg-white p-3 text-[11px] leading-5 text-slate-500 shadow-sm">
-              La note générale est recalculée à chaque évaluation et alimente la paie variable
-              (BR-08) ainsi que le plan de formation.
-            </p>
-            <button
-              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[#426b95] transition hover:border-slate-300"
-              onClick={() => setScores((prev) => prev)}
-              type="button"
-            >
-              <Icon name="download" size={14} />
-              Exporter la grille
-            </button>
+
+            <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                Tendance 9 semaines
+              </p>
+              <div className="mt-4 flex h-36 items-end gap-1.5">
+                {worker.semaines.map((value, index) => (
+                  <div className="flex flex-1 flex-col items-center gap-1.5" key={index}>
+                    <div
+                      className="w-full rounded-t-md bg-[#7ba3cc] transition-all duration-300"
+                      style={{ height: (value / WEEK_BASE) * 100 + "%", minHeight: 8 }}
+                    />
+                    <span className="text-[9px] font-bold text-slate-400">S{index + 1}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 rounded-lg bg-white p-3 text-[11px] leading-5 text-slate-500 shadow-sm">
+                Rendement global (BR-14) = 70 % × Rendement_9S + 30 % × Rendement_Texte. Il alimente
+                les primes et l&apos;affectation prioritaire aux missions.
+              </p>
+              <button
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[#426b95] transition hover:border-slate-300"
+                type="button"
+              >
+                <Icon name="download" size={14} />
+                Exporter la grille
+              </button>
+            </div>
           </aside>
         </div>
       </article>

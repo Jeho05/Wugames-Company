@@ -269,6 +269,50 @@ export default function BoutiquePage() {
         </p>
       </section>
 
+      <section className="border-t border-slate-200 bg-[#f7f9fc]">
+        <div className="mx-auto w-full max-w-[1240px] px-5 py-12 sm:px-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">
+                Avis produits · clients vérifiés
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-[#17294b]">
+                Ce que disent nos clients
+              </h2>
+            </div>
+            <p className="hidden text-sm font-bold text-slate-500 sm:block">
+              ★ 4,7 / 5 · 128 avis
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { product: "Ciment 50 kg", name: "Koffi A.", text: "Livraison en 3 h sur mon chantier de Bingerville. Qualité constante, prix affiché = prix payé.", stars: 5 },
+              { product: "Carrelage grès 60×60", name: "Aminata T.", text: "Le dépôt de Cocody avait tout en stock. Le carrelage est magnifique, pose comprise sans casse.", stars: 5 },
+              { product: "Câble électrique 2,5 mm", name: "David K.", text: "Bon rapport qualité/prix, section conforme aux normes. Je recommande pour les chantiers neufs.", stars: 4 },
+            ].map((review) => (
+              <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" key={review.name}>
+                <div className="flex items-center gap-1 text-amber-500">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg
+                      className={"size-3.5 " + (star <= review.stars ? "fill-current" : "fill-slate-200")}
+                      key={star}
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs leading-6 text-slate-600">&ldquo;{review.text}&rdquo;</p>
+                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                  <p className="text-xs font-bold text-[#233856]">{review.name}</p>
+                  <p className="text-[11px] font-semibold text-slate-400">{review.product}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {cartOpen ? (
         <div className="fixed inset-0 z-[60]">
           <button

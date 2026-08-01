@@ -112,6 +112,26 @@ export const clientNavigationGroups: {
   },
 ];
 
+export const supplierNavigationGroup: {
+  label: string;
+  items: {
+    href: string;
+    icon: IconName;
+    label: string;
+  }[];
+}[] = [
+  {
+    label: "Mon activité",
+    items: [
+      { href: "/espace", icon: "dashboard", label: "Vue d'ensemble" },
+      { href: "/espace/stocks", icon: "boxes", label: "Stock en dépôt" },
+      { href: "/espace/commandes", icon: "file-text", label: "Bons de commande" },
+      { href: "/espace/messages", icon: "message", label: "Messages" },
+      { href: "/espace/notifications", icon: "bell", label: "Notifications" },
+    ],
+  },
+];
+
 export const dashboardMetrics = [
   {
     caption: "vs. mois précédent",

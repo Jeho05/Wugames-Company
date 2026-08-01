@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { ClientDashboardScreen } from "@/app/components/workspace/client-dashboard-screen";
 import { DashboardScreen } from "@/app/components/workspace/dashboard-screen";
+import { SupplierDashboardScreen } from "@/app/components/workspace/supplier-dashboard-screen";
 
-const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR"]);
+const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
 
 export default function WorkspaceDashboardPage() {
   const { user } = useAuth();
@@ -21,6 +22,10 @@ export default function WorkspaceDashboardPage() {
 
   if (!user) {
     return null;
+  }
+
+  if (user.role === "ROLE_FOURNISSEUR") {
+    return <SupplierDashboardScreen />;
   }
 
   if (clientRoles.has(user.role)) {
