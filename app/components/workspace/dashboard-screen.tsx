@@ -278,7 +278,7 @@ export function DashboardScreen() {
         </p>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {live.metrics.map((metric) => (
           <article
             className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
@@ -290,7 +290,7 @@ export function DashboardScreen() {
                 <Icon name={metric.icon} size={18} />
               </span>
             </div>
-            <p className="mt-5 text-[28px] font-bold tracking-[-0.045em] text-[#182842]">
+            <p className="mt-5 text-[23px] font-bold tracking-[-0.045em] text-[#182842] sm:text-[28px]">
               {metric.value}
             </p>
             <p className="mt-1.5 flex items-center gap-1.5 text-[11px]">
@@ -301,7 +301,7 @@ export function DashboardScreen() {
         ))}
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.75fr)]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,0.75fr)]">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -384,7 +384,7 @@ export function DashboardScreen() {
         </article>
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.75fr)]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,0.75fr)]">
         <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
             <div>
