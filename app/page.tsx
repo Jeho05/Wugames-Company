@@ -31,9 +31,9 @@ const siteLinks = [
 ];
 
 const painPoints = [
-  "Vous avez déjà fait appel à un artisan qui n&apos;a pas tenu ses promesses ?",
-  "Des travaux en retard, des devis qui explosent, personne pour vous rassurer ?",
-  "Vous ne savez plus à qui faire confiance pour vos projets immobiliers ?",
+  "Vous avez déjà fait appel à un artisan qui n'a pas tenu ses promesses ?",
+  "Vos travaux prennent du retard, vos devis augmentent, et personne ne vous rassure ?",
+  "Vous ne savez plus à qui faire confiance pour réaliser vos projets de construction, de rénovation ou d'entretien ?",
 ];
 
 const services = [
@@ -48,27 +48,27 @@ const services = [
     title: "Nettoyage & Entretien",
   },
   {
-    description: "Matériaux de construction et de bricolage, livraison rapide et conseil technique.",
+    description: "Vente de matériaux de bricolage, de construction et d'entretien, livraison rapide et conseil technique.",
     icon: "boxes" as const,
     title: "Matériaux & Fournitures",
   },
   {
-    description: "Création, conception et restauration de mobilier sur mesure.",
+    description: "Achat, création, conception et restauration de mobilier sur mesure.",
     icon: "hardhat" as const,
     title: "Mobilier & Design",
   },
   {
-    description: "Accompagnement pour diriger, structurer et créer de nouvelles entreprises.",
+    description: "Partenariat et Communauté",
     icon: "building" as const,
     title: "Diriger & Créer d'entreprises",
   },
 ];
 
 const beforeAfter = [
-  { after: "Un seul interlocuteur pour tout le projet", before: "5 artisans différents, 5 interlocuteurs" },
-  { after: "Suivi en temps réel de l&apos;avancement", before: "Plus de nouvelles pendant 3 semaines" },
+  { after: "Une équipe engagée pour accompagner votre projet à chaque étape.", before: "5 artisans différents, 5 interlocuteurs" },
+  { after: "Une communication régulière à chaque étape de votre projet.", before: "Plus de nouvelles pendant 3 semaines" },
   { after: "Devis clair, sans surprise", before: "Devis à 2M, facture finale à 5M" },
-  { after: "Garantie décennale incluse", before: "Aucune garantie, bons sentiments" },
+  { after: "Garantie d'accompagnement et de service après la réalisation de votre projet.", before: "Aucune garantie, bons sentiments" },
 ];
 
 const testimonials = [
@@ -93,10 +93,10 @@ const testimonials = [
 ];
 
 const guarantees = [
-  { icon: "shield" as const, title: "Garantie décennale", text: "Tous nos travaux sont couverts par une garantie légale de 10 ans." },
-  { icon: "check" as const, title: "Devis transparent", text: "Le prix annoncé est le prix payé. Aucune surprise, aucune charge cachée." },
-  { icon: "clock" as const, title: "Respect des délais", text: "Nous nous engageons sur un calendrier. Si nous ne tenons pas, nous compensons." },
-  { icon: "message" as const, title: "Suivi en temps réel", text: "Vous voyez l&apos;avancement de vos travaux à tout moment, depuis votre téléphone." },
+  { icon: "shield" as const, title: "Garantie de suivi et d'accompagnement", text: "Notre engagement ne s'arrête pas à la fin des travaux. Nous assurons un suivi et restons disponibles pour vous accompagner après la réalisation de votre projet." },
+  { icon: "check" as const, title: "Le devis qui vous convient", text: "Nous vous proposons différentes options et vous accompagnons dans la validation de la solution retenue." },
+  { icon: "clock" as const, title: "Respect du calendrier", text: "Nous définissons un calendrier réaliste avec vous. Si vous avez des contraintes de temps, nous pouvons proposer une réalisation express." },
+  { icon: "message" as const, title: "Suivi en temps réel", text: "Nous maintenons une communication claire et continue pour vous permettre de suivre l'évolution de votre projet." },
 ];
 
 export default function ClientBrandingPage() {
@@ -166,10 +166,10 @@ export default function ClientBrandingPage() {
                 </div>
                 <Reveal delay={400}>
                   <p className="mt-6 text-sm leading-7 text-slate-500">
-                    Vous n&apos;êtes pas seul. <span className="font-bold text-[#17294b]">83% des propriétaires</span> ont déjà eu une mauvaise expérience avec un artisan. Le résultat ? Du temps perdu, de l&apos;argent gaspillé, et un stress inutile.
+                    Vous n&apos;êtes pas seul. <span className="font-bold text-[#17294b]">83% des propriétaires</span> ont déjà eu une expérience désagréable avec un artisan. Le résultat ? Du temps perdu, de l&apos;argent gaspillé, et un stress inutile.
                   </p>
                   <p className="mt-3 text-sm leading-7 text-slate-500">
-                    <span className="font-bold text-[#17294b]">Vous méritez mieux que ça.</span> Et c&apos;est exactement pour ça que WUGAMS existe.
+                    <span className="font-bold text-[#17294b]">Il existe une meilleure façon de réaliser vos projets.</span> C&apos;est exactement pour cela que WUGAMS existe.
                   </p>
                 </Reveal>
               </div>
@@ -219,14 +219,14 @@ export default function ClientBrandingPage() {
                 />
               </div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos filiales</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Un groupe, cinq expertises.</h2>
+              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Une équipe, cinq expertises.</h2>
               <GooeyText
                 className="mx-auto mt-4 h-9 sm:h-11"
                 textClassName="text-xl font-bold tracking-[-0.04em] text-[#426b95] sm:text-3xl"
                 texts={["Construire.", "Rénover.", "Entretenir.", "Aménager.", "Entreprendre."]}
               />
               <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-slate-500">
-                Chaque filiale WUGAMS est spécialisée. Vous n&apos;avez qu&apos;un seul interlocuteur, mais une équipe complète derrière.
+                Chaque filiale WUGAMS est spécialisée. Une équipe engagée vous accompagne à chaque étape de votre projet.
               </p>
             </div>
           </Reveal>
@@ -254,7 +254,7 @@ export default function ClientBrandingPage() {
           <Reveal>
             <div className="text-center">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos engagements</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Ce qu&apos;on vous promet. Et ce qu&apos;on tient.</h2>
+              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Voici les promesses que nous faisons à chacun de nos clients.</h2>
             </div>
           </Reveal>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -319,15 +319,14 @@ export default function ClientBrandingPage() {
           <Reveal>
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Première étape</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Rencontrez WUGAMS. Gratuitement.</h2>
+              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Prendre rendez-vous avec WUGAMS.</h2>
               <p className="mt-5 max-w-lg text-sm leading-7 text-slate-500">
-                Pas de vente. Pas de pression. Juste un échange pour comprendre votre projet. C&apos;est après cette rencontre qu&apos;on décide ensemble si on travaille ensemble.
+                Une bonne réalisation commence toujours par une bonne compréhension du projet. Cette rencontre nous permet de comprendre vos besoins, de partager votre vision et de construire ensemble un projet adapté à vos attentes.
               </p>
               <div className="mt-8 space-y-4">
                 {[
-                  { icon: "map" as const, text: "Physique : au bureau ou sur votre site, au Bénin" },
-                  { icon: "message" as const, text: "Visio : Zoom, Google Meet, où vous êtes" },
-                  { icon: "clock" as const, text: "30 minutes. Suffisant pour clarifier le projet." },
+                  { icon: "map" as const, text: "Physique : Bénin, Porto-Novo / Dowa Saint-Paul C/31" },
+                  { icon: "message" as const, text: "En ligne : Google Meet, Skype, Teams, WhatsApp, Zoom, etc." },
                 ].map((item, i) => (
                   <Reveal delay={i * 100} key={item.text}>
                     <div className="flex items-start gap-3">
@@ -339,13 +338,13 @@ export default function ClientBrandingPage() {
               </div>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <PulseButton href="/inscription">
-                  Réserver ma consultation gratuite
+                  Prenez rendez-vous ici
                 </PulseButton>
                 <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50" href="/connexion">
                   J&apos;ai déjà un compte
                 </Link>
               </div>
-              <p className="mt-4 text-[11px] text-slate-400">Aucune carte bancaire requise. Aucun engagement. On parle, c&apos;est tout.</p>
+              <p className="mt-4 text-[11px] text-slate-400">Vous disposez déjà d&apos;un espace client ? Connectez-vous à votre espace pour suivre votre projet et accéder à vos services.</p>
             </div>
           </Reveal>
 
@@ -359,11 +358,11 @@ export default function ClientBrandingPage() {
                 </div>
                 <div className="mt-5 space-y-5">
                   {[
-                    { num: "1", title: "Vous nous écrivez", desc: "Un message, un appel. Vous nous expliquez votre besoin." },
-                    { num: "2", title: "On se rencontre", desc: "30 minutes en visio ou en personne. On vous écoute." },
-                    { num: "3", title: "On clarifie", desc: "On pose les questions que personne ne pose. On comprend le projet." },
-                    { num: "4", title: "On vous propose", desc: "Un devis détaillé, chiffré, sans surprise. Vous décidez." },
-                    { num: "5", title: "On construit", desc: "Nos équipes travaillent. Vous suivez. On livre. Point." },
+                    { num: "1", title: "Vous nous écrivez", desc: "Un message ou un appel suffit pour nous confier votre besoin." },
+                    { num: "2", title: "Nous nous rencontrons", desc: "30 minutes en visio ou en personne, le temps d'écouter et de comprendre votre projet." },
+                    { num: "3", title: "Nous clarifions", desc: "Nous posons les questions que personne d'autre ne pose, pour cerner chaque détail de votre projet." },
+                    { num: "4", title: "Nous vous proposons", desc: "Un devis détaillé et chiffré, sans surprise. La décision vous appartient." },
+                    { num: "5", title: "Nous construisons", desc: "Nos équipes réalisent les travaux pendant que vous suivez l'avancement, jusqu'à la livraison." },
                   ].map((step, i) => (
                     <Reveal delay={400 + i * 120} key={step.num}>
                       <div className="flex gap-4">
@@ -396,13 +395,13 @@ export default function ClientBrandingPage() {
             <GradientMesh />
             <div className="relative z-10 max-w-2xl">
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f2c56d]">Prêt à commencer ?</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.05em] sm:text-4xl">Chaque jour sans action, c&apos;est un jour de perdu.</h2>
+              <h2 className="mt-3 text-3xl font-bold leading-tight tracking-[-0.05em] sm:text-4xl">Chaque projet commence par une première étape.</h2>
               <p className="mt-5 text-sm leading-7 text-slate-300">
-                Votre projet mérite d&apos;avancer. On vous offre 30 minutes pour clarifier les choses. Sans engagement. Sans carte bancaire. Juste un échange humain.
+                Nous sommes disponibles pour échanger sur votre projet. Prenons le temps de comprendre votre vision, vos attentes et les solutions qui pourront y répondre.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <PulseButton href="/inscription">
-                  Réserver ma consultation
+                  Prenez un rendez-vous ici
                 </PulseButton>
                 <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-white/[0.12]" href="/connexion">
                   Espace client existant

@@ -141,10 +141,10 @@ export default function BoutiquePage() {
       <section className="bg-[#101a2d] pb-10 pt-32 text-white">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300">
-            Boutique WUGAMS · Livraison 7 j/7
+            Espace Wu · Livraison 7 j/7
           </p>
           <h1 className="mt-3 text-4xl font-bold tracking-[-0.05em] sm:text-5xl">
-            Matériaux, outillage &amp; mobilier
+            Entretien, matériaux, mobilier &amp; outillage
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
             Commandez en ligne et faites-vous livrer sur votre chantier, même en urgence.
@@ -152,10 +152,10 @@ export default function BoutiquePage() {
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-6 text-xs font-semibold text-slate-300">
             <span className="inline-flex items-center gap-2">
-              <Icon className="text-emerald-400" name="check" size={15} /> Urgence Abidjan · 4 h
+              <Icon className="text-emerald-400" name="check" size={15} /> Urgence Porto-Novo · Express
             </span>
             <span className="inline-flex items-center gap-2">
-              <Icon className="text-emerald-400" name="check" size={15} /> Retrait dépôt Cocody &amp; Treichville
+              <Icon className="text-emerald-400" name="check" size={15} /> Retrait à l&apos;Espace Wu
             </span>
             <span className="inline-flex items-center gap-2">
               <Icon className="text-emerald-400" name="check" size={15} /> Tarif membres &amp; chantiers

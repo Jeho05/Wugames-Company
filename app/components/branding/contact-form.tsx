@@ -21,7 +21,7 @@ export function ContactForm() {
     <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">
-          Formulaire de contact · réponse sous 24 h
+          Formulaire de contact
         </p>
         <h3 className="mt-2 text-xl font-bold tracking-[-0.035em] text-[#17294b]">
           Écrivez-nous directement
@@ -128,10 +128,10 @@ export function ContactForm() {
 
       <aside className="space-y-4">
         {[
-          { icon: "message" as const, title: "E-mail", lines: ["contact@wugams.ci", "Réponse sous 24 h ouvrées"] },
-          { icon: "clock" as const, title: "Horaires", lines: ["Lun – Sam · 7 h 30 – 19 h", "Urgences chantier : 7 j/7"] },
-          { icon: "map" as const, title: "Adresse", lines: ["Plateau, Abidjan — Côte d'Ivoire", "Visite sur rendez-vous"] },
-          { icon: "truck" as const, title: "Livraison matériaux", lines: ["Abidjan : 4 h en urgence", "Régions : 24–48 h"] },
+          { icon: "message" as const, title: "E-mail", lines: ["wugams_holding_inc@hotmail.com"] },
+          { icon: "clock" as const, title: "Horaires", lines: ["Lundi - Vendredi", "Matinée : 9 h 00 – 11 h 00", "Soirée : 15 h 00 – 17 h 00", "Urgences chantier : 5 j/7"] },
+          { icon: "map" as const, title: "Adresse", lines: ["Bénin, Porto-Novo / Dowa Saint-Paul C/31", "Visite libre"] },
+          { icon: "truck" as const, title: "Livraison matériaux", lines: ["Commander sur Espace WU"] },
         ].map((card) => (
           <div
             className="flex items-start gap-3.5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"

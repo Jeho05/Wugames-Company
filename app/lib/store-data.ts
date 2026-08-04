@@ -13,11 +13,12 @@ export type Product = {
 export const productCategories = [
   "Tous",
   "Gros œuvre",
+  "Entretien",
   "Électricité",
+  "Mobilier",
   "Plomberie",
   "Peinture",
   "Quincaillerie",
-  "Mobilier",
 ];
 
 export const productFiliales = ["Toutes", "Matériaux", "Mobilier", "Rénovation"];
