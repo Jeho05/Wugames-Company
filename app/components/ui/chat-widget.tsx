@@ -26,6 +26,9 @@ function botAnswer(input: string): string {
   if (/(boutique|matériau|matériaux|commande|livraison|ciment|peinture|outillage|mobilier)/.test(text)) {
     return "L'Espace Wu, la boutique WUGAMS, rassemble entretien, matériaux, mobilier et outillage. Livraison 7 j/7, service urgent Porto-Novo · Express et retrait à l'Espace Wu. Paiement par carte ou Mobile Money. Commandez dès maintenant sur la page Boutique.";
   }
+  if (/(rendez-vous|rendez vous|rdv|consultation|rencontre|rencontrer)/.test(text)) {
+    return "Prenez rendez-vous avec WUGAMS : en visio (Google Meet, Skype, Teams, WhatsApp, Zoom) ou en personne à Bénin, Porto-Novo / Dowa Saint-Paul C/31. Cette rencontre nous permet de comprendre vos besoins, de partager votre vision et de construire ensemble un projet adapté à vos attentes. Connectez-vous ou créez un compte, puis suivez « Prenez rendez-vous ici ».";
+  }
   if (/(chantier|suivi|avancement|projet)/.test(text)) {
     return "Chaque chantier bénéficie d'une communication régulière à chaque étape de votre projet, avec photos et rapports. Connectez-vous à votre espace client, section « Mes projets » ou « Carte terrain ».";
   }
