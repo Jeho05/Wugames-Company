@@ -66,10 +66,6 @@ export default function LoginPage() {
               <Link className="font-semibold text-[#426b95] hover:text-[#17294b]" href="/">
                 Retour à l&apos;accueil
               </Link>
-              {" "}&middot;{" "}
-              <Link className="font-semibold text-[#426b95] hover:text-[#17294b]" href="/vitrine">
-                Voir la vitrine interne
-              </Link>
             </p>
           </div>
         </section>

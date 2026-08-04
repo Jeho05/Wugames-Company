@@ -1,4 +1,8 @@
+"use client";
+
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type BrandMarkProps = {
   href?: string;
@@ -6,6 +10,22 @@ type BrandMarkProps = {
 };
 
 export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
+  const router = useRouter();
+  const [clicks, setClicks] = useState(0);
+  const resetRef = useRef<number | null>(null);
+
+  function handleClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    const next = clicks + 1;
+    setClicks(next);
+    if (resetRef.current) window.clearTimeout(resetRef.current);
+    resetRef.current = window.setTimeout(() => setClicks(0), 900);
+    if (next >= 3) {
+      setClicks(0);
+      event.preventDefault();
+      router.push("/vitrine");
+    }
+  }
+
   const content = (
     <>
       <span
@@ -45,6 +65,7 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
       aria-label="Accueil WUGAMS"
       className="inline-flex items-center gap-2.5"
       href={href}
+      onClick={handleClick}
     >
       {content}
     </Link>

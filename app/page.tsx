@@ -439,7 +439,6 @@ export default function ClientBrandingPage() {
               <ul className="mt-3 space-y-2 text-xs text-slate-500">
                 <li><a className="transition hover:text-[#17294b]" href="#rencontre">Rencontrez WUGAMS</a></li>
                 <li><a className="transition hover:text-[#17294b]" href="#temoignages">Témoignages</a></li>
-                <li><Link className="transition hover:text-[#17294b]" href="/vitrine">Espace WUGAMS (interne)</Link></li>
               </ul>
             </div>
             <div>
