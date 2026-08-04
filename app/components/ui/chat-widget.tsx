@@ -20,22 +20,22 @@ const quickReplies = [
 
 function botAnswer(input: string): string {
   const text = input.toLocaleLowerCase("fr");
-  if (/(devis|prix|tarif|coût|cout)/.test(text)) {
-    return "Un devis WUGAMS est gratuit, détaillé ligne par ligne et valable 30 jours. Connectez-vous à votre espace puis ouvrez le module « Devis & factures » pour en demander un, ou écrivez-nous à contact@wugams.ci.";
+  if (/(devis|prix|tarif|coût|cout|estimation)/.test(text)) {
+    return "Le devis WUGAMS est gratuit et détaillé : nous vous proposons différentes options et vous accompagnons dans la validation de la solution retenue. Prenez rendez-vous avec WUGAMS ou connectez-vous / créez un compte pour en demander un.";
   }
-  if (/(boutique|matériau|commande|livraison|ciment|peinture)/.test(text)) {
-    return "La boutique WUGAMS livre sur Abidjan en 4 h en urgence (24 h ailleurs). Vous pouvez commander dès maintenant sur la page Boutique — paiement par carte, MTN MoMo ou Moov Money.";
+  if (/(boutique|matériau|matériaux|commande|livraison|ciment|peinture|outillage|mobilier)/.test(text)) {
+    return "L'Espace Wu, la boutique WUGAMS, rassemble entretien, matériaux, mobilier et outillage. Livraison 7 j/7, service urgent Porto-Novo · Express et retrait à l'Espace Wu. Paiement par carte ou Mobile Money. Commandez dès maintenant sur la page Boutique.";
   }
   if (/(chantier|suivi|avancement|projet)/.test(text)) {
-    return "Chaque chantier est suivi en temps réel : pointage géolocalisé des équipes, photos et rapports quotidiens. Connectez-vous à votre espace, section « Carte terrain » ou « Mes projets ».";
+    return "Chaque chantier bénéficie d'une communication régulière à chaque étape de votre projet, avec photos et rapports. Connectez-vous à votre espace client, section « Mes projets » ou « Carte terrain ».";
   }
-  if (/(contact|téléphone|appel|joindre|adresse)/.test(text)) {
-    return "Notre équipe répond du lundi au samedi, 7 h 30 à 19 h : contact@wugams.ci · +225 27 22 00 00 00 · siège au Plateau, Abidjan. Vous pouvez aussi utiliser le formulaire de contact en bas de la page d'accueil.";
+  if (/(contact|téléphone|telephone|email|e-mail|mail|appel|joindre|adresse)/.test(text)) {
+    return "Pour nous joindre : wugams_holding_inc@hotmail.com · Horaires du lundi au vendredi (matinée 9 h à 11 h, soirée 15 h à 17 h) · urgences chantier 5 j/7 · Adresse : Bénin, Porto-Novo / Dowa Saint-Paul C/31, visite libre. Vous pouvez aussi utiliser le formulaire de contact : une connexion ou une création de compte est requise.";
   }
-  if (/(chantier|construction|rénovation|renovation|entretien|mobilier)/.test(text)) {
-    return "WUGAMS réunit Construction, Rénovation, Entretien, Mobilier et Matériaux sous une seule plateforme : un devis, un interlocuteur, un suivi unique. Votre demande correspond à nos 5 filiales.";
+  if (/(rénovation|renovation|entretien|construction|mobilier)/.test(text)) {
+    return "WUGAMS regroupe Construction, Rénovation, Entretien, Mobilier et Matériaux : une équipe engagée vous accompagne à chaque étape de votre projet, avec un suivi unique.";
   }
-  return "Merci pour votre message ! Un conseiller WUGAMS revient vers vous sous 30 minutes aux horaires d'ouverture. En attendant, je peux vous renseigner sur nos devis, la boutique ou le suivi de chantier.";
+  return "Merci pour votre message ! Connectez-vous ou créez un compte pour envoyer votre demande via le formulaire de contact. En attendant, je peux vous renseigner sur les devis, la boutique ou le suivi de chantier.";
 }
 
 export function ChatWidget() {
