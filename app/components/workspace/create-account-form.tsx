@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { LoadingButton } from "@/app/components/ui/loading-button";
 import { ApiError } from "@/app/lib/api-client";
 import { createUser } from "@/app/lib/api/users";
 import type { RoleCode, User } from "@/app/lib/contracts";
@@ -164,13 +165,14 @@ export function CreateAccountForm({ onClose, onCreated }: CreateAccountFormProps
           ) : null}
 
           <div className="flex gap-3 pt-1">
-            <button
+            <LoadingButton
               className="flex-1 rounded-xl bg-[#e3a641] px-4 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] disabled:opacity-60"
-              disabled={submitting}
+              loading={submitting}
+              loadingLabel="Création en cours…"
               type="submit"
             >
-              {submitting ? "Création en cours…" : "Créer le compte"}
-            </button>
+              Créer le compte
+            </LoadingButton>
             <button
               className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
               onClick={onClose}

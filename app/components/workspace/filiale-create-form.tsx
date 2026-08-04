@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { LoadingButton } from "@/app/components/ui/loading-button";
 import { ApiError } from "@/app/lib/api-client";
 import { createFiliale } from "@/app/lib/api/filiales";
 import type { ModuleRow } from "@/app/lib/demo-data";
@@ -200,20 +201,16 @@ export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps)
           >
             Annuler
           </button>
-          <button
+          <LoadingButton
             className="rounded-xl bg-[#e3a641] px-4 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] disabled:opacity-50 disabled:shadow-none"
             disabled={!canSubmit}
+            loading={submitting}
+            loadingLabel="Création…"
             type="submit"
           >
-            <span className="inline-flex items-center gap-2">
-              {submitting ? (
-                <span className="size-3.5 animate-spin rounded-full border-2 border-[#14223b]/30 border-t-[#14223b]" />
-              ) : (
-                <Icon name="building" size={16} />
-              )}
-              {submitting ? "Création…" : "Créer la filiale"}
-            </span>
-          </button>
+            <Icon name="building" size={16} />
+            Créer la filiale
+          </LoadingButton>
         </div>
       </form>
     </div>

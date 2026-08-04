@@ -5,6 +5,7 @@ import { ApiError } from "@/app/lib/api-client";
 import type { ModuleRow } from "@/app/lib/demo-data";
 import type { CreateField, CreateFieldOption, ModuleCreateConfig } from "@/app/lib/module-create";
 import { Icon } from "@/app/components/ui/app-icon";
+import { LoadingButton } from "@/app/components/ui/loading-button";
 
 type ModuleCreateFormProps = {
   config: ModuleCreateConfig;
@@ -183,23 +184,15 @@ export function ModuleCreateForm({ config, onClose, onSubmitRow, onCreated }: Mo
           >
             Annuler
           </button>
-          <button
+          <LoadingButton
             className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-3.5 py-2 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={submitting}
+            loading={submitting}
+            loadingLabel="Enregistrement…"
             type="submit"
           >
-            {submitting ? (
-              <>
-                <span className="size-3.5 animate-spin rounded-full border-2 border-[#14223b]/30 border-t-[#14223b]" />
-                Enregistrement…
-              </>
-            ) : (
-              <>
-                <Icon name="plus" size={16} />
-                Enregistrer
-              </>
-            )}
-          </button>
+            <Icon name="plus" size={16} />
+            Enregistrer
+          </LoadingButton>
         </div>
       </form>
     </div>

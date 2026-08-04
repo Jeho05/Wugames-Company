@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ApiError } from "@/app/lib/api-client";
 import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
+import { LoadingButton } from "@/app/components/ui/loading-button";
 
 const demoAccounts = [
   { label: "Gérant", email: "admin@wugams.com", password: "admin1234" },
@@ -112,14 +113,15 @@ export function LoginForm() {
             {error}
           </div>
         ) : null}
-        <button
+        <LoadingButton
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={submitting}
+          loading={submitting}
+          loadingLabel="Vérification…"
           type="submit"
         >
-          {submitting ? "Vérification…" : "Valider le code"}
-          {!submitting ? <Icon name="arrow-right" size={17} /> : null}
-        </button>
+          Valider le code
+          <Icon name="arrow-right" size={17} />
+        </LoadingButton>
       </form>
     );
   }
@@ -197,14 +199,15 @@ export function LoginForm() {
         </div>
       ) : null}
 
-      <button
+      <LoadingButton
         className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={submitting}
+        loading={submitting}
+        loadingLabel="Connexion…"
         type="submit"
       >
-        {submitting ? "Connexion…" : "Se connecter"}
-        {!submitting ? <Icon name="arrow-right" size={17} /> : null}
-      </button>
+        Se connecter
+        <Icon name="arrow-right" size={17} />
+      </LoadingButton>
     </form>
   );
 }
