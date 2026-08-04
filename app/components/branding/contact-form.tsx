@@ -100,10 +100,10 @@ export function ContactForm() {
               />
             </label>
             <button
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#243a61] sm:w-auto"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#2c4370] to-[#17294b] px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_28px_-12px_rgba(23,41,75,0.9),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:brightness-110 sm:w-auto"
               type="submit"
             >
-              Envoyer le message <Icon name="arrow-right" size={17} />
+              Envoyer le message <Icon className="transition-transform duration-200 group-hover:translate-x-0.5" name="arrow-right" size={17} />
             </button>
             <p className="text-[11px] text-slate-400">
               Connectez-vous ou créez un compte pour envoyer votre message.

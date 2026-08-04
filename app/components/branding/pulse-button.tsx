@@ -14,15 +14,18 @@ export function PulseButton({ children, href, icon = true }: PulseButtonProps) {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <Link className="relative inline-flex" href={href}>
+    <Link className="group relative inline-flex shrink-0" href={href}>
       <motion.span
-        className="absolute inset-0 rounded-xl border-2 border-[#e3a641]/30"
-        animate={prefersReducedMotion ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        aria-hidden="true"
+        className="absolute inset-0 rounded-xl bg-[#e3a641] blur-[10px]"
+        animate={prefersReducedMotion ? undefined : { scale: [1, 1.07, 1], opacity: [0.35, 0.06, 0.35] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
       />
-      <span className="relative inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-6 py-3.5 text-sm font-bold text-[#14223b] shadow-xl shadow-amber-600/15 transition hover:bg-[#efb653]">
+      <span className="relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#f6cb76] to-[#e3a641] px-6 py-3.5 text-sm font-bold text-[#14223b] shadow-[0_14px_30px_-12px_rgba(227,166,65,0.85),inset_0_1px_0_rgba(255,255,255,0.4)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:brightness-[1.04] group-active:translate-y-0">
         {children}
-        {icon ? <Icon name="arrow-right" size={18} /> : null}
+        {icon ? (
+          <Icon className="transition-transform duration-200 group-hover:translate-x-0.5" name="arrow-right" size={18} />
+        ) : null}
       </span>
     </Link>
   );

@@ -121,7 +121,7 @@ export default function ClientBrandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2.5">
-            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
+            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
               Se connecter
             </Link>
             <div className="hidden sm:block">
@@ -344,7 +344,7 @@ export default function ClientBrandingPage() {
                 <PulseButton href="/inscription">
                   Prenez rendez-vous ici
                 </PulseButton>
-                <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-[#324d70] shadow-sm transition hover:border-[#9fb6cf] hover:bg-sky-50" href="/connexion">
+                <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-[#324d70] shadow-sm transition hover:border-[#7ea5ca] hover:bg-[#edf6fd] hover:text-[#17294b]" href="/connexion">
                   J&apos;ai déjà un compte
                 </Link>
               </div>
@@ -407,7 +407,7 @@ export default function ClientBrandingPage() {
                 <PulseButton href="/inscription">
                   Prenez un rendez-vous ici
                 </PulseButton>
-                <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-white/[0.12]" href="/connexion">
+                <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white shadow-sm backdrop-blur-sm transition hover:border-white/25 hover:bg-white/[0.12]" href="/connexion">
                   Espace client existant
                 </Link>
               </div>
