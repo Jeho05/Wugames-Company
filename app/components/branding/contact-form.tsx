@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Icon } from "@/app/components/ui/app-icon";
 
@@ -14,8 +15,8 @@ const subjects = [
 ];
 
 export function ContactForm() {
+  const router = useRouter();
   const [subject, setSubject] = useState(subjects[0]);
-  const [sent, setSent] = useState(false);
 
   return (
     <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -27,31 +28,13 @@ export function ContactForm() {
           Écrivez-nous directement
         </h3>
 
-        {sent ? (
-          <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-            <span className="mx-auto grid size-11 place-items-center rounded-xl bg-white text-emerald-600 shadow-sm">
-              <Icon name="check" size={20} />
-            </span>
-            <p className="mt-3 text-sm font-bold text-emerald-800">Message envoyé !</p>
-            <p className="mt-1 text-xs leading-5 text-emerald-700">
-              Un conseiller WUGAMS vous répond sous 24 h ouvrées.
-            </p>
-            <button
-              className="mt-4 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
-              onClick={() => setSent(false)}
-              type="button"
-            >
-              Envoyer un autre message
-            </button>
-          </div>
-        ) : (
-          <form
-            className="mt-6 space-y-4"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setSent(true);
-            }}
-          >
+        <form
+          className="mt-6 space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            router.push("/connexion");
+          }}
+        >
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs font-bold text-slate-600">Nom complet</span>
@@ -122,8 +105,10 @@ export function ContactForm() {
             >
               Envoyer le message <Icon name="arrow-right" size={17} />
             </button>
+            <p className="text-[11px] text-slate-400">
+              Connectez-vous ou créez un compte pour envoyer votre message.
+            </p>
           </form>
-        )}
       </div>
 
       <aside className="space-y-4">
