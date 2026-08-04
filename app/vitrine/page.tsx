@@ -112,10 +112,10 @@ export default function VitrinePage() {
             content: (
               <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <AnimatedButton
-                  href="/connexion"
+                  href="/connexion-travailleur"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-5 py-3.5 text-sm font-bold text-[#14223b] shadow-xl shadow-amber-600/15 transition hover:bg-[#efb653]"
                 >
-                  Accéder à mon espace <Icon name="arrow-right" size={18} />
+                  Connexion travailleur <Icon name="arrow-right" size={18} />
                 </AnimatedButton>
                 <AnimatedButton
                   href="#mantra"
@@ -148,10 +148,10 @@ export default function VitrinePage() {
           </nav>
           <div className="flex items-center gap-2.5">
             <AnimatedButton
-              href="/connexion"
+              href="/connexion-travailleur"
               className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-3.5 py-2.5 text-xs font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#243a61] sm:px-4 sm:text-sm"
             >
-              Mon espace <Icon name="arrow-right" size={16} />
+              Connexion travailleur <Icon name="arrow-right" size={16} />
             </AnimatedButton>
             <MobileNav inverse={overHero} links={vitrineNavLinks} />
           </div>
@@ -244,7 +244,7 @@ export default function VitrinePage() {
                 </p>
                 <div className="mt-8">
                   <AnimatedButton
-                    href="/connexion"
+                    href="/connexion-travailleur"
                     className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-5 py-3.5 text-sm font-bold text-[#14223b] shadow-xl shadow-amber-600/15 transition hover:bg-[#efb653]"
                   >
                     Accéder à mon espace <Icon name="arrow-right" size={18} />

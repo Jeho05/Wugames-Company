@@ -9,12 +9,12 @@ import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
 import { LoadingButton } from "@/app/components/ui/loading-button";
 
-const demoAccounts = [
-  { label: "Gérant", email: "admin@wugams.com", password: "admin1234" },
-  { label: "Client", email: "client.https@test.wugams", password: "Test1234!" },
-];
+const demoAccount = { label: "Compte test ouvrier", email: "ouvrier.https@test.wugams", password: "Test1234!" };
 
-export function LoginForm() {
+const darkInput =
+  "w-full rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#e3a641] focus:bg-white/[0.08] focus:ring-4 focus:ring-[#e3a641]/15";
+
+export function WorkerLoginForm() {
   const router = useRouter();
   const { login, pending2fa, verify2fa } = useAuth();
   const [email, setEmail] = useState("");
@@ -26,7 +26,7 @@ export function LoginForm() {
 
   function messageFrom(error: unknown): string {
     if (error instanceof ApiError) {
-      if (error.statusCode === 401) return "Identifiants incorrects ou compte inactif.";
+      if (error.statusCode === 401) return "Identifiants incorrects ou compte inactif. Contactez votre responsable.";
       if (error.statusCode === 429) return "Trop de tentatives, réessayez dans une minute.";
       if (error.statusCode === 0 || !error.statusCode) return "Impossible de contacter le serveur.";
       return error.message;
@@ -74,30 +74,24 @@ export function LoginForm() {
     }
   }
 
-  function handleDemoSelect(account: { email: string; password: string }) {
-    setEmail(account.email);
-    setPassword(account.password);
-    setError("");
-  }
-
   if (pending2fa) {
     return (
       <form className="mt-6 space-y-4" onSubmit={handleTwoFactorSubmit}>
-        <div className="rounded-xl border border-sky-100 bg-[#edf6ff] px-3.5 py-2.5">
-          <p className="text-[11px] leading-5 text-sky-800">
+        <div className="rounded-xl border border-amber-200/20 bg-amber-400/10 px-3.5 py-2.5">
+          <p className="text-[11px] leading-5 text-amber-200">
             <span className="font-bold">Vérification en deux étapes.</span> Saisissez le code à 6
             chiffres de votre application d&apos;authentification.
           </p>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="2fa-token">
+          <label className="mb-1.5 block text-xs font-bold text-slate-300" htmlFor="worker-2fa-token">
             Code 2FA
           </label>
           <input
             autoComplete="one-time-code"
             autoFocus
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm tracking-[0.35em] text-slate-800 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-            id="2fa-token"
+            className={darkInput + " tracking-[0.35em] placeholder:tracking-normal"}
+            id="worker-2fa-token"
             inputMode="numeric"
             maxLength={6}
             onChange={(event) => setTwoFactorToken(event.target.value.replace(/\D/g, ""))}
@@ -107,13 +101,13 @@ export function LoginForm() {
           />
         </div>
         {error ? (
-          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">
+          <div className="flex items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-semibold text-red-300">
             <Icon name="warning" size={16} />
             {error}
           </div>
         ) : null}
         <LoadingButton
-          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#f6cb76] to-[#e3a641] px-4 py-3.5 text-sm font-bold text-[#14223b] shadow-[0_14px_30px_-12px_rgba(227,166,65,0.8)] disabled:cursor-not-allowed disabled:opacity-60"
           loading={submitting}
           loadingLabel="Vérification…"
           type="submit"
@@ -127,53 +121,48 @@ export function LoginForm() {
 
   return (
     <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-      {/* Comptes de test back-end */}
       <div>
-        <span className="text-[11px] font-semibold text-slate-400">Comptes de test :</span>
+        <span className="text-[11px] font-semibold text-slate-400">Compte de test :</span>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {demoAccounts.map((acc) => (
-            <button
-              className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 transition hover:border-[#7ea5ca] hover:bg-sky-50 hover:text-[#17294b]"
-              key={acc.email}
-              onClick={() => handleDemoSelect(acc)}
-              type="button"
-            >
-              {acc.label}
-            </button>
-          ))}
+          <button
+            className="rounded-lg border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[11px] font-bold text-slate-300 transition hover:border-[#e3a641]/40 hover:bg-white/[0.1] hover:text-[#f2c56d]"
+            onClick={() => {
+              setEmail(demoAccount.email);
+              setPassword(demoAccount.password);
+              setError("");
+            }}
+            type="button"
+          >
+            {demoAccount.label}
+          </button>
         </div>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="email">
+        <label className="mb-1.5 block text-xs font-bold text-slate-300" htmlFor="worker-email">
           Adresse e-mail
         </label>
         <input
           autoComplete="email"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-          id="email"
+          className={darkInput}
+          id="worker-email"
           name="email"
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="vous@exemple.com"
+          placeholder="prenom.nom@wugams.com"
           type="email"
           value={email}
         />
       </div>
 
       <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <label className="block text-xs font-bold text-slate-700" htmlFor="password">
-            Mot de passe
-          </label>
-          <button className="text-[11px] font-bold text-[#426b95] hover:text-[#17294b]" type="button">
-            Mot de passe oublié ?
-          </button>
-        </div>
+        <label className="mb-1.5 block text-xs font-bold text-slate-300" htmlFor="worker-password">
+          Mot de passe
+        </label>
         <div className="relative">
           <input
             autoComplete="current-password"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 pr-10 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-            id="password"
+            className={darkInput + " pr-10"}
+            id="worker-password"
             name="password"
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Votre mot de passe"
@@ -182,7 +171,7 @@ export function LoginForm() {
           />
           <button
             aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
             onClick={() => setShowPassword(!showPassword)}
             type="button"
           >
@@ -192,21 +181,28 @@ export function LoginForm() {
       </div>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">
+        <div className="flex items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-semibold text-red-300">
           <Icon name="warning" size={16} />
           {error}
         </div>
       ) : null}
 
       <LoadingButton
-        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#f6cb76] to-[#e3a641] px-4 py-3.5 text-sm font-bold text-[#14223b] shadow-[0_14px_30px_-12px_rgba(227,166,65,0.8),inset_0_1px_0_rgba(255,255,255,0.4)] disabled:cursor-not-allowed disabled:opacity-60"
         loading={submitting}
         loadingLabel="Connexion…"
         type="submit"
       >
-        Se connecter
+        Accéder à mon espace
         <Icon name="arrow-right" size={17} />
       </LoadingButton>
+
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-3">
+        <p className="text-[11px] leading-5 text-slate-400">
+          <span className="font-bold text-slate-300">Votre compte est créé par votre responsable WUGAMS.</span>{" "}
+          Aucune inscription en libre accès. En cas d&apos;oubli du mot de passe, contactez votre responsable.
+        </p>
+      </div>
     </form>
   );
 }

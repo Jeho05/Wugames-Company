@@ -55,7 +55,11 @@ export function ChatWidget() {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing, open]);
 
-  if (pathname.startsWith("/espace") || pathname.startsWith("/connexion") || pathname.startsWith("/inscription")) {
+  if (
+    pathname.startsWith("/espace") ||
+    pathname.startsWith("/connexion") ||
+    pathname.startsWith("/inscription")
+  ) {
     return null;
   }
 
