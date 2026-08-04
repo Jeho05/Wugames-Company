@@ -138,7 +138,7 @@ export default function VitrinePage() {
       }>
         <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
           <BrandMark inverse={overHero} />
-          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold md:flex">
+          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold lg:flex">
             <a className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="#mantra">Le mantra</a>
             <a className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="#principes">Les principes</a>
             <a className={"transition " + (overHero ? "text-slate-200 hover:text-white" : "text-slate-500 hover:text-[#17294b]")} href="#focus">Le focus</a>

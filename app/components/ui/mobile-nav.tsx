@@ -18,6 +18,7 @@ type MobileNavProps = {
   inverse?: boolean;
   ctaText?: string;
   ctaHref?: string;
+  className?: string;
 };
 
 export function MobileNav({
@@ -25,6 +26,7 @@ export function MobileNav({
   inverse = false,
   ctaText = "Se connecter",
   ctaHref = "/connexion",
+  className = "",
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [portalTarget] = useState(() =>
@@ -44,7 +46,7 @@ export function MobileNav({
   }, [isOpen]);
 
   return (
-    <div className="md:hidden">
+    <div className={"lg:hidden " + className}>
       {/* Trigger Button */}
       <button
         aria-expanded={isOpen}
@@ -101,7 +103,7 @@ export function MobileNav({
               {/* Navigation Links */}
               <nav className="my-6 space-y-2 overflow-y-auto" data-lenis-prevent>
                 {links.map((link) => (
-                  <a
+                  <Link
                     className="flex items-center justify-between rounded-2xl bg-white/[0.04] px-4 py-3.5 text-base font-semibold text-slate-100 transition hover:bg-white/10 hover:text-white"
                     href={link.href}
                     key={link.href}
@@ -109,7 +111,7 @@ export function MobileNav({
                   >
                     <span>{link.label}</span>
                     <Icon className="text-amber-400" name="arrow-right" size={18} />
-                  </a>
+                  </Link>
                 ))}
               </nav>
 

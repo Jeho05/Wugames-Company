@@ -99,34 +99,38 @@ const guarantees = [
   { icon: "message" as const, title: "Suivi en temps réel", text: "Nous maintenons une communication claire et continue pour vous permettre de suivre l'évolution de votre projet." },
 ];
 
+const mobileNavLinks = [...navLinks, ...siteLinks];
+
 export default function ClientBrandingPage() {
   return (
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
       {/* ═══ HEADER ═══ */}
-      <header className="fixed inset-x-0 top-0 z-50 mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8 bg-black/10 backdrop-blur-sm">
-        <BrandMark inverse />
-        <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold text-slate-200 md:flex">
-          <a className="transition hover:text-white" href="#probleme">Le problème</a>
-          <a className="transition hover:text-white" href="#solution">Notre solution</a>
-          <a className="transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
-          <a className="transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
-          {siteLinks.map((link) => (
-            <Link className="text-white transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
-              {link.label}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0b1526]/95 shadow-lg shadow-black/20 backdrop-blur-md">
+        <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-3 px-5 sm:px-8">
+          <BrandMark inverse />
+          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold lg:flex">
+            <a className="text-white/85 transition hover:text-white" href="#probleme">Le problème</a>
+            <a className="text-white/85 transition hover:text-white" href="#solution">Notre solution</a>
+            <a className="text-white/85 transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
+            <a className="text-white/85 transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
+            {siteLinks.map((link) => (
+              <Link className="text-white/85 transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2.5">
+            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
+              Se connecter
             </Link>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2.5">
-          <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
-            Se connecter
-          </Link>
-          <div className="hidden sm:block">
-            <PulseButton href="#rencontre">
-              Parlons de votre projet
-            </PulseButton>
+            <div className="hidden sm:block">
+              <PulseButton href="#rencontre">
+                Parlons de votre projet
+              </PulseButton>
+            </div>
+            <MobileNav inverse links={mobileNavLinks} />
           </div>
-          <MobileNav inverse links={navLinks} />
         </div>
       </header>
 
