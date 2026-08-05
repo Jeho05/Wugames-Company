@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/app/lib/auth-context";
+import { AccountantCommandCenter } from "@/app/components/workspace/accountant/accountant-command-center";
 import { ClientDashboardScreen } from "@/app/components/workspace/client-dashboard-screen";
 import { DashboardScreen } from "@/app/components/workspace/dashboard-screen";
 import { ExecutiveCommandCenter } from "@/app/components/workspace/executive/executive-command-center";
@@ -36,6 +37,10 @@ export default function WorkspaceDashboardPage() {
 
   if (user.role === "ROLE_SECRETAIRE") {
     return <SecretaryCommandCenter />;
+  }
+
+  if (user.role === "ROLE_COMPTABLE") {
+    return <AccountantCommandCenter />;
   }
 
   if (clientRoles.has(user.role)) {

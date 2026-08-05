@@ -30,6 +30,7 @@ export type IconName =
   | "newspaper"
   | "package"
   | "plus"
+  | "print"
   | "search"
   | "settings"
   | "shield"
@@ -249,6 +250,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
       return (
         <svg {...common}>
           <path d="M12 5v14M5 12h14" />
+        </svg>
+      );
+    case "print":
+      return (
+        <svg {...common}>
+          <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" />
+          <rect height="6" rx="1.5" width="14" x="5" y="15" />
         </svg>
       );
     case "search":
