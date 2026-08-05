@@ -1,7 +1,9 @@
 import type { SVGProps } from "react";
 
 export type IconName =
+  | "arrow-down"
   | "arrow-right"
+  | "arrow-up"
   | "arrow-up-right"
   | "bell"
   | "boxes"
@@ -59,6 +61,18 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
   };
 
   switch (name) {
+    case "arrow-down":
+      return (
+        <svg {...common}>
+          <path d="M12 5v14M6 13l6 6 6-6" />
+        </svg>
+      );
+    case "arrow-up":
+      return (
+        <svg {...common}>
+          <path d="M12 19V5M6 11l6-6 6 6" />
+        </svg>
+      );
     case "arrow-right":
       return (
         <svg {...common}>
