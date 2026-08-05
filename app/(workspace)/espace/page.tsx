@@ -8,6 +8,7 @@ import { AccountantCommandCenter } from "@/app/components/workspace/accountant/a
 import { ClientDashboardScreen } from "@/app/components/workspace/client-dashboard-screen";
 import { DashboardScreen } from "@/app/components/workspace/dashboard-screen";
 import { ExecutiveCommandCenter } from "@/app/components/workspace/executive/executive-command-center";
+import { OpsCommandCenter } from "@/app/components/workspace/ops/ops-command-center";
 import { SecretaryCommandCenter } from "@/app/components/workspace/secretary/secretary-command-center";
 import { SupplierDashboardScreen } from "@/app/components/workspace/supplier-dashboard-screen";
 
@@ -41,6 +42,10 @@ export default function WorkspaceDashboardPage() {
 
   if (user.role === "ROLE_COMPTABLE") {
     return <AccountantCommandCenter />;
+  }
+
+  if (user.role === "ROLE_MGR_OPS") {
+    return <OpsCommandCenter />;
   }
 
   if (clientRoles.has(user.role)) {
