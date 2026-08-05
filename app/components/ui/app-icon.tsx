@@ -36,6 +36,7 @@ export type IconName =
   | "trash"
   | "truck"
   | "users"
+  | "user-plus"
   | "warning";
 
 type IconProps = SVGProps<SVGSVGElement> & {
@@ -288,6 +289,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...common}>
           <circle cx="9" cy="8" r="3" />
           <path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20M16 5.5a3 3 0 0 1 0 5.8M17 14c2.2.2 3.5 1.6 3.5 3.8V20" />
+        </svg>
+      );
+    case "user-plus":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20M19 9v5M16.5 11.5h5" />
         </svg>
       );
     case "warning":
