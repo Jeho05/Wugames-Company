@@ -37,7 +37,8 @@ export type IconName =
   | "truck"
   | "users"
   | "user-plus"
-  | "warning";
+  | "warning"
+  | "refresh";
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName;
@@ -303,6 +304,13 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...common}>
           <path d="m12 3 9 16H3L12 3Z" />
           <path d="M12 9v4M12 16h.01" />
+        </svg>
+      );
+    case "refresh":
+      return (
+        <svg {...common}>
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+          <path d="M21 3v6h-6" />
         </svg>
       );
   }

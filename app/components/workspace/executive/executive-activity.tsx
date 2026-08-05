@@ -10,13 +10,14 @@ type ExecutiveActivityProps = {
   items: ExecutiveActivityItem[];
 };
 
-const typeMeta: Record<ExecutiveActivityItem["type"], { icon: "clipboard" | "file-text" | "users" | "boxes" | "hardhat" | "truck"; tile: string; ring: string }> = {
+const typeMeta: Record<ExecutiveActivityItem["type"], { icon: "clipboard" | "file-text" | "users" | "boxes" | "hardhat" | "truck" | "shield"; tile: string; ring: string }> = {
   mission: { icon: "clipboard", tile: "bg-indigo-50 text-indigo-600", ring: "ring-indigo-200" },
   facture: { icon: "file-text", tile: "bg-emerald-50 text-emerald-600", ring: "ring-emerald-200" },
   client: { icon: "users", tile: "bg-sky-50 text-sky-600", ring: "ring-sky-200" },
   stock: { icon: "boxes", tile: "bg-amber-50 text-amber-600", ring: "ring-amber-200" },
   utilisateur: { icon: "hardhat", tile: "bg-rose-50 text-rose-600", ring: "ring-rose-200" },
   fournisseur: { icon: "truck", tile: "bg-violet-50 text-violet-600", ring: "ring-violet-200" },
+  audit: { icon: "shield", tile: "bg-slate-100 text-slate-600", ring: "ring-slate-200" },
 };
 
 export function ExecutiveActivity({ items }: ExecutiveActivityProps) {

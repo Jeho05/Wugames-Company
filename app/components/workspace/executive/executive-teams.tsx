@@ -24,13 +24,12 @@ export function ExecutiveTeams({ teams }: ExecutiveTeamsProps) {
   return (
     <ExecutivePanel
       icon="hardhat"
-      subtitle="Classement du trimestre"
+      subtitle="Moteur de calcul · rendement sur 9 semaines (S1-S9)"
       title="Performance des équipes"
     >
       <ol className="space-y-3">
         {teams.map((team, index) => {
           const initials = team.nom
-            .replace("Équipe ", "")
             .split(" ")
             .map((part) => part[0])
             .join("")
@@ -70,24 +69,32 @@ export function ExecutiveTeams({ teams }: ExecutiveTeamsProps) {
                       transition={{ duration: 0.9, delay: 0.25 + 0.06 * index, ease: [0.22, 1, 0.36, 1] }}
                     />
                   </div>
-                  <span
-                    className={
-                      "inline-flex items-center gap-0.5 text-[10px] font-bold " +
-                      (team.progression >= 0 ? "text-emerald-600" : "text-red-600")
-                    }
-                  >
-                    <Icon
-                      className={team.progression < 0 ? "rotate-180" : undefined}
-                      name="arrow-up-right"
-                      size={10}
-                    />
-                    {Math.abs(team.progression).toLocaleString("fr-FR")} %
-                  </span>
+                  {team.progression !== null ? (
+                    <span
+                      className={
+                        "inline-flex items-center gap-0.5 text-[10px] font-bold " +
+                        (team.progression >= 0 ? "text-emerald-600" : "text-red-600")
+                      }
+                    >
+                      <Icon
+                        className={team.progression < 0 ? "rotate-180" : undefined}
+                        name="arrow-up-right"
+                        size={10}
+                      />
+                      {Math.abs(team.progression).toLocaleString("fr-FR")} %
+                    </span>
+                  ) : null}
                 </div>
               </div>
-              <span className="hidden shrink-0 rounded-full border border-slate-200 bg-white px-2 py-1 text-[9px] font-bold text-slate-500 sm:inline">
-                {team.membres} pers.
-              </span>
+              {team.rang !== null ? (
+                <span className="shrink-0 rounded-full border border-[#17294b]/15 bg-[#17294b] px-2.5 py-1 text-[10px] font-bold text-[#f2c56d]">
+                  Rang #{team.rang}
+                </span>
+              ) : team.membres !== null ? (
+                <span className="hidden shrink-0 rounded-full border border-slate-200 bg-white px-2 py-1 text-[9px] font-bold text-slate-500 sm:inline">
+                  {team.membres} pers.
+                </span>
+              ) : null}
             </motion.li>
           );
         })}
