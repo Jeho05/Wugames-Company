@@ -11,6 +11,7 @@ import { ExecutiveCommandCenter } from "@/app/components/workspace/executive/exe
 import { OpsCommandCenter } from "@/app/components/workspace/ops/ops-command-center";
 import { BranchCommandCenter } from "@/app/components/workspace/branch/branch-command-center";
 import { PartnerCommandCenter } from "@/app/components/workspace/partner/partner-command-center";
+import { WorkerCommandCenter } from "@/app/components/workspace/worker/worker-command-center";
 import { SecretaryCommandCenter } from "@/app/components/workspace/secretary/secretary-command-center";
 import { SupplierDashboardScreen } from "@/app/components/workspace/supplier-dashboard-screen";
 
@@ -56,6 +57,10 @@ export default function WorkspaceDashboardPage() {
 
   if (user.role === "ROLE_MGR_FILIALE") {
     return <BranchCommandCenter />;
+  }
+
+  if (user.role === "ROLE_OUVRIER") {
+    return <WorkerCommandCenter />;
   }
 
   if (clientRoles.has(user.role)) {
