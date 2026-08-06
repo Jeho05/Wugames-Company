@@ -13,7 +13,7 @@ import { BranchCommandCenter } from "@/app/components/workspace/branch/branch-co
 import { PartnerCommandCenter } from "@/app/components/workspace/partner/partner-command-center";
 import { WorkerCommandCenter } from "@/app/components/workspace/worker/worker-command-center";
 import { SecretaryCommandCenter } from "@/app/components/workspace/secretary/secretary-command-center";
-import { SupplierDashboardScreen } from "@/app/components/workspace/supplier-dashboard-screen";
+import { SupplierCommandCenter } from "@/app/components/workspace/supplier/supplier-command-center";
 
 const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
 
@@ -32,7 +32,7 @@ export default function WorkspaceDashboardPage() {
   }
 
   if (user.role === "ROLE_FOURNISSEUR") {
-    return <SupplierDashboardScreen />;
+    return <SupplierCommandCenter />;
   }
 
   if (user.role === "ROLE_GERANT") {

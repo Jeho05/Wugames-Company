@@ -1,11 +1,13 @@
 import type { SVGProps } from "react";
 
 export type IconName =
+  | "activity"
   | "arrow-down"
   | "arrow-right"
   | "arrow-up"
   | "arrow-up-right"
   | "bell"
+  | "box"
   | "boxes"
   | "building"
   | "calendar"
@@ -16,19 +18,27 @@ export type IconName =
   | "clipboard"
   | "clock"
   | "close"
+  | "copy"
   | "dashboard"
   | "dots"
   | "download"
+  | "eye"
   | "file-text"
   | "folder"
+  | "grid"
   | "hardhat"
+  | "history"
+  | "info"
   | "lock"
+  | "logout"
+  | "mail"
   | "map"
   | "menu"
   | "message"
   | "minus"
   | "newspaper"
   | "package"
+  | "phone"
   | "plus"
   | "print"
   | "search"
@@ -38,6 +48,7 @@ export type IconName =
   | "sparkles"
   | "trash"
   | "truck"
+  | "user"
   | "users"
   | "user-plus"
   | "warning"
@@ -62,6 +73,12 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
   };
 
   switch (name) {
+    case "activity":
+      return (
+        <svg {...common}>
+          <path d="M3 12h4l3-8 4 16 3-8h4" />
+        </svg>
+      );
     case "arrow-down":
       return (
         <svg {...common}>
@@ -134,7 +151,14 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
     case "chevron-down":
       return (
         <svg {...common}>
-          <path d="m7 10 5 5 5-5" />
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      );
+    case "copy":
+      return (
+        <svg {...common}>
+          <rect height="12" rx="2" width="12" x="9" y="9" />
+          <path d="M5 15V5a2 2 0 0 1 2-2h10" />
         </svg>
       );
     case "clipboard":
@@ -183,8 +207,51 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
     case "file-text":
       return (
         <svg {...common}>
-          <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z" />
-          <path d="M14 3v6h6M8 13h8M8 17h5" />
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+          <path d="M14 2v6h6M9 13h6M9 17h6" />
+        </svg>
+      );
+    case "grid":
+      return (
+        <svg {...common}>
+          <rect height="7" rx="1.5" width="7" x="3" y="3" />
+          <rect height="7" rx="1.5" width="7" x="14" y="3" />
+          <rect height="7" rx="1.5" width="7" x="3" y="14" />
+          <rect height="7" rx="1.5" width="7" x="14" y="14" />
+        </svg>
+      );
+    case "history":
+      return (
+        <svg {...common}>
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5M12 7v5l4 2" />
+        </svg>
+      );
+    case "eye":
+      return (
+        <svg {...common}>
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
+    case "mail":
+      return (
+        <svg {...common}>
+          <rect height="16" rx="2" width="20" x="2" y="4" />
+          <path d="m22 7-10 5L2 7" />
+        </svg>
+      );
+    case "phone":
+      return (
+        <svg {...common}>
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" />
+        </svg>
+      );
+    case "user":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20" />
         </svg>
       );
     case "folder":
@@ -199,11 +266,24 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <path d="M4 16v-2a8 8 0 0 1 16 0v2M3 16h18M8 10V8M12 8V6M16 10V8M6 20h12" />
         </svg>
       );
+    case "info":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8h.01M12 11v5" />
+        </svg>
+      );
     case "lock":
       return (
         <svg {...common}>
           <rect height="11" rx="2" width="14" x="5" y="10" />
           <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+        </svg>
+      );
+    case "logout":
+      return (
+        <svg {...common}>
+          <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M16 17l5-5-5-5M21 12H9" />
         </svg>
       );
     case "map":
@@ -242,8 +322,15 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
     case "package":
       return (
         <svg {...common}>
-          <path d="m4 7 8-4 8 4v10l-8 4-8-4V7Z" />
-          <path d="m4 7 8 4 8-4M12 11v10" />
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+        </svg>
+      );
+    case "box":
+      return (
+        <svg {...common}>
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
         </svg>
       );
     case "plus":
