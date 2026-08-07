@@ -204,28 +204,26 @@ export function WorkerCommandCenter() {
   const onRun = useCallback(
     async (kind: WorkerRunKind, missionId: string, payload?: Record<string, unknown>) => {
       const body = payload ?? {};
+      // Mise à jour optimiste : l'UI réagit immédiatement, la synchro suit en arrière-plan.
+      patchMission(missionId, kind, body);
       if (!online) {
         enqueuePendingAction({ missionId, kind, payload: body });
         setPendingCount(getPendingActions().length);
-        patchMission(missionId, kind, body);
         toast("Action enregistrée — synchronisée au retour du réseau", "info");
         return true;
       }
       setBusy(true);
-      try {
-        await dispatchAction(kind, missionId, body);
-        patchMission(missionId, kind, body);
-        navigator.vibrate?.(40);
-        return true;
-      } catch {
-        enqueuePendingAction({ missionId, kind, payload: body });
-        setPendingCount(getPendingActions().length);
-        patchMission(missionId, kind, body);
-        toast("Envoi impossible — action conservée localement", "error");
-        return true;
-      } finally {
-        setBusy(false);
-      }
+      void dispatchAction(kind, missionId, body)
+        .then(() => {
+          navigator.vibrate?.(40);
+        })
+        .catch(() => {
+          enqueuePendingAction({ missionId, kind, payload: body });
+          setPendingCount(getPendingActions().length);
+          toast("Envoi impossible — action conservée localement", "error");
+        })
+        .finally(() => setBusy(false));
+      return true;
     },
     [dispatchAction, online, patchMission, toast],
   );

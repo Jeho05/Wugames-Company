@@ -82,11 +82,23 @@ export function ModuleDataBridge({ definition, slug }: ModuleDataBridgeProps) {
       if (slug !== "notifications") return;
       const id = (row.id as string) ?? "";
       if (!id) return;
+      // Mise à jour optimiste : la ligne passe « Lu » immédiatement, sans attendre le réseau.
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              rows: current.rows.map((r) => (String(r.id) === id ? { ...r, statut: { label: "Lu", tone: "neutral" } } : r)),
+            }
+          : current,
+      );
       markAsRead(id)
-        .then(() => refresh())
-        .catch(() => undefined);
+        .then(() => undefined)
+        .catch(() => {
+          resetApiCache();
+          refresh();
+        });
     },
-    [slug, refresh]
+    [slug, refresh],
   );
 
   const createConfig = getModuleCreateConfig(slug);
