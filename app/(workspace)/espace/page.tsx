@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/app/lib/auth-context";
 import { AccountantCommandCenter } from "@/app/components/workspace/accountant/accountant-command-center";
-import { ClientDashboardScreen } from "@/app/components/workspace/client-dashboard-screen";
+import { ClientPortalScreen } from "@/app/components/workspace/client/client-portal-screen";
+import { ClientStdScreen } from "@/app/components/workspace/client-std/client-std-screen";
 import { DashboardScreen } from "@/app/components/workspace/dashboard-screen";
 import { ExecutiveCommandCenter } from "@/app/components/workspace/executive/executive-command-center";
 import { OpsCommandCenter } from "@/app/components/workspace/ops/ops-command-center";
 import { BranchCommandCenter } from "@/app/components/workspace/branch/branch-command-center";
 import { PartnerCommandCenter } from "@/app/components/workspace/partner/partner-command-center";
+import { RespOuvriersCommandCenter } from "@/app/components/workspace/resp-ouvriers/resp-ouvriers-command-center";
+import { DevDigitalCommandCenter } from "@/app/components/workspace/dev-digital/dev-digital-command-center";
 import { WorkerCommandCenter } from "@/app/components/workspace/worker/worker-command-center";
 import { SecretaryCommandCenter } from "@/app/components/workspace/secretary/secretary-command-center";
 import { SupplierCommandCenter } from "@/app/components/workspace/supplier/supplier-command-center";
@@ -59,6 +62,14 @@ export default function WorkspaceDashboardPage() {
     return <BranchCommandCenter />;
   }
 
+  if (user.role === "ROLE_RESP_OUVRIERS") {
+    return <RespOuvriersCommandCenter />;
+  }
+
+  if (user.role === "ROLE_DEV_DIGITAL") {
+    return <DevDigitalCommandCenter />;
+  }
+
   if (user.role === "ROLE_OUVRIER") {
     return <WorkerCommandCenter />;
   }
@@ -71,7 +82,9 @@ export default function WorkspaceDashboardPage() {
       name: user.name,
       role: user.role,
     };
-    return <ClientDashboardScreen user={clientUser} />;
+    return user.role === "ROLE_CLIENT_MEMBRE"
+      ? <ClientPortalScreen user={clientUser} />
+      : <ClientStdScreen user={clientUser} />;
   }
 
   return <DashboardScreen />;
