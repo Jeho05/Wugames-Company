@@ -1,24 +1,80 @@
 "use client";
 
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/app/lib/auth-context";
-import { AccountantCommandCenter } from "@/app/components/workspace/accountant/accountant-command-center";
-import { ClientPortalScreen } from "@/app/components/workspace/client/client-portal-screen";
-import { ClientStdScreen } from "@/app/components/workspace/client-std/client-std-screen";
-import { DashboardScreen } from "@/app/components/workspace/dashboard-screen";
-import { ExecutiveCommandCenter } from "@/app/components/workspace/executive/executive-command-center";
-import { OpsCommandCenter } from "@/app/components/workspace/ops/ops-command-center";
-import { BranchCommandCenter } from "@/app/components/workspace/branch/branch-command-center";
-import { PartnerCommandCenter } from "@/app/components/workspace/partner/partner-command-center";
-import { RespOuvriersCommandCenter } from "@/app/components/workspace/resp-ouvriers/resp-ouvriers-command-center";
-import { DevDigitalCommandCenter } from "@/app/components/workspace/dev-digital/dev-digital-command-center";
-import { WorkerCommandCenter } from "@/app/components/workspace/worker/worker-command-center";
-import { SecretaryCommandCenter } from "@/app/components/workspace/secretary/secretary-command-center";
-import { SupplierCommandCenter } from "@/app/components/workspace/supplier/supplier-command-center";
+
+const AccountantCommandCenter = dynamic(
+  () => import("@/app/components/workspace/accountant/accountant-command-center").then((m) => ({ default: m.AccountantCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const ClientPortalScreen = dynamic(
+  () => import("@/app/components/workspace/client/client-portal-screen").then((m) => ({ default: m.ClientPortalScreen })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const ClientStdScreen = dynamic(
+  () => import("@/app/components/workspace/client-std/client-std-screen").then((m) => ({ default: m.ClientStdScreen })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const DashboardScreen = dynamic(
+  () => import("@/app/components/workspace/dashboard-screen").then((m) => ({ default: m.DashboardScreen })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const ExecutiveCommandCenter = dynamic(
+  () => import("@/app/components/workspace/executive/executive-command-center").then((m) => ({ default: m.ExecutiveCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const OpsCommandCenter = dynamic(
+  () => import("@/app/components/workspace/ops/ops-command-center").then((m) => ({ default: m.OpsCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const BranchCommandCenter = dynamic(
+  () => import("@/app/components/workspace/branch/branch-command-center").then((m) => ({ default: m.BranchCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const PartnerCommandCenter = dynamic(
+  () => import("@/app/components/workspace/partner/partner-command-center").then((m) => ({ default: m.PartnerCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const RespOuvriersCommandCenter = dynamic(
+  () => import("@/app/components/workspace/resp-ouvriers/resp-ouvriers-command-center").then((m) => ({ default: m.RespOuvriersCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const DevDigitalCommandCenter = dynamic(
+  () => import("@/app/components/workspace/dev-digital/dev-digital-command-center").then((m) => ({ default: m.DevDigitalCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const WorkerCommandCenter = dynamic(
+  () => import("@/app/components/workspace/worker/worker-command-center").then((m) => ({ default: m.WorkerCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const SecretaryCommandCenter = dynamic(
+  () => import("@/app/components/workspace/secretary/secretary-command-center").then((m) => ({ default: m.SecretaryCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
+const SupplierCommandCenter = dynamic(
+  () => import("@/app/components/workspace/supplier/supplier-command-center").then((m) => ({ default: m.SupplierCommandCenter })),
+  { ssr: false, loading: () => <RoleSkeleton /> },
+);
 
 const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
+
+function RoleSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4 p-4">
+      <div className="h-28 rounded-2xl bg-slate-200/70" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="h-20 rounded-xl bg-slate-200/60" />
+        <div className="h-20 rounded-xl bg-slate-200/60" />
+        <div className="h-20 rounded-xl bg-slate-200/60" />
+        <div className="h-20 rounded-xl bg-slate-200/60" />
+      </div>
+      <div className="h-64 rounded-2xl bg-slate-200/50" />
+    </div>
+  );
+}
 
 export default function WorkspaceDashboardPage() {
   const { user } = useAuth();
