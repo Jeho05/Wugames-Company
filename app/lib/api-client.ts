@@ -195,7 +195,32 @@ export type ApiFetchOptions = {
   /** Retente une fois après refresh. Défaut : true. */
   retry?: boolean;
   signal?: AbortSignal;
+  /** Durée de vie du cache mémoire pour les GET (ms). Défaut : 30_000. Mettre 0 pour forcer le réseau. */
+  cacheTtlMs?: number;
 };
+
+/* ------------------------------------------------------------------ */
+/* Cache mémoire GET + déduplication des requêtes en vol               */
+/* ------------------------------------------------------------------ */
+
+const DEFAULT_CACHE_TTL_MS = 30_000;
+
+type CacheEntry = {
+  at: number;
+  value: unknown;
+};
+
+const responseCache = new Map<string, CacheEntry>();
+const inflightRequests = new Map<string, Promise<unknown>>();
+
+function cacheKey(method: string, url: string): string {
+  return `${method} ${url}`;
+}
+
+/** Vide le cache GET (appelé lors des mutations pour garantir la fraîcheur appliquée). */
+export function resetApiCache(): void {
+  responseCache.clear();
+}
 
 function buildUrl(path: string, query?: ApiQuery): string {
   const base = path.startsWith("http") ? path : `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
@@ -211,25 +236,68 @@ function buildUrl(path: string, query?: ApiQuery): string {
 }
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
-  const { method = "GET", body, query, auth = true, retry = true, signal } = options;
+  const { method = "GET", body, query, auth = true, retry = true, signal, cacheTtlMs = DEFAULT_CACHE_TTL_MS } = options;
+
+  const url = buildUrl(path, query);
+  const key = cacheKey(method, url);
+
+  if (method === "GET" && cacheTtlMs > 0) {
+    const cached = responseCache.get(key);
+    if (cached && Date.now() - cached.at < cacheTtlMs) {
+      return cached.value as T;
+    }
+    const pending = inflightRequests.get(key);
+    if (pending) {
+      return pending as Promise<T>;
+    }
+  }
+
+  const promise = performFetch<T>(url, { method, body, auth, retry, signal });
+
+  if (method === "GET") {
+    inflightRequests.set(key, promise);
+    promise
+      .then((value) => {
+        if (cacheTtlMs > 0) {
+          responseCache.set(key, { at: Date.now(), value });
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => inflightRequests.delete(key));
+  } else {
+    responseCache.clear();
+  }
+
+  return promise;
+}
+
+async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T> {
+  const { method = "GET", body, auth = true, retry = true, signal } = options;
 
   const session = auth ? getSession() : null;
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
 
-  const response = await fetch(buildUrl(path, query), {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    signal,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+      cache: "no-store",
+    });
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    responseCache.clear();
+    throw error;
+  }
 
   if (response.status === 401 && auth && retry && session?.refreshToken) {
     const refreshed = await refreshTokens();
     if (refreshed) {
-      return apiFetch<T>(path, { ...options, retry: false });
+      return performFetch<T>(url, { ...options, retry: false });
     }
   }
 

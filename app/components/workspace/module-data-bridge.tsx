@@ -7,6 +7,7 @@ import { FilialeCreateForm } from "@/app/components/workspace/filiale-create-for
 import { ModuleScreen } from "@/app/components/workspace/module-screen";
 import { Icon } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
+import { resetApiCache } from "@/app/lib/api-client";
 import { markAsRead } from "@/app/lib/api/notifications";
 import type { ModuleDefinition, ModuleRow } from "@/app/lib/demo-data";
 import type { ModuleCreateConfig } from "@/app/lib/module-create";
@@ -71,7 +72,10 @@ export function ModuleDataBridge({ definition, slug }: ModuleDataBridgeProps) {
     };
   }, [data, definition, source]);
 
-  const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
+  const refresh = useCallback(() => {
+    resetApiCache();
+    setRefreshKey((key) => key + 1);
+  }, []);
 
   const handleRowClick = useCallback(
     (row: ModuleRow) => {

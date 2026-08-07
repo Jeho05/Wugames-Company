@@ -38,6 +38,34 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const clientRoles = new Set<RoleCode>(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
 
+const USER_CACHE_KEY = "wugams-user-profile";
+
+function cacheAuthUser(user: AuthUser): void {
+  try {
+    window.localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+  } catch {
+    /* stockage indisponible : on reservera via l'API au prochain chargement */
+  }
+}
+
+function readCachedUser(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(USER_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearCachedUser(): void {
+  try {
+    window.localStorage.removeItem(USER_CACHE_KEY);
+  } catch {
+    /* rien à faire */
+  }
+}
+
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "??";
@@ -98,7 +126,8 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  /* Profil du dernier utilisateur connu : affichage immédiat au retour (récup ). */
+  const [user, setUser] = useState<AuthUser | null>(() => readCachedUser());
   const [ready, setReady] = useState(false);
   const [pending2fa, setPending2fa] = useState<Pending2fa>(null);
   const pending2faRef = useRef<Pending2fa>(null);
@@ -115,7 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hydrate = useCallback(
     async (tokens: authApi.AuthTokensLike) => {
       persistTokens(tokens);
-      setUser(await buildAuthUser(tokens.user));
+      const authUser = await buildAuthUser(tokens.user);
+      cacheAuthUser(authUser);
+      setUser(authUser);
     },
     [persistTokens],
   );
@@ -141,8 +172,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profile_id: payload.profile_id,
         };
         if (cancelled) return;
-        setUser(await buildAuthUser(dto));
-      } catch {
+        const refreshed = await buildAuthUser(dto);
+        cacheAuthUser(refreshed);
+        setUser(refreshed);
+      } catch (error) {
+        if (error instanceof ApiError && error.statusCode === 401) {
+          clearCachedUser();
+        }
         clearSession();
       }
     }
@@ -152,7 +188,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const unsubscribe = subscribeAuth(() => {
-      if (getSession() === null) setUser(null);
+      if (getSession() === null) {
+        clearCachedUser();
+        setUser(null);
+      }
     });
 
     return () => {
