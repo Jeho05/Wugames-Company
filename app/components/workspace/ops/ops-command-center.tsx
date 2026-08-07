@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
+import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { MotionConfig } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
@@ -36,19 +38,17 @@ export function OpsCommandCenter() {
     setRefreshing(false);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     let cancelled = false;
     loadOpsOverview().then((overview) => {
       if (!cancelled) setData(overview);
     });
-    const timer = window.setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [refresh]);
+
+  useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 
   const sourceLabel = data?.source === "api" ? "En direct" : "Démonstration";
   const sourceTone =

@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
+import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { MotionConfig } from "motion/react";
 
 import * as notificationsApi from "@/app/lib/api/notifications";
@@ -61,20 +63,18 @@ export function BranchCommandCenter() {
     setRefreshing(false);
   }, [filialeId]);
 
-  useEffect(() => {
+useEffect(() => {
     if (!filialeId && filialeId !== null) return;
     let cancelled = false;
     loadBranchOverview(filialeId).then((overview) => {
       if (!cancelled) setData(overview);
     });
-    const timer = window.setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [filialeId, refresh]);
+
+  useSmartPolling(() => void refresh(), REFRESH_INTERVAL_MS, { skip: !filialeId && filialeId !== null });
 
   function markRead(id: string) {
     void notificationsApi.markAsRead(id).catch(() => undefined);

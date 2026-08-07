@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
+import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { MotionConfig } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
@@ -37,19 +39,17 @@ export function PartnerCommandCenter() {
     setRefreshing(false);
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     let cancelled = false;
     loadPartnerOverview().then((overview) => {
       if (!cancelled) setData(overview);
     });
-    const timer = window.setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [refresh]);
+
+  useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 
   const produitsCount = data?.kpis.find((kpi) => kpi.key === "produits")?.value ?? "0";
   const rupturesCount = data?.buckets.find((bucket) => bucket.key === "rupture")?.count ?? 0;

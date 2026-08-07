@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { MotionConfig } from "motion/react";
 
+import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { Icon } from "@/app/components/ui/app-icon";
 import { Reveal } from "@/app/components/workspace/executive/reveal";
 import { CommandPalette } from "@/app/components/workspace/resp-ouvriers/command/command-palette";
@@ -68,12 +69,12 @@ export function RespOuvriersCommandCenter() {
         setJourney(overview.missions[0] ?? null);
       }
     });
-    const timer = window.setInterval(() => void refresh(), REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
   }, [refresh]);
+
+  useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

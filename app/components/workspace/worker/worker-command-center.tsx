@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
+import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { useAuth } from "@/app/lib/auth-context";
 import * as usersApi from "@/app/lib/api/users";
 import type { User } from "@/app/lib/contracts";
@@ -117,13 +118,7 @@ export function WorkerCommandCenter() {
     };
   }, [fullUser, user]);
 
-  useEffect(() => {
-    if (loading) return;
-    const timer = window.setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-  }, [loading, refresh]);
+  useSmartPolling(refresh, REFRESH_INTERVAL_MS, { skip: loading });
 
   const toast = useCallback((message: string, tone: Toast["tone"] = "success") => {
     const id = ++toastId.current;

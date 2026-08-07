@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
+import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { BreathingDot, Panel, SectionHeader } from "@/app/components/workspace/dev-digital/ui/primitives";
 import { C } from "@/app/components/workspace/dev-digital/theme";
 import type { HealthStatus } from "@/app/lib/dev-digital-data";
@@ -22,15 +23,15 @@ export function ApiHealth({
 }) {
   const [spinning, setSpinning] = useState(false);
 
-  useEffect(() => {
-    if (intervalMs <= 0) return;
-    const timer = window.setInterval(() => {
+  useSmartPolling(
+    () => {
       setSpinning(true);
       window.setTimeout(() => setSpinning(false), 600);
       onRefresh();
-    }, intervalMs);
-    return () => window.clearInterval(timer);
-  }, [intervalMs, onRefresh]);
+    },
+    intervalMs,
+    { skip: intervalMs <= 0, backoffFactor: 2, maxBackoff: 4 },
+  );
 
   const reachable = health?.statut === "ok";
   const databaseOk = health?.database === "connected";
