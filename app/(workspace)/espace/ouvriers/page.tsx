@@ -7,6 +7,13 @@ import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge"
 import { ApiError } from "@/app/lib/api-client";
 import { listEvaluations, updateEvaluation } from "@/app/lib/api/evaluations";
 import { getModuleDefinition, type OuvrierPerformance } from "@/app/lib/demo-data";
+import {
+  rendement9S,
+  rendementGlobal,
+  rendementTexte,
+  TOTAL_BASE,
+  WEEK_BASE,
+} from "@/app/lib/rendement";
 
 const criteria: { code: string; label: string }[] = [
   { code: "S1", label: "Sécurité sur site" },
@@ -19,22 +26,6 @@ const criteria: { code: string; label: string }[] = [
   { code: "S8", label: "Qualité de finition" },
   { code: "S9", label: "Rigueur administrative" },
 ];
-
-const WEEK_BASE = 40;
-const TOTAL_BASE = WEEK_BASE * 9;
-const TEXT_BASE = 50;
-
-function rendement9S(semaines: number[]) {
-  return (semaines.reduce((sum, note) => sum + note, 0) / TOTAL_BASE) * 100;
-}
-
-function rendementTexte(noteTexte: number) {
-  return (noteTexte / TEXT_BASE) * 100;
-}
-
-function rendementGlobal(semaines: number[], noteTexte: number) {
-  return rendement9S(semaines) * 0.7 + rendementTexte(noteTexte) * 0.3;
-}
 
 function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluations>>) {
   const ids: Record<string, string> = {};

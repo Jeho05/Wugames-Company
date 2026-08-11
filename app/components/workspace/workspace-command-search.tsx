@@ -81,8 +81,13 @@ export function WorkspaceCommandSearch() {
         setOpen(false);
       }
     };
+    const onOpenRequest = () => setOpen(true);
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("wugams:open-search", onOpenRequest);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("wugams:open-search", onOpenRequest);
+    };
   }, []);
 
   useEffect(() => {

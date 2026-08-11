@@ -58,3 +58,21 @@ export async function setup2fa(): Promise<TwoFaSetup> {
 export async function enable2fa(token: string): Promise<MessageResponse> {
   return apiFetch<MessageResponse>("/auth/2fa/enable", { method: "POST", body: { token: token.trim() } });
 }
+
+export async function disable2fa(token: string): Promise<MessageResponse> {
+  return apiFetch<MessageResponse>("/auth/2fa/disable", { method: "POST", body: { token: token.trim() } });
+}
+
+export async function requestPasswordReset(email: string): Promise<MessageResponse> {
+  return apiFetchPublic<MessageResponse>("/auth/password-reset", {
+    method: "POST",
+    body: { email: email.trim() },
+  });
+}
+
+export async function confirmPasswordReset(token: string, newPassword: string): Promise<MessageResponse> {
+  return apiFetchPublic<MessageResponse>("/auth/password-reset", {
+    method: "POST",
+    body: { token: token.trim(), new_password: newPassword },
+  });
+}

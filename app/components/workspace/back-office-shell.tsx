@@ -11,6 +11,11 @@ import { TwoFaForm } from "@/app/components/workspace/two-fa-form";
 import { useAuth } from "@/app/lib/auth-context";
 import { WorkspaceCommandSearch } from "@/app/components/workspace/workspace-command-search";
 import { getHealth } from "@/app/lib/api/health";
+import { API_BASE_URL, getSession } from "@/app/lib/api-client";
+import { brandClickState, brandSecretArmed, signConsole } from "@/app/lib/easter-eggs";
+import { useNotificationsStream } from "@/app/lib/use-notifications-stream";
+import type { Notification } from "@/app/lib/contracts";
+import type { StreamState } from "@/app/lib/use-notifications-stream";
 import {
   adminNavigationGroup,
   clientNavigationGroups,
@@ -44,6 +49,9 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showTwoFa, setShowTwoFa] = useState(false);
   const [healthOk, setHealthOk] = useState<boolean | null>(null);
+  const [brandClicks, setBrandClicks] = useState<{ hits: number; lastAt: number } | null>(null);
+  const [showCoffre, setShowCoffre] = useState(false);
+  const [liveUnread, setLiveUnread] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuth();
@@ -57,9 +65,32 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
       .catch(() => {
         if (!cancelled) setHealthOk(false);
       });
+    signConsole();
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  const streamEnabled = user !== null && !clientRoles.has(user.role);
+  const streamState = useNotificationsStream(streamEnabled, (notification: Notification) => {
+    if (!notification.lu) setLiveUnread((count) => count + 1);
+  });
+
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    if (pathname === "/espace/notifications") setLiveUnread(0);
+  }
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "?" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        window.dispatchEvent(new Event("wugams:open-search"));
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   if (!user) {
@@ -76,6 +107,15 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
 
   function handleLogout() {
     void logout().then(() => router.push("/connexion"));
+  }
+
+  function handleBrandClick() {
+    const next = brandClickState(brandClicks ?? undefined);
+    setBrandClicks(next);
+    if (brandSecretArmed(next)) {
+      setShowCoffre(true);
+      setBrandClicks(null);
+    }
   }
 
   return (
@@ -96,7 +136,9 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
         }
       >
         <div className="flex items-center justify-between px-2">
-          <BrandMark href="/espace" inverse />
+          <span onClick={handleBrandClick} role="presentation">
+            <BrandMark href="/espace" inverse />
+          </span>
           <button
             aria-label="Fermer le menu"
             className="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-white lg:hidden"
@@ -217,9 +259,16 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                 aria-label="Notifications"
                 className="relative grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-[#17294b]"
                 href="/espace/notifications"
+                title={streamState === "live" ? "Notifications en direct" : "Notifications"}
               >
                 <Icon name="bell" size={18} />
-                <span className="absolute right-2 top-2 size-1.5 rounded-full bg-[#db6d5b] ring-2 ring-white" />
+                {liveUnread > 0 ? (
+                  <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full bg-[#db6d5b] px-1 text-[9px] font-black text-white ring-2 ring-[#f5f7fb]">
+                    {liveUnread > 99 ? "99+" : liveUnread}
+                  </span>
+                ) : (
+                  <span className="absolute right-2 top-2 size-1.5 rounded-full bg-[#db6d5b] ring-2 ring-white" />
+                )}
               </Link>
             ) : null}
             <div className="relative">
@@ -264,7 +313,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                       <span className="grid size-7 place-items-center rounded-lg bg-[#edf3f9] text-[#426b95]">
                         <Icon name="shield" size={15} />
                       </span>
-                      Sécurité · Activer la 2FA
+                      Sécurité · Gérer la 2FA
                     </button>
                     <button
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-red-600 transition hover:bg-red-50"
@@ -288,6 +337,70 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
       </div>
 
       {showTwoFa ? <TwoFaForm onClose={() => setShowTwoFa(false)} /> : null}
+
+      {showCoffre ? <CoffreDuGerant onClose={() => setShowCoffre(false)} streamState={streamState} /> : null}
+    </div>
+  );
+}
+
+function CoffreDuGerant({ onClose, streamState }: { onClose: () => void; streamState: StreamState }) {
+  const { user } = useAuth();
+  const session = getSession();
+
+  const rows = [
+    { label: "Utilisateur", value: user ? `${user.name} · ${user.role}` : "—" },
+    { label: "Filiale", value: user?.filiale ?? "—" },
+    { label: "Base API", value: API_BASE_URL },
+    { label: "Session", value: session ? "Jeton actif" : "Aucune session" },
+    { label: "Flux temps réel", value: streamState === "live" ? "connecté" : "hors ligne" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-[#0b1530]/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-[#101a2d] text-white shadow-2xl ring-1 ring-[#e6ac49]/30">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+          <h2 className="flex items-center gap-2 text-sm font-black tracking-[-0.02em]">
+            <Icon name="shield" size={16} style={{ color: "#e6ac49" }} />
+            Coffre du gérant
+          </h2>
+          <button
+            aria-label="Fermer"
+            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-white"
+            onClick={onClose}
+            type="button"
+          >
+            <Icon name="close" size={17} />
+          </button>
+        </div>
+        <div className="space-y-2.5 p-5">
+          <p className="text-[11px] leading-5 text-slate-400">
+            Accès dérobé n°1 du back-office. Données système en lecture seule — rien ne peut être
+            modifié ici.
+          </p>
+          {rows.map((row) => (
+            <div
+              className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5"
+              key={row.label}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#5c6889]">
+                {row.label}
+              </span>
+              <span className="truncate font-mono text-[11px] font-bold text-[#c3cbdf]">{row.value}</span>
+            </div>
+          ))}
+          <p className="rounded-xl bg-[#e6ac49]/10 px-3 py-2.5 text-[11px] leading-5 text-[#f2c56d]">
+            « Qui contrôle le coffre contrôle l&apos;ERP. » — 5 clics rapides sur le logo, encore
+            5, et le coffre se referme.
+          </p>
+          <button
+            className="w-full rounded-xl bg-[#e6ac49] px-4 py-2.5 text-xs font-black text-[#101827] transition hover:bg-[#f2c56d]"
+            onClick={onClose}
+            type="button"
+          >
+            Refermer le coffre
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
