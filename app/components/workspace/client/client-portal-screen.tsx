@@ -14,12 +14,18 @@ import { ClientCommandes } from "@/app/components/workspace/client/client-comman
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
 import { ClientProfil } from "@/app/components/workspace/client/client-profil";
 import { ClientSearch } from "@/app/components/workspace/client/client-search";
+import { ClientDemandes } from "@/app/components/workspace/client/client-demandes";
+import { ClientProjets } from "@/app/components/workspace/client/client-projets";
+import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
+import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 import {
   demoClientPortalData,
   globalStateFrom,
   loadClientPortalData,
 } from "@/app/lib/client-data";
 import type { ClientPortalData } from "@/app/lib/client-data";
+import { demoCleansOverview } from "@/app/lib/cleans-data";
+import type { CleansOverview } from "@/app/lib/cleans-data";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 
 type ClientPortalScreenProps = {
@@ -28,6 +34,10 @@ type ClientPortalScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "portail-apercu", label: "Vue d'ensemble", icon: "dashboard" },
+  { id: "portail-demandes", label: "Mes demandes", icon: "clipboard" },
+  { id: "portail-projets", label: "Mes projets", icon: "camera" },
+  { id: "portail-cleans", label: "Mon Wugams Cleans", icon: "sparkles" },
+  { id: "portail-mode2vie", label: "Mode2Vie [Lifestyle]™", icon: "newspaper" },
   { id: "portail-missions", label: "Missions", icon: "hardhat" },
   { id: "portail-factures", label: "Factures", icon: "file-text" },
   { id: "portail-devis", label: "Devis", icon: "sparkles" },
@@ -38,6 +48,7 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
 
 export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
   const [data, setData] = useState<ClientPortalData>(demoClientPortalData);
+  const [cleans, setCleans] = useState<CleansOverview>(demoCleansOverview);
   const [live, setLive] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeId, setActiveId] = useState("portail-apercu");
@@ -176,6 +187,11 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
         </div>
       </div>
 
+      <ClientDemandes demandes={data.demandes} />
+      <ClientProjets projets={data.projets} />
+      <ClientCleans cleans={cleans} />
+      <ClientMode2Vie />
+
       <ClientMissions missions={data.missions} />
       <ClientFactures factures={data.factures} />
       <ClientDevis devis={data.devis} />
@@ -196,7 +212,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
               <span>
                 <span className="block text-[13px] font-bold text-[#16233a] dark:text-slate-200">Recherche globale</span>
                 <span className="mt-0.5 block text-[11px] text-slate-400">
-                  Missions, factures, devis, commandes — les vôtres uniquement
+                  Demandes, projets, Cleans, Mode2Vie — tout votre espace
                 </span>
               </span>
             </span>
@@ -227,7 +243,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
 
       <ClientProfil user={user} />
 
-      <ClientSearch data={data} key={searchOpen ? "open" : "closed"} onClose={() => setSearchOpen(false)} onNavigate={navigateTo} open={searchOpen} />
+      <ClientSearch cleans={cleans} data={data} key={searchOpen ? "open" : "closed"} onClose={() => setSearchOpen(false)} onNavigate={navigateTo} open={searchOpen} />
     </div>
   );
 }

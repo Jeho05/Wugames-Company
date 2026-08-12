@@ -211,7 +211,7 @@ export function DashboardScreen() {
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
             {["Cette semaine", "Ce mois", "Cette année"].map((item) => (
               <button
                 aria-pressed={period === item}
@@ -320,7 +320,7 @@ export function DashboardScreen() {
             </button>
           </div>
 
-          <div className="mt-7 grid h-[210px] grid-cols-12 items-end gap-2 sm:gap-3">
+          <div className="mt-7 grid h-[210px] grid-cols-12 items-end gap-1 sm:gap-3">
             {chartBars.map((height, index) => (
               <div className="group flex h-full flex-col justify-end" key={index}>
                 <span className="mb-2 hidden text-center text-[9px] font-bold text-slate-500 group-hover:block">

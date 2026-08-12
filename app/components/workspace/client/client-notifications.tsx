@@ -14,6 +14,7 @@ const kindMeta: Record<NotificationKind, { icon: IconName; tone: string }> = {
   devis: { icon: "sparkles", tone: "bg-[#e3a641]/[0.14] text-[#b47e1e]" },
   commande: { icon: "shopping-bag", tone: "bg-violet-500/[0.12] text-violet-600" },
   paiement: { icon: "check", tone: "bg-emerald-500/[0.12] text-emerald-600" },
+  cleans: { icon: "sparkles", tone: "bg-emerald-500/[0.12] text-emerald-600" },
 };
 
 type ClientNotificationsProps = {

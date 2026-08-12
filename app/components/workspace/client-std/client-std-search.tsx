@@ -7,10 +7,12 @@ import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import { formatFcfa } from "@/app/lib/store-data";
 import type { ClientStdData } from "@/app/lib/client-std-data";
+import type { CleansOverview } from "@/app/lib/cleans-data";
+import { mode2vieArticles } from "@/app/lib/mode2vie-data";
 
 type SearchResult = {
   id: string;
-  section: "Missions" | "Commandes" | "Devis";
+  section: "Missions" | "Commandes" | "Devis" | "Projets" | "Wugams Cleans" | "Mode2Vie";
   sectionId: string;
   icon: IconName;
   title: string;
@@ -21,6 +23,9 @@ const sectionIcon: Record<SearchResult["section"], IconName> = {
   Missions: "hardhat",
   Commandes: "shopping-bag",
   Devis: "sparkles",
+  Projets: "camera",
+  "Wugams Cleans": "sparkles",
+  Mode2Vie: "newspaper",
 };
 
 function normalize(value: string): string {
@@ -32,12 +37,13 @@ function normalize(value: string): string {
 
 type ClientStdSearchProps = {
   data: ClientStdData;
+  cleans: CleansOverview;
   open: boolean;
   onClose: () => void;
   onNavigate: (sectionId: string) => void;
 };
 
-export function ClientStdSearch({ data, open, onClose, onNavigate }: ClientStdSearchProps) {
+export function ClientStdSearch({ data, cleans, open, onClose, onNavigate }: ClientStdSearchProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const reduce = useReducedMotion();
@@ -61,27 +67,38 @@ export function ClientStdSearch({ data, open, onClose, onNavigate }: ClientStdSe
   const results = useMemo<SearchResult[]>(() => {
     const q = normalize(query.trim());
     if (!q) return [];
-    const build = (item: { id: string; titre?: string; numero?: string; objet?: string; montant?: number | string; date?: string; statut?: string }, section: SearchResult["section"]): SearchResult => {
-      const title = item.titre ?? item.objet ?? item.numero ?? "";
+    const build = (item: Record<string, unknown>, section: SearchResult["section"]): SearchResult => {
+      const titre = String(item.titre ?? item.objet ?? item.numero ?? "");
+      const title =
+        titre !== "" && titre !== "undefined"
+          ? titre
+          : `${String(item.adresse ?? "")}${item.cleaner ? " · " + String(item.cleaner) : ""}`;
       const montant = item.montant !== undefined ? ` · ${formatFcfa(Number(item.montant))}` : "";
-      const date = item.date ? ` · ${item.date}` : "";
+      const date = item.date ? ` · ${String(item.date)}` : "";
       return {
-        id: item.id,
+        id: String(item.id),
         section,
         sectionId: sectionIdOf(section),
         icon: sectionIcon[section],
         title,
-        subtitle: `${(item.statut ?? "").toLowerCase()}${montant}${date}`,
+        subtitle: `${String(item.statut ?? "").toLowerCase()}${montant}${date}`,
       };
     };
-    const matches = (item: { titre?: string; numero?: string; objet?: string }) =>
-      normalize([item.titre, item.numero, item.objet].filter(Boolean).join(" ")).includes(q);
+    const matches = (item: Record<string, unknown>) =>
+      normalize(
+        [item.titre, item.numero, item.objet, item.adresse, item.cleaner, item.extrait, item.categorie]
+          .filter((value): value is string => typeof value === "string")
+          .join(" "),
+      ).includes(q);
     return [
+      ...data.projets.filter(matches).map((p) => build(p, "Projets")),
+      ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
+      ...mode2vieArticles.filter(matches).map((a) => build(a, "Mode2Vie")),
       ...data.missions.filter(matches).map((m) => build(m, "Missions")),
       ...data.commandes.filter(matches).map((c) => build(c, "Commandes")),
       ...data.devis.filter(matches).map((d) => build(d, "Devis")),
-    ].slice(0, 12);
-  }, [query, data]);
+    ].slice(0, 14);
+  }, [query, data, cleans]);
 
   return (
     <AnimatePresence>
@@ -201,5 +218,11 @@ function sectionIdOf(section: SearchResult["section"]): string {
       return "std-commandes";
     case "Devis":
       return "std-devis";
+    case "Projets":
+      return "std-projets";
+    case "Wugams Cleans":
+      return "std-cleans";
+    case "Mode2Vie":
+      return "std-mode2vie";
   }
 }

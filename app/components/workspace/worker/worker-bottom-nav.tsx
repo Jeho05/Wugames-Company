@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 import { Icon, type IconName } from "@/app/components/ui/app-icon";
 
-export type WorkerTab = "aujourdhui" | "missions" | "activite" | "profil";
+export type WorkerTab = "aujourdhui" | "services" | "missions" | "activite" | "profil";
 
 type WorkerBottomNavigationProps = {
   tab: WorkerTab;
@@ -17,6 +17,7 @@ type WorkerBottomNavigationProps = {
 
 const tabs: { key: WorkerTab; label: string; icon: IconName }[] = [
   { key: "aujourdhui", label: "Aujourd'hui", icon: "dashboard" },
+  { key: "services", label: "Services", icon: "camera" },
   { key: "missions", label: "Missions", icon: "hardhat" },
   { key: "activite", label: "Activité", icon: "bell" },
   { key: "profil", label: "Profil", icon: "users" },
@@ -39,7 +40,7 @@ export function WorkerBottomNavigation({ tab, unread, onTab, fabLabel, fabIcon, 
             {fabLabel}
           </motion.button>
         ) : null}
-        <nav aria-label="Navigation principale" className="grid grid-cols-4">
+        <nav aria-label="Navigation principale" className="grid grid-cols-5">
           {tabs.map((item) => {
             const active = tab === item.key;
             return (

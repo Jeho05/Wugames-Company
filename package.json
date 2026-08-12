@@ -16,6 +16,7 @@
     "lenis": "^1.3.25",
     "motion": "^12.42.2",
     "next": "16.2.10",
+    "pdfjs-dist": "^6.2.108",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.10.1",
@@ -31,5 +32,18 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
-  }
+  },
+  "description": "Fondation front-end de la plateforme multi-filiales WUGAMS, construite avec Next.js 16, React 19 et Tailwind CSS 4. Le back-office est branché sur l'API NestJS WUGAMS ERP (`https://wugames-holding-inc.vercel.app`).",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jeho05/Wugames-Company.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jeho05/Wugames-Company/issues"
+  },
+  "homepage": "https://github.com/Jeho05/Wugames-Company#readme"
 }

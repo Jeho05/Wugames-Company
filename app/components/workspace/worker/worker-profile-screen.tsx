@@ -1,13 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import type { WorkerOverview } from "@/app/lib/worker-data";
+import type { WorkerPrime } from "@/app/lib/worker-services-data";
+import { formatMontantFcfa } from "@/app/lib/worker-services-data";
+import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 
 type WorkerProfileScreenProps = {
   overview: WorkerOverview;
   pendingCount: number;
+  prime: WorkerPrime | null;
+  onPrimeWithdrawn: (primeId: string) => void;
   onLogout: () => void;
 };
 
@@ -35,11 +42,18 @@ function Toggle({ enabled, onChange, label }: { enabled: boolean; onChange: (val
   );
 }
 
-export function WorkerProfileScreen({ overview, pendingCount, onLogout }: WorkerProfileScreenProps) {
+export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWithdrawn, onLogout }: WorkerProfileScreenProps) {
   const { worker, filiale, twoFactor, email, phone } = overview;
   const [pushEnabled, setPushEnabled] = useState(true);
   const [rappelEnabled, setRappelEnabled] = useState(true);
   const [signatureEnabled, setSignatureEnabled] = useState(false);
+  const [mode2vieOpen, setMode2vieOpen] = useState(false);
+  const [payoutOpen, setPayoutOpen] = useState(false);
+  const [payoutMode, setPayoutMode] = useState<"momo" | "bank" | null>(null);
+  const [payoutDone, setPayoutDone] = useState(false);
+  const reduce = useReducedMotion();
+
+  const primeDisponible = prime && prime.statut === "DISPONIBLE" ? prime : null;
 
   const initials = worker.nom
     .split(" ")
@@ -47,8 +61,33 @@ export function WorkerProfileScreen({ overview, pendingCount, onLogout }: Worker
     .slice(0, 2)
     .join("");
 
+  function confirmerRetrait() {
+    if (!primeDisponible) return;
+    setPayoutDone(true);
+    setPayoutMode(null);
+  }
+
   return (
     <div className="space-y-5">
+      {mode2vieOpen ? (
+        <section aria-label="Mode2Vie">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-slate-400">Mode2Vie [Lifestyle]™</p>
+            <button
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold text-slate-500"
+              onClick={() => setMode2vieOpen(false)}
+              type="button"
+            >
+              <Icon name="close" size={12} />
+              Fermer
+            </button>
+          </div>
+          <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <ClientMode2Vie compact sectionId="worker-mode2vie" />
+          </div>
+        </section>
+      ) : null}
+
       <section aria-label="Profil" className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-lg shadow-slate-950/[0.05]">
         <div className="bg-gradient-to-br from-[#0f7a5f] via-[#0e6e57] to-[#0c5f4b] p-5">
           <div className="flex items-center gap-4">
@@ -110,6 +149,80 @@ export function WorkerProfileScreen({ overview, pendingCount, onLogout }: Worker
             </span>
           </li>
         </ul>
+      </section>
+
+      <section aria-label="Espaces WUGAMS" className="rounded-3xl border border-slate-200/70 bg-white shadow-lg shadow-slate-950/[0.05]">
+        <h3 className="px-5 pt-5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">Espaces accessibles</h3>
+        <div className="mt-2 grid grid-cols-3 gap-2.5 px-5 pb-5">
+          <Link
+            className="group flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-center transition hover:border-[#e3a641]/40 hover:bg-white hover:shadow-md"
+            href="/boutique"
+          >
+            <span className="grid size-10 place-items-center rounded-xl bg-[#0f7a5f]/10 text-[#0f7a5f] transition group-hover:scale-105">
+              <Icon name="shopping-bag" size={17} />
+            </span>
+            <span className="text-[10px] font-bold text-[#16233a]">Espace Wu</span>
+            <span className="text-[8px] leading-3 text-slate-400">Boutique membre</span>
+          </Link>
+          <Link
+            className="group flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-center transition hover:border-[#e3a641]/40 hover:bg-white hover:shadow-md"
+            href="/blog"
+          >
+            <span className="grid size-10 place-items-center rounded-xl bg-[#17294b]/[0.07] text-[#17294b] transition group-hover:scale-105">
+              <Icon name="newspaper" size={17} />
+            </span>
+            <span className="text-[10px] font-bold text-[#16233a]">Blog</span>
+            <span className="text-[8px] leading-3 text-slate-400">Conseils & actualités</span>
+          </Link>
+          <button
+            className="group flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-center transition hover:border-[#e3a641]/40 hover:bg-white hover:shadow-md"
+            onClick={() => setMode2vieOpen((open) => !open)}
+            type="button"
+          >
+            <span className="grid size-10 place-items-center rounded-xl bg-[#e3a641]/[0.14] text-[#b47e1e] transition group-hover:scale-105">
+              <Icon name="sparkles" size={17} />
+            </span>
+            <span className="text-[10px] font-bold text-[#16233a]">Mode2Vie™</span>
+            <span className="text-[8px] leading-3 text-slate-400">Vie chrétienne</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Primes & salaire */}
+      <section aria-label="Primes et salaire" className="rounded-3xl border border-slate-200/70 bg-white shadow-lg shadow-slate-950/[0.05]">
+        <div className="flex items-center justify-between gap-3 px-5 pt-5">
+          <h3 className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">Primes & salaire</h3>
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-bold text-slate-500">Retrait MoMo ou bancaire</span>
+        </div>
+        <div className="px-5 pb-5">
+          {primeDisponible ? (
+            <div className="mt-3 rounded-2xl border border-[#e3a641]/40 bg-[#e3a641]/[0.08] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="flex items-center gap-1.5 text-[12px] font-extrabold text-[#16233a]">
+                    <Icon name="sparkles" size={14} className="text-[#b47e1e]" />
+                    {primeDisponible.libelle}
+                  </p>
+                  <p className="mt-1 text-[10px] font-medium text-slate-400">{primeDisponible.date}</p>
+                  <p className="mt-2 text-xl font-extrabold tabular-nums text-[#0f7a5f]">
+                    {formatMontantFcfa(primeDisponible.montant)}
+                  </p>
+                </div>
+                <button
+                  className="shrink-0 rounded-2xl bg-[#0f7a5f] px-4 py-2.5 text-[11px] font-extrabold text-white shadow-lg shadow-emerald-900/20 transition active:scale-[0.98]"
+                  onClick={() => setPayoutOpen(true)}
+                  type="button"
+                >
+                  Retirer
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3.5 text-[11px] leading-5 text-slate-400 dark:bg-white/[0.03]">
+              Aucune prime disponible pour le moment. Votre salaire est notifié ici dès qu&apos;il est prêt.
+            </p>
+          )}
+        </div>
       </section>
 
       <section aria-label="Préférences" className="rounded-3xl border border-slate-200/70 bg-white shadow-lg shadow-slate-950/[0.05]">

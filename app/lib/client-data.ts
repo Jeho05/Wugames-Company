@@ -44,7 +44,39 @@ export type ClientCommandeView = {
   articles: string[];
 };
 
-export type NotificationKind = "mission" | "facture" | "devis" | "commande" | "paiement";
+export type NotificationKind = "mission" | "facture" | "devis" | "commande" | "paiement" | "cleans";
+
+export type DemandeType = "DEVIS" | "SERVICE" | "RECLAMATION";
+
+export type DemandeStatut = "ENVOYEE" | "ETUDIEE" | "DEVIS_PROPOSE" | "ACCEPTEE" | "REFUSEE";
+
+export type ClientDemandeView = {
+  id: string;
+  type: DemandeType;
+  objet: string;
+  detail: string;
+  date: string;
+  statut: DemandeStatut;
+  piecesJointes: number;
+};
+
+export type ClientProjetPhoto = {
+  url: string;
+  legende: string;
+};
+
+export type ClientProjetView = {
+  id: string;
+  titre: string;
+  filiale: string;
+  statut: MissionStatut;
+  progression: number;
+  debut: string;
+  fin: string | null;
+  equipe: string;
+  galerie: ClientProjetPhoto[];
+  rapport: string | null;
+};
 
 export type ClientNotificationView = {
   id: string;
@@ -62,6 +94,8 @@ export type ClientPortalData = {
   devis: ClientDevisView[];
   commandes: ClientCommandeView[];
   notifications: ClientNotificationView[];
+  demandes: ClientDemandeView[];
+  projets: ClientProjetView[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -100,6 +134,20 @@ export const commandeStatutMeta: Record<CommandeStatut, { label: string; tone: S
   EN_PREPARATION: { label: "En préparation", tone: "info" },
   LIVREE: { label: "Livrée", tone: "success" },
   ANNULEE: { label: "Annulée", tone: "danger" },
+};
+
+export const demandeTypeMeta: Record<DemandeType, { label: string; tone: StatusTone }> = {
+  DEVIS: { label: "Demande de devis", tone: "info" },
+  SERVICE: { label: "Demande de service", tone: "warning" },
+  RECLAMATION: { label: "Réclamation", tone: "danger" },
+};
+
+export const demandeStatutMeta: Record<DemandeStatut, { label: string; tone: StatusTone }> = {
+  ENVOYEE: { label: "Envoyée", tone: "neutral" },
+  ETUDIEE: { label: "À l'étude", tone: "info" },
+  DEVIS_PROPOSE: { label: "Devis proposé", tone: "warning" },
+  ACCEPTEE: { label: "Acceptée", tone: "success" },
+  REFUSEE: { label: "Refusée", tone: "danger" },
 };
 
 export function globalStateFrom(missions: ClientMissionView[], factures: Facture[], devis: ClientDevisView[]): ClientGlobalState {
@@ -343,6 +391,108 @@ const demoNotifications: ClientNotificationView[] = [
     time: "17 juin",
     lu: true,
   },
+  {
+    id: "dn6",
+    kind: "cleans",
+    titre: "Abonnement Wugams Cleans actif",
+    detail: "Plan B Premium · prochain passage le 13 août à 08:00",
+    time: "Aujourd'hui",
+    lu: false,
+  },
+];
+
+const demoDemandes: ClientDemandeView[] = [
+  {
+    id: "ddm1",
+    type: "DEVIS",
+    objet: "Aménagement jardin & clôture",
+    detail: "Clôture en parpaings sur 45 m et aménagement d'un jardin carrelé avec allée.",
+    date: "3 août 2026",
+    statut: "ETUDIEE",
+    piecesJointes: 3,
+  },
+  {
+    id: "ddm2",
+    type: "SERVICE",
+    objet: "Entretien complet du carrelage de la terrasse",
+    detail: "Nettoyage en profondeur et traitement anti-taches de la terrasse extérieure.",
+    date: "26 juillet 2026",
+    statut: "ACCEPTEE",
+    piecesJointes: 1,
+  },
+  {
+    id: "ddm3",
+    type: "RECLAMATION",
+    objet: "Finitions peinture salon",
+    detail: "Quelques traces visibles à reprendre après livraison de la peinture intérieure.",
+    date: "18 juillet 2026",
+    statut: "DEVIS_PROPOSE",
+    piecesJointes: 2,
+  },
+];
+
+const demoProjets: ClientProjetView[] = [
+  {
+    id: "dp1",
+    titre: "Rénovation intérieure · Résidence Traoré",
+    filiale: "WUGAMS Rénovation",
+    statut: "EN_COURS",
+    progression: 68,
+    debut: "20 juillet 2026",
+    fin: null,
+    equipe: "Équipe Rénovation",
+    galerie: [
+      { url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1400&q=80", legende: "Salon après rénovation" },
+      { url: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=1400&q=80", legende: "Cuisine équipée" },
+      { url: "https://images.unsplash.com/photo-1584622781564-1d987f7333c1?w=1400&q=80", legende: "Salle de bain" },
+    ],
+    rapport:
+      "Les travaux avancent conformément au calendrier : reprise des peintures du salon et des chambres terminée, pose du carrelage en cours. La cuisine équipée sera installée en fin de semaine. Aucun dépassement budgétaire.",
+  },
+  {
+    id: "dp2",
+    titre: "Peinture façade · Villa Cocody",
+    filiale: "WUGAMS Rénovation",
+    statut: "RAPPORT_SOUMIS",
+    progression: 85,
+    debut: "28 juillet 2026",
+    fin: null,
+    equipe: "Équipe Peinture",
+    galerie: [
+      { url: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1400&q=80", legende: "Façade avant" },
+      { url: "https://images.unsplash.com/photo-1622372738946-62e02505feb3?w=1400&q=80", legende: "Peinture extérieure" },
+    ],
+    rapport:
+      "Façade peinte sur les quatre faces, deux couches d'acrylique gris perle. Réserves : reprise d'un angle côté garage après séchage complet. Rapport photos joint au dossier.",
+  },
+  {
+    id: "dp3",
+    titre: "Étanchéité toiture · Résidence Traoré",
+    filiale: "WUGAMS Rénovation",
+    statut: "ACCEPTE",
+    progression: 30,
+    debut: "10 août 2026",
+    fin: null,
+    equipe: "Équipe Couverture",
+    galerie: [
+      { url: "https://images.unsplash.com/photo-1632260260864-caf7fde5ec36?w=1400&q=80", legende: "Toiture avant travaux" },
+    ],
+    rapport: null,
+  },
+  {
+    id: "dp4",
+    titre: "Installation cuisine équipée",
+    filiale: "WUGAMS Mobilier",
+    statut: "PLANIFIE",
+    progression: 5,
+    debut: "13 août 2026",
+    fin: null,
+    equipe: "Équipe Agencement",
+    galerie: [
+      { url: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=1400&q=80", legende: "Modèle de référence" },
+    ],
+    rapport: null,
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -372,13 +522,15 @@ function notificationView(notification: Notification): ClientNotificationView | 
   const message = notification.message ?? null;
   if (!message) return null;
   const raw = String(notification.type ?? "").toLowerCase();
-  const kind: NotificationKind = raw.includes("facture") || raw.includes("paiement")
-    ? raw.includes("paiement") ? "paiement" : "facture"
-    : raw.includes("devis")
-      ? "devis"
-      : raw.includes("commande")
-        ? "commande"
-        : "mission";
+  const kind: NotificationKind = raw.includes("cleans") || raw.includes("abonnement")
+    ? "cleans"
+    : raw.includes("facture") || raw.includes("paiement")
+      ? raw.includes("paiement") ? "paiement" : "facture"
+      : raw.includes("devis")
+        ? "devis"
+        : raw.includes("commande")
+          ? "commande"
+          : "mission";
   return {
     id: notification.id,
     kind,
@@ -400,6 +552,8 @@ export const demoClientPortalData: ClientPortalData = {
   devis: demoDevis,
   commandes: demoCommandes,
   notifications: demoNotifications,
+  demandes: demoDemandes,
+  projets: demoProjets,
 };
 
 export async function loadClientPortalData(): Promise<ClientPortalData> {
@@ -475,5 +629,7 @@ export async function loadClientPortalData(): Promise<ClientPortalData> {
     devis: apiDevis,
     commandes: apiCommandes,
     notifications: apiNotifications,
+    demandes: demoDemandes,
+    projets: demoProjets,
   };
 }

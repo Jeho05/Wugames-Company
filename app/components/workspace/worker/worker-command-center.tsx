@@ -37,7 +37,15 @@ import { WorkerTodayScreen, pickActiveMission } from "@/app/components/workspace
 import { WorkerMissionsScreen } from "@/app/components/workspace/worker/worker-missions-screen";
 import { WorkerActivityScreen } from "@/app/components/workspace/worker/worker-activity-screen";
 import { WorkerProfileScreen } from "@/app/components/workspace/worker/worker-profile-screen";
+import { WorkerServicesScreen } from "@/app/components/workspace/worker/worker-services-screen";
 import { useNetworkOnline } from "@/app/components/workspace/worker/worker-online-hook";
+import {
+  demoWorkerServicesOverview,
+  loadServiceProofs,
+  loadWorkerServicesOverview,
+  saveServiceProof,
+} from "@/app/lib/worker-services-data";
+import type { WorkerServiceOverview, WorkerServicePreuve } from "@/app/lib/worker-services-data";
 
 const REFRESH_INTERVAL_MS = 120_000;
 
@@ -68,6 +76,8 @@ export function WorkerCommandCenter() {
 
   const [fullUser, setFullUser] = useState<User | null>(null);
   const [overview, setOverview] = useState<WorkerOverview | null>(null);
+  const [servicesOverview, setServicesOverview] = useState<WorkerServiceOverview>(demoWorkerServicesOverview);
+  const [proofs, setProofs] = useState<Record<string, WorkerServicePreuve>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<WorkerTab>("aujourdhui");
@@ -117,6 +127,18 @@ export function WorkerCommandCenter() {
       cancelled = true;
     };
   }, [fullUser, user]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadWorkerServicesOverview().then((result) => {
+      if (cancelled) return;
+      setServicesOverview(result);
+    });
+    setProofs(loadServiceProofs());
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS, { skip: loading });
 
@@ -264,6 +286,17 @@ export function WorkerCommandCenter() {
     void logout().then(() => router.push("/connexion"));
   }, [logout, router]);
 
+  const handleValidateService = useCallback((serviceId: string, preuve: WorkerServicePreuve) => {
+    saveServiceProof(serviceId, preuve);
+    setProofs((prev) => ({ ...prev, [serviceId]: preuve }));
+    setServicesOverview((prev) => ({
+      ...prev,
+      services: prev.services.map((service) =>
+        service.id === serviceId ? { ...service, statut: "VALIDE" } : service,
+      ),
+    }));
+  }, []);
+
   const activeMission = useMemo(() => (overview ? pickActiveMission(overview.missions) : null), [overview]);
   const activePhotos = activeMission ? (photosByMission[activeMission.id] ?? []) : [];
   const activeDraft = activeMission ? (drafts[activeMission.id] ?? "") : "";
@@ -373,6 +406,14 @@ export function WorkerCommandCenter() {
                   ranking={overview.ranking}
                 />
               ) : null}
+              {tab === "services" ? (
+                <WorkerServicesScreen
+                  onToast={toast}
+                  onValidate={handleValidateService}
+                  proofs={proofs}
+                  services={servicesOverview.services}
+                />
+              ) : null}
               {tab === "missions" ? <WorkerMissionsScreen missions={overview.missions} /> : null}
               {tab === "activite" ? (
                 <WorkerActivityScreen
@@ -384,7 +425,7 @@ export function WorkerCommandCenter() {
                 />
               ) : null}
               {tab === "profil" ? (
-                <WorkerProfileScreen onLogout={handleLogout} overview={overview} pendingCount={pendingCount} />
+                <WorkerProfileScreen onLogout={handleLogout} onPrimeWithdrawn={() => {}} overview={overview} pendingCount={pendingCount} prime={null} />
               ) : null}
             </motion.div>
           </AnimatePresence>

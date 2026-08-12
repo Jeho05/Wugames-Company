@@ -8,7 +8,7 @@ import {
   formatDateTimeFr,
   missionStatutMeta,
 } from "@/app/lib/client-data";
-import type { CommandeStatut, DevisStatut } from "@/app/lib/client-data";
+import type { ClientProjetView, CommandeStatut, DevisStatut } from "@/app/lib/client-data";
 
 export type ClientStdGlobalState = "ok" | "action" | "critical";
 
@@ -59,6 +59,7 @@ export type ClientStdData = {
   commandes: ClientStdCommandeView[];
   devis: ClientStdDevisView[];
   notifications: ClientStdNotificationView[];
+  projets: ClientProjetView[];
 };
 
 export const clientStdStateMeta: Record<ClientStdGlobalState, { label: string; detail: string; tone: "danger" | "warning" | "success" }> = {
@@ -219,6 +220,38 @@ const demoNotifications: ClientStdNotificationView[] = [
   },
 ];
 
+const demoProjets: ClientProjetView[] = [
+  {
+    id: "spj1",
+    titre: "Réparation toiture · Magasin Zone 4",
+    filiale: "WUGAMS Rénovation",
+    statut: "EN_COURS",
+    progression: 62,
+    debut: "4 août 2026",
+    fin: null,
+    equipe: "Équipe Couverture",
+    galerie: [
+      { url: "https://images.unsplash.com/photo-1632260260864-caf7fde5ec36?w=1400&q=80", legende: "Toiture avant travaux" },
+      { url: "https://images.unsplash.com/photo-1621429869419-7e4ddb0f8c21?w=1400&q=80", legende: "Remplacement des tôles" },
+    ],
+    rapport: "Remplacement partiel de la couverture en cours. Étanchéité vérifiée à chaque jonction.",
+  },
+  {
+    id: "spj2",
+    titre: "Nettoyage de bureaux · SOCIPAR",
+    filiale: "WUGAMS Nettoyage & Entretien",
+    statut: "RAPPORT_SOUMIS",
+    progression: 85,
+    debut: "5 août 2026",
+    fin: null,
+    equipe: "Équipe Nettoyage",
+    galerie: [
+      { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80", legende: "Open space après intervention" },
+    ],
+    rapport: "Nettoyage complet des espaces communs. Rapport photos joint au dossier.",
+  },
+];
+
 /* ------------------------------------------------------------------ */
 /* Conversion API → vues                                               */
 /* ------------------------------------------------------------------ */
@@ -273,6 +306,7 @@ export const demoClientStdData: ClientStdData = {
   commandes: demoCommandes,
   devis: demoDevis,
   notifications: demoNotifications,
+  projets: demoProjets,
 };
 
 export async function loadClientStdData(): Promise<ClientStdData> {
@@ -341,5 +375,6 @@ export async function loadClientStdData(): Promise<ClientStdData> {
     commandes: apiCommandes,
     devis: apiDevis,
     notifications: apiNotifications,
+    projets: demoProjets,
   };
 }

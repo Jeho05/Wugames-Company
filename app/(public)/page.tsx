@@ -419,8 +419,8 @@ export default function ClientBrandingPage() {
       {/* ═══ FOOTER ═══ */}
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-[1240px] px-5 py-10 sm:px-8">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-6">
+            <div className="sm:col-span-2 lg:col-span-2">
               <BrandMark />
               <p className="mt-3 max-w-xs text-xs leading-5 text-slate-400">WUGAMS Holding Inc. &mdash; Bâtir, rénover, entreprendre. Avec la bonne équipe.</p>
             </div>

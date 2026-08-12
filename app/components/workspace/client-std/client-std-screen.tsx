@@ -13,6 +13,9 @@ import { ClientStdDevis } from "@/app/components/workspace/client-std/client-std
 import { ClientStdNotifications } from "@/app/components/workspace/client-std/client-std-notifications";
 import { ClientStdProfil } from "@/app/components/workspace/client-std/client-std-profil";
 import { ClientStdSearch } from "@/app/components/workspace/client-std/client-std-search";
+import { ClientProjets } from "@/app/components/workspace/client/client-projets";
+import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
+import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 import {
   clientStdProgress,
   clientStdStateFrom,
@@ -20,6 +23,8 @@ import {
   loadClientStdData,
 } from "@/app/lib/client-std-data";
 import type { ClientStdData } from "@/app/lib/client-std-data";
+import { demoCleansOverview } from "@/app/lib/cleans-data";
+import type { CleansOverview } from "@/app/lib/cleans-data";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 
 type ClientStdScreenProps = {
@@ -28,6 +33,9 @@ type ClientStdScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "std-apercu", label: "Vue d'ensemble", icon: "dashboard" },
+  { id: "std-projets", label: "Mes projets", icon: "camera" },
+  { id: "std-cleans", label: "Mon Wugams Cleans", icon: "sparkles" },
+  { id: "std-mode2vie", label: "Mode2Vie [Lifestyle]™", icon: "newspaper" },
   { id: "std-missions", label: "Missions", icon: "hardhat" },
   { id: "std-commandes", label: "Commandes", icon: "shopping-bag" },
   { id: "std-devis", label: "Devis", icon: "sparkles" },
@@ -37,6 +45,7 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
 
 export function ClientStdScreen({ user }: ClientStdScreenProps) {
   const [data, setData] = useState<ClientStdData>(demoClientStdData);
+  const [cleans, setCleans] = useState<CleansOverview>(demoCleansOverview);
   const [live, setLive] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeId, setActiveId] = useState("std-apercu");
@@ -170,6 +179,10 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
         </div>
       </div>
 
+      <ClientProjets projets={data.projets} />
+      <ClientCleans cleans={cleans} sectionId="std-cleans" />
+      <ClientMode2Vie sectionId="std-mode2vie" />
+
       <ClientStdMissions missions={data.missions} />
       <ClientStdCommandes commandes={data.commandes} />
       <ClientStdDevis devis={data.devis} />
@@ -189,7 +202,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
               <span>
                 <span className="block text-[13px] font-bold text-[#16233a] dark:text-slate-200">Recherche rapide</span>
                 <span className="mt-0.5 block text-[11px] text-slate-400">
-                  Missions, commandes, devis — les vôtres uniquement
+                  Projets, Cleans, Mode2Vie, missions — tout votre espace
                 </span>
               </span>
             </span>
@@ -220,7 +233,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
 
       <ClientStdProfil user={user} />
 
-      <ClientStdSearch data={data} key={searchOpen ? "open" : "closed"} onClose={() => setSearchOpen(false)} onNavigate={navigateTo} open={searchOpen} />
+      <ClientStdSearch cleans={cleans} data={data} key={searchOpen ? "open" : "closed"} onClose={() => setSearchOpen(false)} onNavigate={navigateTo} open={searchOpen} />
     </div>
   );
 }
