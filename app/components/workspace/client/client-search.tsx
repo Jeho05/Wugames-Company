@@ -9,10 +9,11 @@ import { formatFcfa } from "@/app/lib/store-data";
 import type { ClientPortalData } from "@/app/lib/client-data";
 import type { CleansOverview } from "@/app/lib/cleans-data";
 import { mode2vieArticles } from "@/app/lib/mode2vie-data";
+import { demoBoutiqueProduits } from "@/app/lib/client-shop-data";
 
 type SearchResult = {
   id: string;
-  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Demandes" | "Projets" | "Wugams Cleans" | "Mode2Vie";
+  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Demandes" | "Projets" | "Wugams Cleans" | "Mode2Vie" | "Espace Wu";
   sectionId: string;
   icon: IconName;
   title: string;
@@ -28,6 +29,7 @@ const sectionIcon: Record<SearchResult["section"], IconName> = {
   Projets: "camera",
   "Wugams Cleans": "sparkles",
   Mode2Vie: "newspaper",
+  "Espace Wu": "shopping-bag",
 };
 
 function normalize(value: string): string {
@@ -70,12 +72,13 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
     const q = normalize(query.trim());
     if (!q) return [];
     const build = (item: Record<string, unknown>, section: SearchResult["section"]): SearchResult => {
-      const titre = String(item.titre ?? item.objet ?? item.numero ?? "");
+      const titre = String(item.titre ?? item.nom ?? item.objet ?? item.numero ?? "");
       const title =
         titre !== "" && titre !== "undefined"
           ? titre
           : `${String(item.adresse ?? "")}${item.cleaner ? " · " + String(item.cleaner) : ""}`;
       const montant = item.montant !== undefined ? ` · ${formatFcfa(Number(item.montant))}` : "";
+      const prix = item.prix !== undefined ? ` · ${formatFcfa(Number(item.prix))}` : "";
       const date = item.date ? ` · ${String(item.date)}` : "";
       return {
         id: String(item.id),
@@ -83,12 +86,12 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
         sectionId: sectionIdOf(section),
         icon: sectionIcon[section],
         title,
-        subtitle: `${String(item.statut ?? "").toLowerCase()}${montant}${date}`,
+        subtitle: `${String(item.statut ?? "")}${montant}${prix}${date}`.trim(),
       };
     };
     const matches = (item: Record<string, unknown>) =>
       normalize(
-        [item.titre, item.numero, item.objet, item.adresse, item.cleaner, item.extrait, item.categorie]
+        [item.titre, item.nom, item.numero, item.objet, item.adresse, item.cleaner, item.extrait, item.categorie, item.description]
           .filter((value): value is string => typeof value === "string")
           .join(" "),
       ).includes(q);
@@ -97,6 +100,7 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
       ...data.projets.filter(matches).map((p) => build(p, "Projets")),
       ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
       ...mode2vieArticles.filter(matches).map((a) => build(a, "Mode2Vie")),
+      ...demoBoutiqueProduits.filter(matches).map((p) => build(p, "Espace Wu")),
       ...data.missions.filter(matches).map((m) => build(m, "Missions")),
       ...data.factures.filter(matches).map((f) => build(f, "Factures")),
       ...data.devis.filter(matches).map((d) => build(d, "Devis")),
@@ -134,7 +138,7 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
                 autoComplete="off"
                 className="w-full bg-transparent text-[15px] font-semibold text-[#16233a] placeholder:text-slate-400 focus:outline-none dark:text-white"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Missions, demandes, projets, Cleans, Mode2Vie…"
+                placeholder="Missions, demandes, projets, Cleans, Espace Wu…"
                 ref={inputRef}
                 type="search"
                 value={query}
@@ -232,5 +236,7 @@ function sectionIdOf(section: SearchResult["section"]): string {
       return "portail-cleans";
     case "Mode2Vie":
       return "portail-mode2vie";
+    case "Espace Wu":
+      return "portail-boutique";
   }
 }

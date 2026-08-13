@@ -527,3 +527,116 @@ export const agendaEventMeta: Record<AgendaEventType, { label: string; dot: stri
   echeance: { label: "Échéance", dot: "bg-red-500" },
   anniversaire: { label: "Anniversaire", dot: "bg-emerald-500" },
 };
+
+/* ------------------------------------------------------------------ */
+/* Boutiques de la filiale                                             */
+/* ------------------------------------------------------------------ */
+
+export type BoutiqueType = "entretien" | "materiaux" | "mobilier" | "outillage";
+
+export type SecretaryBoutique = {
+  id: string;
+  nom: string;
+  type: BoutiqueType;
+  gerant: string;
+  adresse: string;
+  membres: number;
+  commandes: number;
+  chiffreAffaires: number;
+  statut: "ACTIVE" | "EN_PREPARATION" | "SUSPENDUE";
+  created_at: string;
+};
+
+export const boutiqueTypeMeta: Record<BoutiqueType, { label: string; icon: IconName; tile: string }> = {
+  entretien: { label: "Entretien", icon: "sparkles", tile: "bg-emerald-50 text-emerald-600" },
+  materiaux: { label: "Matériaux", icon: "truck", tile: "bg-sky-50 text-sky-600" },
+  mobilier: { label: "Mobilier", icon: "building", tile: "bg-amber-50 text-amber-600" },
+  outillage: { label: "Outillage", icon: "hardhat", tile: "bg-violet-50 text-violet-600" },
+};
+
+export const boutiqueStatutMeta: Record<SecretaryBoutique["statut"], { label: string; badge: string; dot: string }> = {
+  ACTIVE: { label: "Active", badge: "border-emerald-200 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
+  EN_PREPARATION: { label: "En préparation", badge: "border-amber-200 bg-amber-50 text-amber-800", dot: "bg-amber-500" },
+  SUSPENDUE: { label: "Suspendue", badge: "border-rose-200 bg-rose-50 text-rose-700", dot: "bg-rose-500" },
+};
+
+export const demoSecBoutiques: SecretaryBoutique[] = [
+  { id: "b1", nom: "Espace Wu · Porto-Novo", type: "entretien", gerant: "Aïcha Soglo", adresse: "Avenue Clozel, Porto-Novo", membres: 128, commandes: 342, chiffreAffaires: 4_850_000, statut: "ACTIVE", created_at: "2024-02-14T09:00:00.000Z" },
+  { id: "b2", nom: "Boutique Matériaux · Cotonou", type: "materiaux", gerant: "Koffi Amoussou", adresse: "Carrefour Godomey, Cotonou", membres: 96, commandes: 187, chiffreAffaires: 12_300_000, statut: "ACTIVE", created_at: "2024-05-02T09:00:00.000Z" },
+  { id: "b3", nom: "Wu Mobilier · Ouidah", type: "mobilier", gerant: "Grâce Hounkpatin", adresse: "Route des pêches, Ouidah", membres: 41, commandes: 63, chiffreAffaires: 2_150_000, statut: "EN_PREPARATION", created_at: "2025-10-21T09:00:00.000Z" },
+  { id: "b4", nom: "Outillage Express · Abomey", type: "outillage", gerant: "Rachid Zannou", adresse: "Marché Agbotta, Abomey", membres: 57, commandes: 94, chiffreAffaires: 1_780_000, statut: "SUSPENDUE", created_at: "2024-11-03T09:00:00.000Z" },
+];
+
+/* ------------------------------------------------------------------ */
+/* Espace de vente (caisse)                                            */
+/* ------------------------------------------------------------------ */
+
+export type ProduitVente = {
+  id: string;
+  nom: string;
+  categorie: BoutiqueType;
+  prix: number;
+  stock: number;
+  unite: string;
+  boutiqueId: string;
+};
+
+export type Vente = {
+  id: string;
+  client: string;
+  items: { produitId: string; nom: string; quantite: number; prix: number }[];
+  total: number;
+  mode: "MOMO" | "CARTE" | "ESPECES" | "COMPTE";
+  statut: "PAYEE" | "EN_ATTENTE";
+  date: string;
+  caisse: string;
+};
+
+export const demoSecProduits: ProduitVente[] = [
+  { id: "p1", nom: "Kit entretien premium", categorie: "entretien", prix: 25_000, stock: 34, unite: "unité", boutiqueId: "b1" },
+  { id: "p2", nom: "Détergent 5 L", categorie: "entretien", prix: 6_500, stock: 120, unite: "bidon", boutiqueId: "b1" },
+  { id: "p3", nom: "Ciment 50 kg", categorie: "materiaux", prix: 9_500, stock: 0, unite: "sac", boutiqueId: "b2" },
+  { id: "p4", nom: "Peinture acrylique 10 L", categorie: "materiaux", prix: 32_000, stock: 18, unite: "seau", boutiqueId: "b2" },
+  { id: "p5", nom: "Chaise en rotin", categorie: "mobilier", prix: 18_500, stock: 12, unite: "pièce", boutiqueId: "b3" },
+  { id: "p6", nom: "Table basse modulaire", categorie: "mobilier", prix: 45_000, stock: 7, unite: "pièce", boutiqueId: "b3" },
+  { id: "p7", nom: "Perceuse sans fil 18 V", categorie: "outillage", prix: 28_000, stock: 9, unite: "pièce", boutiqueId: "b4" },
+  { id: "p8", nom: "Échafaudage 2 m", categorie: "outillage", prix: 65_000, stock: 4, unite: "lot", boutiqueId: "b4" },
+];
+
+export const demoSecVentes: Vente[] = [
+  { id: "v1", client: "SCI Les Palmiers", items: [{ produitId: "p1", nom: "Kit entretien premium", quantite: 2, prix: 25_000 }], total: 50_000, mode: "MOMO", statut: "PAYEE", date: "2026-08-12T10:24:00.000Z", caisse: "Aïcha Soglo" },
+  { id: "v2", client: "M. Koné (devis)", items: [{ produitId: "p4", nom: "Peinture acrylique 10 L", quantite: 3, prix: 32_000 }, { produitId: "p2", nom: "Détergent 5 L", quantite: 1, prix: 6_500 }], total: 102_500, mode: "CARTE", statut: "PAYEE", date: "2026-08-12T09:05:00.000Z", caisse: "Koffi Amoussou" },
+  { id: "v3", client: "Résidence Koffi", items: [{ produitId: "p7", nom: "Perceuse sans fil 18 V", quantite: 1, prix: 28_000 }], total: 28_000, mode: "COMPTE", statut: "EN_ATTENTE", date: "2026-08-11T16:40:00.000Z", caisse: "Rachid Zannou" },
+];
+
+export const venteModeMeta: Record<Vente["mode"], { label: string; icon: IconName }> = {
+  MOMO: { label: "Mobile Money", icon: "phone" },
+  CARTE: { label: "Carte bancaire", icon: "credit-card" },
+  ESPECES: { label: "Espèces", icon: "wallet" },
+  COMPTE: { label: "Compte membre", icon: "users" },
+};
+
+/* ------------------------------------------------------------------ */
+/* Création de comptes                                                 */
+/* ------------------------------------------------------------------ */
+
+export type CompteCreation = {
+  id: string;
+  nom: string;
+  email: string;
+  telephone: string;
+  role: string;
+  statut: "EN_ATTENTE" | "VALIDE" | "REFUSE";
+  demandePar: string;
+  date: string;
+};
+
+export const demoSecComptes: CompteCreation[] = [
+  { id: "cc1", nom: "Yao Christian", email: "christian.yao@wugams.com", telephone: "+229 01 23 45 67", role: "ROLE_OUVRIER", statut: "EN_ATTENTE", demandePar: "Mariam Bamba", date: "2026-08-13T08:12:00.000Z" },
+  { id: "cc2", nom: "Bureaux N'Dri", email: "contact@bureauxndri.bj", telephone: "+229 90 12 34 56", role: "ROLE_CLIENT_MEMBRE", statut: "EN_ATTENTE", demandePar: "Formulaire site", date: "2026-08-12T18:45:00.000Z" },
+  { id: "cc3", nom: "Matériaux Bénin", email: "ventes@materiauxbenin.bj", telephone: "+229 97 88 99 00", role: "ROLE_FOURNISSEUR", statut: "VALIDE", demandePar: "Koffi Amoussou", date: "2026-08-10T11:20:00.000Z" },
+];
+
+export function formatMontantFcfa(amount: number): string {
+  return new Intl.NumberFormat("fr-FR").format(amount) + " FCFA";
+}

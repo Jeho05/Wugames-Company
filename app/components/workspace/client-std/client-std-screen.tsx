@@ -16,6 +16,7 @@ import { ClientStdSearch } from "@/app/components/workspace/client-std/client-st
 import { ClientProjets } from "@/app/components/workspace/client/client-projets";
 import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
+import { ClientBoutique } from "@/app/components/workspace/client/client-boutique";
 import {
   clientStdProgress,
   clientStdStateFrom,
@@ -36,6 +37,7 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "std-projets", label: "Mes projets", icon: "camera" },
   { id: "std-cleans", label: "Mon Wugams Cleans", icon: "sparkles" },
   { id: "std-mode2vie", label: "Mode2Vie [Lifestyle]™", icon: "newspaper" },
+{ id: "std-boutique", label: "Espace Wu", icon: "shopping-bag" },
   { id: "std-missions", label: "Missions", icon: "hardhat" },
   { id: "std-commandes", label: "Commandes", icon: "shopping-bag" },
   { id: "std-devis", label: "Devis", icon: "sparkles" },
@@ -182,6 +184,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
       <ClientProjets projets={data.projets} />
       <ClientCleans cleans={cleans} sectionId="std-cleans" />
       <ClientMode2Vie sectionId="std-mode2vie" />
+      <ClientBoutique sectionId="std-boutique" />
 
       <ClientStdMissions missions={data.missions} />
       <ClientStdCommandes commandes={data.commandes} />
@@ -202,7 +205,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
               <span>
                 <span className="block text-[13px] font-bold text-[#16233a] dark:text-slate-200">Recherche rapide</span>
                 <span className="mt-0.5 block text-[11px] text-slate-400">
-                  Projets, Cleans, Mode2Vie, missions — tout votre espace
+                  Projets, Cleans, Mode2Vie, Espace Wu, missions — tout votre espace
                 </span>
               </span>
             </span>

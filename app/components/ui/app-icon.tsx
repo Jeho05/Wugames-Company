@@ -19,6 +19,7 @@ export type IconName =
   | "clock"
   | "close"
   | "copy"
+  | "credit-card"
   | "dashboard"
   | "dots"
   | "download"
@@ -51,6 +52,7 @@ export type IconName =
   | "user"
   | "users"
   | "user-plus"
+  | "wallet"
   | "warning"
   | "refresh";
 
@@ -399,6 +401,22 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...common}>
           <circle cx="9" cy="8" r="3" />
           <path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20M16 5.5a3 3 0 0 1 0 5.8M17 14c2.2.2 3.5 1.6 3.5 3.8V20" />
+        </svg>
+      );
+    case "credit-card":
+      return (
+        <svg {...common}>
+          <rect x="2.5" y="5.5" width="19" height="13" rx="2.5" />
+          <path d="M2.5 10h19" />
+          <path d="M6.5 14.5h4" />
+        </svg>
+      );
+    case "wallet":
+      return (
+        <svg {...common}>
+          <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5v-9Z" />
+          <path d="M3 10h18" />
+          <path d="M15 14.5h2" />
         </svg>
       );
     case "user-plus":

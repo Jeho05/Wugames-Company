@@ -29,7 +29,7 @@ export function WorkerServicesScreen({ services, proofs, onValidate, onToast }: 
         <span className="grid size-14 place-items-center rounded-full bg-[#0f7a5f]/10 text-[#0f7a5f]">
           <Icon name="camera" size={26} />
         </span>
-        <p className="text-[14px] font-extrabold text-[#16233a]">Aucun service aujourd'hui</p>
+        <p className="text-[14px] font-extrabold text-[#16233a]">Aucun service aujourd&apos;hui</p>
         <p className="max-w-64 text-[12px] leading-5 text-slate-500">
           Vous recevrez la liste des maisons à servir dès demain. Reposez-vous bien !
         </p>

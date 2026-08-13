@@ -190,7 +190,7 @@ export function WorkerServiceForm({ service, initial, onCancel, onSave }: Worker
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 block text-[11px] font-bold text-slate-500 dark:text-slate-400" htmlFor="service-arrivee">
-                Heure d'arrivée
+                Heure d&apos;arrivée
               </label>
               <input
                 className="w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-3 text-[13px] font-bold tabular-nums text-[#16233a] outline-none transition focus:border-[#0f7a5f] focus:ring-2 focus:ring-[#0f7a5f]/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
@@ -279,7 +279,7 @@ export function WorkerServiceForm({ service, initial, onCancel, onSave }: Worker
           {/* Audio / vidéo */}
           <div>
             <p className="mb-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              Note vocale ou vidéo (alternative à l'écrit)
+              Note vocale ou vidéo (alternative à l&apos;écrit)
             </p>
             <div className="grid grid-cols-2 gap-3">
               {(
@@ -314,7 +314,7 @@ export function WorkerServiceForm({ service, initial, onCancel, onSave }: Worker
                   </button>
                   {recorder.state === "recording" ? (
                     <button className="mt-1.5 w-full text-center text-[10px] font-bold text-rose-500" onClick={recorder.stop} type="button">
-                      Arrêter l'enregistrement
+                      Arrêter l&apos;enregistrement
                     </button>
                   ) : null}
                   {recorder.state === "done" && recorder.dataUrl ? (

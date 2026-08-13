@@ -77,7 +77,7 @@ export function WorkerCommandCenter() {
   const [fullUser, setFullUser] = useState<User | null>(null);
   const [overview, setOverview] = useState<WorkerOverview | null>(null);
   const [servicesOverview, setServicesOverview] = useState<WorkerServiceOverview>(demoWorkerServicesOverview);
-  const [proofs, setProofs] = useState<Record<string, WorkerServicePreuve>>({});
+  const [proofs, setProofs] = useState<Record<string, WorkerServicePreuve>>(() => loadServiceProofs());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<WorkerTab>("aujourdhui");
@@ -134,7 +134,6 @@ export function WorkerCommandCenter() {
       if (cancelled) return;
       setServicesOverview(result);
     });
-    setProofs(loadServiceProofs());
     return () => {
       cancelled = true;
     };
@@ -425,7 +424,16 @@ export function WorkerCommandCenter() {
                 />
               ) : null}
               {tab === "profil" ? (
-                <WorkerProfileScreen onLogout={handleLogout} onPrimeWithdrawn={() => {}} overview={overview} pendingCount={pendingCount} prime={null} />
+                <WorkerProfileScreen
+                  onLogout={handleLogout}
+                  onPrimeWithdrawn={(primeId) => {
+                    setServicesOverview((prev) => ({ ...prev, primeDisponible: null }));
+                    toast("Votre demande de retrait a été envoyée", "success");
+                  }}
+                  overview={overview}
+                  pendingCount={pendingCount}
+                  prime={servicesOverview.primeDisponible}
+                />
               ) : null}
             </motion.div>
           </AnimatePresence>

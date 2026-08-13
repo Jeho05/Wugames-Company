@@ -272,6 +272,123 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
         Se déconnecter
       </button>
       <p className="pb-2 text-center text-[9px] text-slate-300">WUGAMS · Espace ouvrier · v1.0</p>
+
+      <AnimatePresence>
+        {payoutOpen ? (
+          <div className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-auto absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { if (!payoutDone) setPayoutOpen(false); }}
+            />
+            <motion.div
+              aria-label="Retrait de vos gains"
+              aria-modal="true"
+              className="pointer-events-auto relative max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl sm:p-7 dark:bg-[#0f1a2e]"
+              initial={reduce ? undefined : { opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: 24 }}
+              role="dialog"
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {payoutDone ? (
+                <div className="grid place-items-center gap-3 py-6 text-center">
+                  <span className="grid size-14 place-items-center rounded-full bg-[#0f7a5f]/10 text-[#0f7a5f]">
+                    <Icon name="check" size={26} />
+                  </span>
+                  <h3 className="text-[16px] font-extrabold text-[#16233a] dark:text-white">Retrait confirmé</h3>
+                  <p className="max-w-72 text-[11px] leading-5 text-slate-400">
+                    {primeDisponible ? formatMontantFcfa(primeDisponible.montant) : ""} en route vers votre compte. Vous
+                    recevrez une notification de confirmation.
+                  </p>
+                  <button
+                    className="mt-2 rounded-2xl border border-slate-200 px-5 py-2.5 text-[12px] font-bold text-slate-500"
+                    onClick={() => {
+                      if (primeDisponible) onPrimeWithdrawn(primeDisponible.id);
+                      setPayoutDone(false);
+                      setPayoutOpen(false);
+                    }}
+                    type="button"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#0f7a5f]">Retrait de vos gains</p>
+                      <h3 className="mt-1.5 text-lg font-extrabold tracking-[-0.02em] text-[#16233a] dark:text-white">
+                        {primeDisponible ? formatMontantFcfa(primeDisponible.montant) : ""}
+                      </h3>
+                      <p className="mt-1 text-[11px] text-slate-400">{primeDisponible?.libelle}</p>
+                    </div>
+                    <button
+                      aria-label="Fermer"
+                      className="grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                      onClick={() => setPayoutOpen(false)}
+                      type="button"
+                    >
+                      <Icon name="close" size={16} />
+                    </button>
+                  </div>
+
+                  <p className="mt-5 text-[11px] font-bold text-slate-500 dark:text-slate-400">Choisissez votre moyen de retrait</p>
+                  <div className="mt-2.5 space-y-2.5">
+                    <button
+                      className={
+                        "flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition " +
+                        (payoutMode === "momo" ? "border-[#0f7a5f] bg-[#0f7a5f]/[0.06]" : "border-slate-200 hover:border-slate-300 dark:border-white/10")
+                      }
+                      onClick={() => setPayoutMode("momo")}
+                      type="button"
+                    >
+                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#0f7a5f]/10 text-[#0f7a5f]">
+                        <Icon name="phone" size={17} />
+                      </span>
+                      <span>
+                        <span className="block text-[13px] font-extrabold text-[#16233a] dark:text-slate-100">Mobile Money</span>
+                        <span className="mt-0.5 block text-[10px] text-slate-400">MTN MoMo ou Moov Money · numéro enregistré</span>
+                      </span>
+                      <Icon className="ml-auto text-slate-300" name={payoutMode === "momo" ? "check" : "arrow-right"} size={16} />
+                    </button>
+                    <button
+                      className={
+                        "flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition " +
+                        (payoutMode === "bank" ? "border-[#0f7a5f] bg-[#0f7a5f]/[0.06]" : "border-slate-200 hover:border-slate-300 dark:border-white/10")
+                      }
+                      onClick={() => setPayoutMode("bank")}
+                      type="button"
+                    >
+                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.07] text-[#17294b]">
+                        <Icon name="building" size={17} />
+                      </span>
+                      <span>
+                        <span className="block text-[13px] font-extrabold text-[#16233a] dark:text-slate-100">Compte bancaire</span>
+                        <span className="mt-0.5 block text-[10px] text-slate-400">Virement sous 24 h ouvrées</span>
+                      </span>
+                      <Icon className="ml-auto text-slate-300" name={payoutMode === "bank" ? "check" : "arrow-right"} size={16} />
+                    </button>
+                  </div>
+
+                  <button
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0f7a5f] px-4 py-3.5 text-[13px] font-extrabold text-white shadow-xl shadow-emerald-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!payoutMode}
+                    onClick={confirmerRetrait}
+                    type="button"
+                  >
+                    <Icon name="check" size={15} />
+                    Confirmer le retrait
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

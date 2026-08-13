@@ -6,9 +6,7 @@ import * as missionsApi from "@/app/lib/api/missions";
 import * as usersApi from "@/app/lib/api/users";
 import type { Mission, MissionStatut } from "@/app/lib/contracts";
 
-/* ------------------------------------------------------------------ */
 /* Types                                                               */
-/* ------------------------------------------------------------------ */
 
 export type GlobalStatus = "ok" | "retards" | "urgent";
 
@@ -103,9 +101,7 @@ export type OpsOverview = {
   };
 };
 
-/* ------------------------------------------------------------------ */
 /* Métadonnées de statuts                                              */
-/* ------------------------------------------------------------------ */
 
 const statutProgress: Record<MissionStatut, number> = {
   PLANIFIE: 0,
@@ -152,9 +148,7 @@ function toneOf(mission: Mission): "ok" | "warning" | "critical" {
   return "ok";
 }
 
-/* ------------------------------------------------------------------ */
 /* Données de repli (démo — uniquement si l'API est indisponible)      */
-/* ------------------------------------------------------------------ */
 
 const demoKpis: OpsKpi[] = [
   { key: "en_cours", label: "Missions en cours", value: "12", change: "+2", trend: "up", icon: "hardhat", spark: [8, 9, 11, 10, 12, 11, 13, 12, 14, 13, 15, 12], caption: "sur 3 filiales" },
@@ -248,9 +242,7 @@ const demoPerformance: OpsOverview["performance"] = {
   delaisRespect: 93.8,
 };
 
-/* ------------------------------------------------------------------ */
 /* Utilitaires                                                         */
-/* ------------------------------------------------------------------ */
 
 const formatNumber = (value: number): string => new Intl.NumberFormat("fr-FR").format(value);
 
@@ -315,9 +307,7 @@ function statutToneOf(statut: string, danger: boolean): OpsMissionRow["tone"] {
   return "neutral";
 }
 
-/* ------------------------------------------------------------------ */
 /* Chargement                                                          */
-/* ------------------------------------------------------------------ */
 
 export async function loadOpsOverview(): Promise<OpsOverview> {
   const now = Date.now();
@@ -629,3 +619,154 @@ export async function loadOpsOverview(): Promise<OpsOverview> {
     },
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Pages vitrine (site public)                                         */
+/* ------------------------------------------------------------------ */
+
+export type VitrinePage = {
+  id: string;
+  titre: string;
+  route: string;
+  statut: "PUBLIE" | "BROUILLON";
+  section: "principale" | "support" | "contenu";
+  visites: number;
+  updated_at: string;
+};
+
+export const demoSecVitrinePages: VitrinePage[] = [
+  { id: "vp1", titre: "Accueil", route: "/", statut: "PUBLIE", section: "principale", visites: 12480, updated_at: "2026-08-10T09:00:00.000Z" },
+  { id: "vp2", titre: "Services", route: "/services", statut: "PUBLIE", section: "principale", visites: 8932, updated_at: "2026-08-08T14:30:00.000Z" },
+  { id: "vp3", titre: "Boutique — Espace Wu", route: "/boutique", statut: "PUBLIE", section: "principale", visites: 5410, updated_at: "2026-08-12T10:00:00.000Z" },
+  { id: "vp4", titre: "À propos", route: "/a-propos", statut: "PUBLIE", section: "support", visites: 2105, updated_at: "2026-07-28T16:20:00.000Z" },
+  { id: "vp5", titre: "Blog & conseils", route: "/blog", statut: "PUBLIE", section: "contenu", visites: 3822, updated_at: "2026-08-11T11:45:00.000Z" },
+  { id: "vp6", titre: "Recrutement ouvriers", route: "/recrutement", statut: "BROUILLON", section: "principale", visites: 0, updated_at: "2026-08-12T08:00:00.000Z" },
+  { id: "vp7", titre: "Mode2Vie [Lifestyle]™", route: "/mode2vie", statut: "BROUILLON", section: "contenu", visites: 0, updated_at: "2026-08-13T07:30:00.000Z" },
+  { id: "vp8", titre: "Contact & devis", route: "/contact", statut: "PUBLIE", section: "support", visites: 1876, updated_at: "2026-07-15T09:10:00.000Z" },
+];
+
+export const vitrineSectionMeta: Record<VitrinePage["section"], { label: string; tile: string }> = {
+  principale: { label: "Vitrine", tile: "bg-[#e3a641]/15 text-[#f2c56d]" },
+  support: { label: "Support", tile: "bg-sky-400/10 text-sky-300" },
+  contenu: { label: "Contenu", tile: "bg-emerald-400/10 text-emerald-300" },
+};
+
+/* ------------------------------------------------------------------ */
+/* Conversations partenaires & communautés                             */
+/* ------------------------------------------------------------------ */
+
+export type ConversationRole = "fournisseur" | "filiale" | "partenariat" | "ouvriers" | "membres" | "secretaire";
+
+export type ConversationMessage = { id: string; auteur: "moi" | "eux"; texte: string; heure: string; lu: boolean };
+
+export type ConversationThread = {
+  id: string;
+  kind: "partenaire" | "communaut";
+  role: ConversationRole;
+  nom: string;
+  detail: string;
+  avatar: string;
+  unread: number;
+  derniereActivite: string;
+  messages: ConversationMessage[];
+};
+
+export const conversationRoleMeta: Record<ConversationRole, { label: string; dot: string }> = {
+  fournisseur: { label: "Fournisseur", dot: "bg-violet-400" },
+  filiale: { label: "Filiale", dot: "bg-sky-400" },
+  partenariat: { label: "Partenariat", dot: "bg-amber-400" },
+  ouvriers: { label: "Communauté ouvriers", dot: "bg-emerald-400" },
+  membres: { label: "Communauté membres", dot: "bg-rose-400" },
+  secretaire: { label: "Secrétariat", dot: "bg-slate-400" },
+};
+
+export const demoSecConversations: ConversationThread[] = [
+  {
+    id: "cv1",
+    kind: "partenaire",
+    role: "fournisseur",
+    nom: "BatiPro CI",
+    detail: "Réapprovisionnement ciment et peinture",
+    avatar: "BP",
+    unread: 2,
+    derniereActivite: "il y a 12 min",
+    messages: [
+      { id: "m1", auteur: "eux", texte: "Bonjour, votre commande de 200 sacs de ciment est prête. Livraison jeudi ?", heure: "09:41", lu: true },
+      { id: "m2", auteur: "moi", texte: "Parfait. Je confirme la livraison jeudi à l'Espace Wu Porto-Novo, à partir de 8h.", heure: "09:52", lu: true },
+      { id: "m3", auteur: "eux", texte: "Noté. La peinture acrylique est en rupture chez notre sous-traitant, délai de 10 jours.", heure: "10:05", lu: true },
+      { id: "m4", auteur: "eux", texte: "Voulez-vous que je bloque les 60 seaux au tarif actuel ?", heure: "10:06", lu: false },
+    ],
+  },
+  {
+    id: "cv2",
+    kind: "communaut",
+    role: "ouvriers",
+    nom: "Équipe Porto-Novo",
+    detail: "54 membres · points de la semaine",
+    avatar: "EP",
+    unread: 5,
+    derniereActivite: "il y a 26 min",
+    messages: [
+      { id: "m1", auteur: "eux", texte: "Bravo à Yao Christian, mission terminée en avance ce matin !", heure: "07:12", lu: true },
+      { id: "m2", auteur: "moi", texte: "Excellente semaine à tous. Rappel : photos de chantier avant 17h.", heure: "07:30", lu: true },
+      { id: "m3", auteur: "eux", texte: "Besoin d'un créneau pour la formation pointage mobile jeudi.", heure: "07:44", lu: true },
+      { id: "m4", auteur: "eux", texte: "Le chantier de la Résidence Koffi a besoin de 2 renforts demain.", heure: "07:45", lu: false },
+      { id: "m5", auteur: "eux", texte: "Qui est disponible ?", heure: "07:46", lu: false },
+    ],
+  },
+  {
+    id: "cv3",
+    kind: "partenaire",
+    role: "partenariat",
+    nom: "Réseau Banque Atlantique",
+    detail: "Convention salaires ouvriers",
+    avatar: "BA",
+    unread: 1,
+    derniereActivite: "il y a 1 h",
+    messages: [
+      { id: "m1", auteur: "eux", texte: "La convention de virement des salaires est validée côté banque. Merci d'envoyer le RIB de votre filiale.", heure: "11:02", lu: false },
+    ],
+  },
+  {
+    id: "cv4",
+    kind: "communaut",
+    role: "membres",
+    nom: "Membres WUGAMS Cleans",
+    detail: "128 membres · offres d'août",
+    avatar: "MW",
+    unread: 0,
+    derniereActivite: "il y a 3 h",
+    messages: [
+      { id: "m1", auteur: "moi", texte: "L'offre d'août est en ligne : -20 % sur les abonnements 6 mois.", heure: "08:15", lu: true },
+      { id: "m2", auteur: "eux", texte: "Super initiative, déjà 12 inscriptions ce matin !", heure: "08:40", lu: true },
+    ],
+  },
+  {
+    id: "cv5",
+    kind: "partenaire",
+    role: "secretaire",
+    nom: "Mariam Bamba — Secrétariat",
+    detail: "Validations de fiches et devis",
+    avatar: "MB",
+    unread: 0,
+    derniereActivite: "hier",
+    messages: [
+      { id: "m1", auteur: "eux", texte: "Les 3 devis de la semaine sont prêts pour votre signature.", heure: "16:20", lu: true },
+      { id: "m2", auteur: "moi", texte: "Je passe les valider demain matin. Merci Mariam.", heure: "16:45", lu: true },
+    ],
+  },
+  {
+    id: "cv6",
+    kind: "partenaire",
+    role: "filiale",
+    nom: "Filiale Cotonou",
+    detail: "Coordination chantiers et stocks",
+    avatar: "FC",
+    unread: 0,
+    derniereActivite: "hier",
+    messages: [
+      { id: "m1", auteur: "eux", texte: "Le stock de ciment passe en réapprovisionnement requis. Bon de commande envoyé.", heure: "14:10", lu: true },
+    ],
+  },
+];
+

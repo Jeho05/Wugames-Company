@@ -18,6 +18,7 @@ import { ClientDemandes } from "@/app/components/workspace/client/client-demande
 import { ClientProjets } from "@/app/components/workspace/client/client-projets";
 import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
+import { ClientBoutique } from "@/app/components/workspace/client/client-boutique";
 import {
   demoClientPortalData,
   globalStateFrom,
@@ -38,6 +39,7 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "portail-projets", label: "Mes projets", icon: "camera" },
   { id: "portail-cleans", label: "Mon Wugams Cleans", icon: "sparkles" },
   { id: "portail-mode2vie", label: "Mode2Vie [Lifestyle]™", icon: "newspaper" },
+  { id: "portail-boutique", label: "Espace Wu", icon: "shopping-bag" },
   { id: "portail-missions", label: "Missions", icon: "hardhat" },
   { id: "portail-factures", label: "Factures", icon: "file-text" },
   { id: "portail-devis", label: "Devis", icon: "sparkles" },
@@ -191,6 +193,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
       <ClientProjets projets={data.projets} />
       <ClientCleans cleans={cleans} />
       <ClientMode2Vie />
+      <ClientBoutique />
 
       <ClientMissions missions={data.missions} />
       <ClientFactures factures={data.factures} />
@@ -212,7 +215,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
               <span>
                 <span className="block text-[13px] font-bold text-[#16233a] dark:text-slate-200">Recherche globale</span>
                 <span className="mt-0.5 block text-[11px] text-slate-400">
-                  Demandes, projets, Cleans, Mode2Vie — tout votre espace
+                  Demandes, projets, Cleans, Mode2Vie, Espace Wu — tout votre espace
                 </span>
               </span>
             </span>
