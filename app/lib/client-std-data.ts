@@ -377,28 +377,24 @@ export async function loadClientStdData(): Promise<ClientStdData> {
     commandesRes.status === "fulfilled" ||
     devisRes.status === "fulfilled";
 
-  const apiMissions = missionsRes.status === "fulfilled" && missionsRes.value.length > 0
-    ? missionsRes.value.map(missionView)
-    : demoMissions;
+  /* API injoignable : repli complet sur la démonstration (badge « Aperçu démo »). */
+  if (!live) return demoClientStdData;
 
-  const apiCommandes = commandesRes.status === "fulfilled" && commandesRes.value.length > 0
-    ? commandesRes.value.map(commandeView)
-    : demoCommandes;
+  /* API joignable : les listes réelles sont affichées, même vides. */
+  const apiMissions = missionsRes.status === "fulfilled" ? missionsRes.value.map(missionView) : [];
 
-  const apiDevis = devisRes.status === "fulfilled" && devisRes.value.length > 0
-    ? devisRes.value.map(devisView)
-    : demoDevis;
+  const apiCommandes = commandesRes.status === "fulfilled" ? commandesRes.value.map(commandeView) : [];
 
-  const apiNotifications = notificationsRes.status === "fulfilled" && notificationsRes.value.length > 0
+  const apiDevis = devisRes.status === "fulfilled" ? devisRes.value.map(devisView) : [];
+
+  const apiNotifications = notificationsRes.status === "fulfilled"
     ? notificationsRes.value.map(notificationView).filter((n): n is ClientStdNotificationView => n !== null)
-    : demoNotifications;
+    : [];
 
-  const apiProjets = projetsRes.status === "fulfilled" && projetsRes.value.length > 0
-    ? projetsRes.value.map(projetView)
-    : demoProjets;
+  const apiProjets = projetsRes.status === "fulfilled" ? projetsRes.value.map(projetView) : [];
 
   return {
-    live,
+    live: true,
     missions: apiMissions,
     commandes: apiCommandes,
     devis: apiDevis,

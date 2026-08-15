@@ -108,7 +108,16 @@ export function ClientMissions({ missions }: ClientMissionsProps) {
       title="Mes missions"
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
-        {missions.map((mission, index) => {
+        {missions.length === 0 ? (
+          <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03] md:col-span-2 xl:col-span-2 2xl:col-span-4">
+            <Icon name="hardhat" size={22} className="text-slate-300" />
+            <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune mission pour le moment</p>
+            <p className="max-w-64 text-xs leading-5 text-slate-400">
+              Vos interventions apparaîtront ici dès qu&apos;une mission vous sera attribuée.
+            </p>
+          </div>
+        ) : (
+        missions.map((mission, index) => {
           const meta = missionStatutMeta[mission.statut];
           return (
             <motion.article
@@ -172,7 +181,8 @@ export function ClientMissions({ missions }: ClientMissionsProps) {
               </div>
             </motion.article>
           );
-        })}
+        })
+        )}
       </div>
 
       <AnimatePresence>

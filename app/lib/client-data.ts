@@ -673,38 +673,32 @@ export async function loadClientPortalData(): Promise<ClientPortalData> {
     commandesRes.status === "fulfilled" ||
     missionsRes.status === "fulfilled";
 
-  const apiFactures = facturesRes.status === "fulfilled" && facturesRes.value.length > 0
-    ? facturesRes.value
-    : demoFactures;
+  /* API injoignable : repli complet sur la démonstration (badge « Aperçu démo »). */
+  if (!live) return demoClientPortalData;
 
-  const apiMissions = missionsRes.status === "fulfilled" && missionsRes.value.length > 0
-    ? missionsRes.value.map(missionView)
-    : demoMissions;
+  /* API joignable : les listes réelles sont affichées, même vides.
+     Une section en échec ponctuel (ex. /client-space/factures → 403 pour ROLE_CLIENT_STD)
+     est montrée vide plutôt que remplacée par des données fictives. */
+  const apiFactures = facturesRes.status === "fulfilled" ? facturesRes.value : [];
 
-  const apiDevis = devisRes.status === "fulfilled" && devisRes.value.length > 0
-    ? devisRes.value.map(devisView)
-    : demoDevis;
+  const apiMissions = missionsRes.status === "fulfilled" ? missionsRes.value.map(missionView) : [];
 
-  const apiCommandes = commandesRes.status === "fulfilled" && commandesRes.value.length > 0
-    ? commandesRes.value.map(commandeView)
-    : demoCommandes;
+  const apiDevis = devisRes.status === "fulfilled" ? devisRes.value.map(devisView) : [];
 
-  const apiNotifications = notificationsRes.status === "fulfilled" && notificationsRes.value.length > 0
+  const apiCommandes = commandesRes.status === "fulfilled" ? commandesRes.value.map(commandeView) : [];
+
+  const apiNotifications = notificationsRes.status === "fulfilled"
     ? notificationsRes.value.map(notificationView).filter((n): n is ClientNotificationView => n !== null)
-    : demoNotifications;
+    : [];
 
-  const apiDemandes = demandesRes.status === "fulfilled" && demandesRes.value.length > 0
-    ? demandesRes.value.map(demandeView)
-    : demoDemandes;
+  const apiDemandes = demandesRes.status === "fulfilled" ? demandesRes.value.map(demandeView) : [];
 
-  const apiProjets = projetsRes.status === "fulfilled" && projetsRes.value.length > 0
-    ? projetsRes.value.map(projetView)
-    : demoProjets;
+  const apiProjets = projetsRes.status === "fulfilled" ? projetsRes.value.map(projetView) : [];
 
   const apiFidelite = fideliteRes.status === "fulfilled" ? fideliteRes.value : null;
 
   return {
-    live,
+    live: true,
     missions: apiMissions,
     factures: apiFactures,
     devis: apiDevis,

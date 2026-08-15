@@ -58,6 +58,16 @@ export function ClientNotifications({ notifications }: ClientNotificationsProps)
       title="Notifications"
     >
       <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] sm:p-6 dark:border-white/10 dark:bg-[#101c36]">
+        {items.length === 0 ? (
+          <div className="grid place-items-center gap-2 px-6 py-10 text-center">
+            <Icon name="bell" size={22} className="text-slate-300" />
+            <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune notification</p>
+            <p className="max-w-64 text-xs leading-5 text-slate-400">
+              Les événements liés à vos projets apparaîtront ici.
+            </p>
+          </div>
+        ) : (
+        <>
         <ol className="relative space-y-1">
           {items.map((notification, index) => {
             const meta = kindMeta[notification.kind];
@@ -115,6 +125,8 @@ export function ClientNotifications({ notifications }: ClientNotificationsProps)
         <p className="mt-3 border-t border-slate-100 pt-4 text-[11px] font-medium text-slate-400 dark:border-white/5">
           Cliquez sur une notification pour la marquer comme lue.
         </p>
+        </>
+        )}
       </div>
     </ClientSection>
   );

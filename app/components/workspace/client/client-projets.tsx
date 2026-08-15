@@ -43,7 +43,16 @@ export function ClientProjets({ projets }: ClientProjetsProps) {
       title="Mes projets"
     >
       <div className="grid gap-5 md:grid-cols-2">
-        {projets.map((projet, index) => {
+        {projets.length === 0 ? (
+          <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03] md:col-span-2">
+            <Icon name="camera" size={22} className="text-slate-300" />
+            <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucun projet pour le moment</p>
+            <p className="max-w-64 text-xs leading-5 text-slate-400">
+              Vos chantiers et leurs photos apparaîtront ici dès le lancement des travaux.
+            </p>
+          </div>
+        ) : (
+        projets.map((projet, index) => {
           const meta = missionStatutMeta[projet.statut];
           const couverture = projet.galerie[0]?.url;
           return (
@@ -115,7 +124,8 @@ export function ClientProjets({ projets }: ClientProjetsProps) {
               </div>
             </motion.article>
           );
-        })}
+        })
+        )}
       </div>
 
       <AnimatePresence>

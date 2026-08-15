@@ -37,7 +37,16 @@ export function ClientDevis({ devis }: ClientDevisProps) {
       title="Mes devis"
     >
       <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-        {devis.map((quote, index) => {
+        {devis.length === 0 ? (
+          <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03] md:col-span-2 2xl:col-span-3">
+            <Icon name="sparkles" size={22} className="text-slate-300" />
+            <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucun devis pour le moment</p>
+            <p className="max-w-64 text-xs leading-5 text-slate-400">
+              Vos demandes de devis seront listées ici, avec leur montant et leur validité.
+            </p>
+          </div>
+        ) : (
+        devis.map((quote, index) => {
           const isOpen = expanded === quote.id;
           return (
             <motion.article
@@ -124,7 +133,8 @@ export function ClientDevis({ devis }: ClientDevisProps) {
               </AnimatePresence>
             </motion.article>
           );
-        })}
+        })
+        )}
       </div>
     </ClientSection>
   );

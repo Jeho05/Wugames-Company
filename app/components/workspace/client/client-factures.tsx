@@ -38,6 +38,15 @@ export function ClientFactures({ factures }: ClientFacturesProps) {
       subtitle="Toutes vos factures et paiements, au même endroit"
       title="Mes factures"
     >
+      {factures.length === 0 ? (
+        <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03]">
+          <Icon name="file-text" size={22} className="text-slate-300" />
+          <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune facture pour le moment</p>
+          <p className="max-w-64 text-xs leading-5 text-slate-400">
+            Vos factures apparaîtront ici après l&apos;émission d&apos;un devis signé.
+          </p>
+        </div>
+      ) : (
       <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left">
@@ -75,6 +84,7 @@ export function ClientFactures({ factures }: ClientFacturesProps) {
           Téléchargement PDF disponible pour chaque facture. Les règlements sont confirmés sous 24 h.
         </p>
       </div>
+      )}
     </ClientSection>
   );
 }

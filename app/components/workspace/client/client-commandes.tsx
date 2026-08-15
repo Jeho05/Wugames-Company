@@ -28,6 +28,15 @@ export function ClientCommandes({ commandes }: ClientCommandesProps) {
       subtitle="Vos commandes passées à la boutique WUGAMS"
       title="Mes commandes"
     >
+      {commandes.length === 0 ? (
+        <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03]">
+          <Icon name="box" size={22} className="text-slate-300" />
+          <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune commande pour le moment</p>
+          <p className="max-w-64 text-xs leading-5 text-slate-400">
+            Commandez sur l&apos;Espace Wu : vos commandes apparaîtront ici avec leur suivi.
+          </p>
+        </div>
+      ) : (
       <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left">
@@ -52,6 +61,7 @@ export function ClientCommandes({ commandes }: ClientCommandesProps) {
           </table>
         </div>
       </div>
+      )}
     </ClientSection>
   );
 }

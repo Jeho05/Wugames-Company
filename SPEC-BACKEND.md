@@ -290,6 +290,11 @@ Il ne reste **aucun bug fonctionnel connu** du backend. Points d'attention conse
 catalogue boutique en démo) ; `RegisterPayload.role` et `filiale_id` optionnels (le back attribue une
 filiale par défaut).
 
+⚠️ **Incohérence RBAC à signaler** : `GET /client-space/factures` → **403 pour `ROLE_CLIENT_STD`**
+(OK pour `ROLE_CLIENT_MEMBRE`, ex. client.test → 2 factures) alors que la spec le déclare sans
+sécurité. Le portail client l'appelle : la section Factures est donc vide pour les clients STD
+(le front l'affiche vide, sans repli démo).
+
 ### Historique (premier passage, avant correction)
 
 ### Fonctionnels
