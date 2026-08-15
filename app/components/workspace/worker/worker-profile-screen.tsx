@@ -5,6 +5,8 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { updateNotificationPrefs } from "@/app/lib/api/notifications-prefs";
+import { updatePrime } from "@/app/lib/api/primes";
 import type { WorkerOverview } from "@/app/lib/worker-data";
 import type { WorkerPrime } from "@/app/lib/worker-services-data";
 import { formatMontantFcfa } from "@/app/lib/worker-services-data";
@@ -63,8 +65,18 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
 
   function confirmerRetrait() {
     if (!primeDisponible) return;
+    void updatePrime(primeDisponible.id, { statut: "PAYEE" }).catch(() => {
+      /* API injoignable : retrait local (mode démo). */
+    });
     setPayoutDone(true);
     setPayoutMode(null);
+  }
+
+  function basculerPref(canal: "push" | "whatsapp", value: boolean, setter: (value: boolean) => void) {
+    setter(value);
+    void updateNotificationPrefs({ canaux: { [canal]: value } }).catch(() => {
+      /* API injoignable : préférence locale (mode démo). */
+    });
   }
 
   return (
@@ -233,21 +245,21 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
               <p className="text-[12px] font-bold text-[#16233a]">Notifications push</p>
               <p className="text-[10px] text-slate-400">Nouvelles missions et rappels</p>
             </div>
-            <Toggle enabled={pushEnabled} label="Notifications push" onChange={setPushEnabled} />
+            <Toggle enabled={pushEnabled} label="Notifications push" onChange={(value) => basculerPref("push", value, setPushEnabled)} />
           </li>
           <li className="flex items-center justify-between gap-3 py-3.5">
             <div>
               <p className="text-[12px] font-bold text-[#16233a]">Rappels de mission</p>
               <p className="text-[10px] text-slate-400">Le matin, 2 h avant le début</p>
             </div>
-            <Toggle enabled={rappelEnabled} label="Rappels de mission" onChange={setRappelEnabled} />
+            <Toggle enabled={rappelEnabled} label="Rappels de mission" onChange={(value) => basculerPref("push", value, setRappelEnabled)} />
           </li>
           <li className="flex items-center justify-between gap-3 py-3.5">
             <div>
               <p className="text-[12px] font-bold text-[#16233a]">Signature de pointage</p>
               <p className="text-[10px] text-slate-400">Confirmation visuelle en arrivée</p>
             </div>
-            <Toggle enabled={signatureEnabled} label="Signature de pointage" onChange={setSignatureEnabled} />
+            <Toggle enabled={signatureEnabled} label="Signature de pointage" onChange={(value) => basculerPref("whatsapp", value, setSignatureEnabled)} />
           </li>
           <li className="flex items-center gap-3 py-3.5">
             <Icon className="text-slate-400" name="refresh" size={16} />

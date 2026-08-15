@@ -10,6 +10,7 @@ import { useAuth } from "@/app/lib/auth-context";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 import type { Fidelite } from "@/app/lib/contracts";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
+import { TwoFaForm } from "@/app/components/workspace/two-fa-form";
 
 type ClientProfilProps = {
   user: WorkspaceUser;
@@ -25,6 +26,7 @@ const contactRows: { label: string; value: string; icon: IconName }[] = [
 
 export function ClientProfil({ user, fidelite }: ClientProfilProps) {
   const [twoFa, setTwoFa] = useState(false);
+  const [twoFaOpen, setTwoFaOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { logout } = useAuth();
   const router = useRouter();
@@ -34,6 +36,22 @@ export function ClientProfil({ user, fidelite }: ClientProfilProps) {
     if (loggingOut) return;
     setLoggingOut(true);
     void logout().then(() => router.push("/connexion"));
+  }
+
+  function ouvrirTwoFa() {
+    setTwoFaOpen(true);
+  }
+
+  function fermerTwoFa() {
+    setTwoFaOpen(false);
+    void import("@/app/lib/api/auth")
+      .then(async ({ me }) => {
+        const payload = await me();
+        setTwoFa(payload.two_factor_enabled);
+      })
+      .catch(() => {
+        /* API injoignable : conserver l'état local. */
+      });
   }
 
   return (
@@ -142,7 +160,7 @@ export function ClientProfil({ user, fidelite }: ClientProfilProps) {
                 "relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 " +
                 (twoFa ? "bg-emerald-500" : "bg-slate-300")
               }
-              onClick={() => setTwoFa((value) => !value)}
+              onClick={ouvrirTwoFa}
               role="switch"
               type="button"
             >
@@ -185,6 +203,7 @@ export function ClientProfil({ user, fidelite }: ClientProfilProps) {
           </div>
         </motion.article>
       </div>
+      {twoFaOpen ? <TwoFaForm onClose={fermerTwoFa} /> : null}
     </ClientSection>
   );
 }

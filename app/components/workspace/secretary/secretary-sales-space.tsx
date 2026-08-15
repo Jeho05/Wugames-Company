@@ -7,6 +7,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import { ExecutivePanel } from "@/app/components/workspace/executive/executive-panel";
 import { Reveal } from "@/app/components/workspace/executive/reveal";
+import { createCommande, updateCommandeStatut } from "@/app/lib/api/commandes";
+import { useAuth } from "@/app/lib/auth-context";
+import type { Commande } from "@/app/lib/contracts";
 import {
   demoSecProduits,
   demoSecVentes,
@@ -25,6 +28,7 @@ type PanierLigne = { produit: ProduitVente; quantite: number };
 const modeOptions: Vente["mode"][] = ["MOMO", "CARTE", "ESPECES", "COMPTE"];
 
 export function SecretarySalesSpace({ onToast }: SecretarySalesSpaceProps) {
+  const { user } = useAuth();
   const [produits] = useState<ProduitVente[]>(demoSecProduits);
   const [panier, setPanier] = useState<PanierLigne[]>([]);
   const [ventes, setVentes] = useState<Vente[]>(demoSecVentes);
@@ -32,6 +36,7 @@ export function SecretarySalesSpace({ onToast }: SecretarySalesSpaceProps) {
   const [mode, setMode] = useState<Vente["mode"] | null>(null);
   const [done, setDone] = useState(false);
   const [client, setClient] = useState("");
+  const [encaissement, setEncaissement] = useState<Commande | null>(null);
 
   const total = useMemo(() => panier.reduce((sum, l) => sum + l.produit.prix * l.quantite, 0), [panier]);
   const totalUnites = useMemo(() => panier.reduce((sum, l) => sum + l.quantite, 0), [panier]);
@@ -66,15 +71,38 @@ export function SecretarySalesSpace({ onToast }: SecretarySalesSpaceProps) {
     setCheckoutOpen(true);
   }
 
-  function confirmerPaiement() {
+  async function confirmerPaiement() {
     if (!mode) return;
-    setDone(true);
+    setEncaissement(null);
+    try {
+      const commande = await createCommande({
+        filiale_id: user?.filialeId ?? "",
+        lignes: panier.map((l) => ({
+          produit_id: l.produit.id,
+          quantite: l.quantite,
+          prix_unitaire: l.produit.prix,
+        })),
+      });
+      setEncaissement(commande);
+      if (mode !== "COMPTE") {
+        try {
+          await updateCommandeStatut(commande.id, "EXPEDIEE");
+        } catch {
+          /* la commande existe : la transition d'état n'est pas bloquante. */
+        }
+      }
+    } catch {
+      /* API injoignable : la vente reste locale (mode démo). */
+      setEncaissement(null);
+    } finally {
+      setDone(true);
+    }
   }
 
   function finaliser() {
     if (!mode) return;
     const nouvelle: Vente = {
-      id: `v-${Date.now()}`,
+      id: encaissement?.id ?? `v-${Date.now()}`,
       client: client.trim() || "Client comptoir",
       items: panier.map((l) => ({ produitId: l.produit.id, nom: l.produit.nom, quantite: l.quantite, prix: l.produit.prix })),
       total,
@@ -86,6 +114,7 @@ export function SecretarySalesSpace({ onToast }: SecretarySalesSpaceProps) {
     setVentes((prev) => [nouvelle, ...prev]);
     setPanier([]);
     setClient("");
+    setEncaissement(null);
     setCheckoutOpen(false);
     onToast(
       mode === "COMPTE"

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import { ExecutivePanel } from "@/app/components/workspace/executive/executive-panel";
 import { Reveal } from "@/app/components/workspace/executive/reveal";
+import { createFiliale, updateFiliale } from "@/app/lib/api/filiales";
 import {
   boutiqueStatutMeta,
   boutiqueTypeMeta,
@@ -35,14 +36,42 @@ export function SecretaryBoutiques({ onToast }: SecretaryBoutiquesProps) {
   const totalCa = useMemo(() => boutiques.reduce((sum, b) => sum + b.chiffreAffaires, 0), [boutiques]);
   const actives = useMemo(() => boutiques.filter((b) => b.statut === "ACTIVE").length, [boutiques]);
 
-  function creerBoutique() {
+  async function creerBoutique() {
     if (!form.nom.trim() || !form.gerant.trim()) {
       onToast("Renseignez au moins le nom et le gérant", "error");
       return;
     }
+    const nom = form.nom.trim();
+    const description = `${form.type} · gérée par ${form.gerant.trim()} · ${form.adresse.trim() || "Adresse à confirmer"}`;
+    try {
+      const filiale = await createFiliale({
+        nom,
+        code: `ESP-${nom.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || "WU"}`,
+        description,
+      });
+      const nouvelle: SecretaryBoutique = {
+        id: filiale.id,
+        nom: filiale.nom,
+        type: form.type,
+        gerant: form.gerant.trim(),
+        adresse: form.adresse.trim() || "Adresse à confirmer",
+        membres: 0,
+        commandes: 0,
+        chiffreAffaires: 0,
+        statut: "EN_PREPARATION",
+        created_at: filiale.created_at ?? new Date().toISOString(),
+      };
+      setBoutiques((prev) => [nouvelle, ...prev]);
+      setCreateOpen(false);
+      setForm({ nom: "", type: "entretien", gerant: "", adresse: "" });
+      onToast(`Boutique « ${nom} » créée en préparation`, "success");
+      return;
+    } catch {
+      /* API injoignable : création locale (mode démo). */
+    }
     const nouvelle: SecretaryBoutique = {
       id: `b-${Date.now()}`,
-      nom: form.nom.trim(),
+      nom,
       type: form.type,
       gerant: form.gerant.trim(),
       adresse: form.adresse.trim() || "Adresse à confirmer",
@@ -55,14 +84,22 @@ export function SecretaryBoutiques({ onToast }: SecretaryBoutiquesProps) {
     setBoutiques((prev) => [nouvelle, ...prev]);
     setCreateOpen(false);
     setForm({ nom: "", type: "entretien", gerant: "", adresse: "" });
-    onToast(`Boutique « ${nouvelle.nom} » créée en préparation`, "success");
+    onToast(`Boutique « ${nom} » créée en préparation`, "success");
   }
 
-  function basculerStatut(id: string) {
+  async function basculerStatut(id: string) {
+    const boutique = boutiques.find((b) => b.id === id);
+    if (!boutique) return;
+    const reactiver = boutique.statut === "SUSPENDUE";
+    try {
+      await updateFiliale(id, { is_active: reactiver });
+    } catch {
+      /* API injoignable : bascule locale (mode démo). */
+    }
     setBoutiques((prev) =>
       prev.map((b) =>
         b.id === id
-          ? { ...b, statut: b.statut === "SUSPENDUE" ? "ACTIVE" : "SUSPENDUE" }
+          ? { ...b, statut: reactiver ? "ACTIVE" : "SUSPENDUE" }
           : b,
       ),
     );

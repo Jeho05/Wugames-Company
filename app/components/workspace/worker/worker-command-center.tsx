@@ -268,8 +268,14 @@ export function WorkerCommandCenter() {
   );
 
   const handleMarkAllRead = useCallback(() => {
-    setOverview((prev) =>
-      prev
+    setOverview((prev) => {
+      if (prev) {
+        const nonLues = prev.notifications.list.filter((notification) => !notification.lu);
+        for (const notification of nonLues) {
+          void workerApi.marquerLue(notification.id).catch(() => undefined);
+        }
+      }
+      return prev
         ? {
             ...prev,
             notifications: {
@@ -277,8 +283,8 @@ export function WorkerCommandCenter() {
               list: prev.notifications.list.map((notification) => ({ ...notification, lu: true })),
             },
           }
-        : prev,
-    );
+        : prev;
+    });
   }, []);
 
   const handleLogout = useCallback(() => {

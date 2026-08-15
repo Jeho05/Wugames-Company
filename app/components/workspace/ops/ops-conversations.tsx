@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { sendMessage } from "@/app/lib/api/messagerie";
 import { OpsPanel } from "@/app/components/workspace/ops/ops-panel";
 import {
   conversationRoleMeta,
@@ -51,6 +52,9 @@ export function OpsConversations({ onToast }: OpsConversationsProps) {
     if (!active || !draft.trim()) return;
     const maintenant = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date());
     const message = { id: `m-${Date.now()}`, auteur: "moi" as const, texte: draft.trim(), heure: maintenant, lu: true };
+    void sendMessage(active.id, { contenu: draft.trim() }).catch(() => {
+      /* API injoignable : message local (mode démo). */
+    });
     setThreads((prev) =>
       prev.map((t) => (t.id === active.id ? { ...t, messages: [...t.messages, message], derniereActivite: "à l'instant" } : t)),
     );

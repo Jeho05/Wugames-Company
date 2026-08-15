@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { addMissionPhoto } from "@/app/lib/api/missions";
 import type { WorkerPhoto } from "@/app/lib/worker-data";
 
 type PhotoUploaderProps = {
@@ -14,7 +15,6 @@ type PhotoUploaderProps = {
 
 const MAX_EDGE = 1280;
 const JPEG_QUALITY = 0.72;
-const SIMULATED_UPLOAD_MS = 1400;
 
 function compressToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -49,9 +49,13 @@ export function PhotoUploader({ missionId, photos, onPhotosChange }: PhotoUpload
   const send = useCallback(
     (photo: WorkerPhoto) => {
       onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "sending" } : item)));
-      window.setTimeout(() => {
-        onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "sent" } : item)));
-      }, SIMULATED_UPLOAD_MS);
+      void addMissionPhoto(photo.missionId, photo.dataUrl)
+        .then(() => {
+          onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "sent" } : item)));
+        })
+        .catch(() => {
+          onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "failed" } : item)));
+        });
     },
     [onPhotosChange, photos],
   );

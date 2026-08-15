@@ -1,4 +1,7 @@
 import * as clientsApi from "@/app/lib/api/clients";
+import * as commandesApi from "@/app/lib/api/commandes";
+import * as chantiersApi from "@/app/lib/api/chantiers";
+import * as devisApi from "@/app/lib/api/devis";
 import * as facturesApi from "@/app/lib/api/factures";
 import * as fournisseursApi from "@/app/lib/api/fournisseurs";
 import * as filialesApi from "@/app/lib/api/filiales";
@@ -6,7 +9,10 @@ import * as missionsApi from "@/app/lib/api/missions";
 import * as stocksApi from "@/app/lib/api/stocks";
 import * as usersApi from "@/app/lib/api/users";
 import {
+  chantierRow,
   clientRow,
+  commandeRow,
+  devisRow,
   factureRow,
   fournisseurRow,
   missionRow,
@@ -67,6 +73,22 @@ const ouvrierOptions: () => Promise<CreateFieldOption[]> = async () => {
       value: u.ouvrier_profile?.id ?? u.id,
       label: `${[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email}${u.ouvrier_profile?.specialite ? ` · ${u.ouvrier_profile.specialite}` : ""}`,
     }));
+};
+
+const clientOptions: () => Promise<CreateFieldOption[]> = async () => {
+  const clients = await clientsApi.listClients();
+  return clients.map((c) => ({
+    value: c.id,
+    label: `${[c.user?.first_name, c.user?.last_name].filter(Boolean).join(" ") || c.user?.email || c.id.slice(0, 8)}${c.type_client === "MEMBRE" ? " · membre" : ""}`,
+  }));
+};
+
+const produitOptions: () => Promise<CreateFieldOption[]> = async () => {
+  const produits = await stocksApi.listProduits();
+  return produits.map((p) => ({
+    value: p.id,
+    label: `${p.nom} · ${p.reference}`,
+  }));
 };
 
 export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
@@ -191,6 +213,79 @@ export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
         date_echeance: values.date_echeance || undefined,
       }),
     rowMapper: (entity) => factureRow(entity as Parameters<typeof factureRow>[0]),
+  },
+  devis: {
+    title: "Nouveau devis",
+    eyebrow: "Relation client",
+    fields: [
+      { name: "filiale_id", label: "Filiale", type: "select", required: true, optionsLoader: filialeOptions },
+      { name: "client_id", label: "Client", type: "select", optionsLoader: clientOptions, help: "Optionnel" },
+      { name: "description", label: "Description", type: "textarea", placeholder: "Objet du devis" },
+      { name: "designation", label: "Désignation", type: "text", required: true, placeholder: "Prestation ou matériau" },
+      { name: "quantite", label: "Quantité", type: "number", required: true, min: 1, step: 1, placeholder: "1" },
+      { name: "prix_unitaire_ht", label: "Prix unitaire HT", type: "number", required: true, min: 0, step: 0.01, placeholder: "50000" },
+      { name: "date_validite", label: "Date de validité", type: "date" },
+    ],
+    submit: async (values) =>
+      devisApi.createDevis({
+        filiale_id: values.filiale_id,
+        client_id: values.client_id || null,
+        description: values.description?.trim() || undefined,
+        date_validite: values.date_validite || undefined,
+        lignes: [
+          {
+            designation: values.designation.trim(),
+            quantite: num(values, "quantite") ?? 1,
+            prix_unitaire_ht: num(values, "prix_unitaire_ht") ?? 0,
+          },
+        ],
+      }),
+    rowMapper: (entity) => devisRow(entity as Parameters<typeof devisRow>[0]),
+  },
+  chantiers: {
+    title: "Nouveau chantier",
+    eyebrow: "Réalisation",
+    fields: [
+      { name: "titre", label: "Titre du chantier", type: "text", required: true, placeholder: "Villa B, Cocody" },
+      { name: "adresse", label: "Adresse", type: "text", placeholder: "Cocody, Abidjan" },
+      { name: "filiale_id", label: "Filiale", type: "select", required: true, optionsLoader: filialeOptions },
+      { name: "client_id", label: "Client", type: "select", optionsLoader: clientOptions, help: "Optionnel" },
+      { name: "budget_previsionnel", label: "Budget prévisionnel", type: "number", min: 0, step: 0.01, placeholder: "5000000" },
+      { name: "date_debut", label: "Date de début", type: "date" },
+      { name: "date_fin_prevue", label: "Date de fin prévue", type: "date" },
+    ],
+    submit: async (values) =>
+      chantiersApi.createChantier({
+        titre: values.titre.trim(),
+        adresse: values.adresse?.trim() || undefined,
+        filiale_id: values.filiale_id,
+        client_id: values.client_id || null,
+        budget_previsionnel: num(values, "budget_previsionnel"),
+        date_debut: values.date_debut || undefined,
+        date_fin_prevue: values.date_fin_prevue || undefined,
+      }),
+    rowMapper: (entity) => chantierRow(entity as Parameters<typeof chantierRow>[0]),
+  },
+  commandes: {
+    title: "Nouvelle commande",
+    eyebrow: "Espace Wu · Boutique",
+    fields: [
+      { name: "filiale_id", label: "Filiale", type: "select", required: true, optionsLoader: filialeOptions },
+      { name: "client_id", label: "Client", type: "select", optionsLoader: clientOptions, help: "Optionnel" },
+      { name: "produit_id", label: "Produit", type: "select", required: true, optionsLoader: produitOptions },
+      { name: "quantite", label: "Quantité", type: "number", required: true, min: 1, step: 1, placeholder: "1" },
+      { name: "adresse_livraison", label: "Adresse de livraison", type: "text", placeholder: "Livraison à domicile" },
+      { name: "date_prevue_livraison", label: "Date prévue de livraison", type: "date" },
+    ],
+    submit: async (values) =>
+      commandesApi.createCommande({
+        filiale_id: values.filiale_id,
+        client_id: values.client_id || undefined,
+        adresse_livraison: values.adresse_livraison?.trim() || undefined,
+        date_prevue_livraison: values.date_prevue_livraison || undefined,
+        lignes: [{ produit_id: values.produit_id, quantite: num(values, "quantite") ?? 1 }],
+      }),
+    rowMapper: (entity) => commandeRow(entity as Parameters<typeof commandeRow>[0]),
   },
 };
 

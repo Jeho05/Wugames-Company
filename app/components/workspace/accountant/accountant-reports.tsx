@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import { AccountantPanel } from "@/app/components/workspace/accountant/accountant-panel";
+import { rapportCloture } from "@/app/lib/api/factures";
 import type { ReportItem } from "@/app/lib/accountant-data";
 
 type AccountantReportsProps = {
@@ -24,19 +25,32 @@ const actions: { icon: IconName; label: string; hint: string; exportKind: "pdf" 
   { icon: "print", label: "Imprimer", hint: "Version papier", exportKind: "print" },
 ];
 
+const formatMontantFcfa = (amount: number): string =>
+  new Intl.NumberFormat("fr-FR").format(amount) + " FCFA";
+
+function telecharger(nom: string, contenu: string, mime: string) {
+  const url = URL.createObjectURL(new Blob(["\uFEFF" + contenu], { type: mime }));
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = nom;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+type BilanCloture = {
+  count: number;
+  total_ht: number;
+  total_ttc: number;
+  par_statut?: Record<string, { count: number; total_ht: number; total_ttc: number }>;
+};
+
 export function AccountantReports({ reports }: AccountantReportsProps) {
   const [notice, setNotice] = useState<string | null>(null);
 
-  function trigger(action: (typeof actions)[number]) {
+  async function trigger(action: (typeof actions)[number]) {
     if (action.exportKind === "csv") {
       const rows = reports.map((report) => [report.name, report.format, report.date, report.size].join(";"));
-      const blob = new Blob([`Nom;Format;Date;Taille\n${rows.join("\n")}`], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "rapports-financiers.csv";
-      anchor.click();
-      URL.revokeObjectURL(url);
+      telecharger("rapports-financiers.csv", `Nom;Format;Date;Taille\n${rows.join("\n")}`, "text/csv;charset=utf-8");
       setNotice("Export CSV téléchargé.");
       return;
     }
@@ -45,7 +59,30 @@ export function AccountantReports({ reports }: AccountantReportsProps) {
       setNotice("Impression lancée.");
       return;
     }
-    setNotice(`Génération du rapport ${action.label.toLowerCase()}… (à venir dans le module Factures)`);
+    setNotice("Génération du rapport…");
+    try {
+      const bilan = (await rapportCloture({})) as BilanCloture;
+      if (action.exportKind === "xlsx") {
+        const lignes = [
+          ["Statut", "Nombre", "Total HT", "Total TTC"],
+          ...Object.entries(bilan.par_statut ?? {}).map(([statut, info]) => [statut, String(info.count), formatMontantFcfa(info.total_ht), formatMontantFcfa(info.total_ttc)]),
+          ["TOTAL", String(bilan.count), formatMontantFcfa(bilan.total_ht), formatMontantFcfa(bilan.total_ttc)],
+        ];
+        telecharger("rapport-cloture.csv", lignes.map((ligne) => ligne.join(";")).join("\r\n"), "text/csv;charset=utf-8");
+        setNotice(`Export Excel téléchargé · ${bilan.count} factures · ${formatMontantFcfa(bilan.total_ttc)} TTC`);
+        return;
+      }
+      const lignes = [
+        ["Statut", "Nombre", "Total HT", "Total TTC"],
+        ...Object.entries(bilan.par_statut ?? {}).map(([statut, info]) => [statut, String(info.count), formatMontantFcfa(info.total_ht), formatMontantFcfa(info.total_ttc)]),
+        ["TOTAL", String(bilan.count), formatMontantFcfa(bilan.total_ht), formatMontantFcfa(bilan.total_ttc)],
+      ];
+      const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Rapport de clôture · WUGAMS</title><style>body{font-family:Segoe UI,Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 24px;color:#16233a}h1{font-size:20px}table{border-collapse:collapse;width:100%;margin-top:16px}th,td{border:1px solid #dbe3ec;padding:8px 12px;text-align:left;font-size:13px}th{background:#f1f5f9}</style></head><body><h1>Rapport de clôture — WUGAMS Holding</h1><p>Généré le ${new Date().toLocaleDateString("fr-FR")} · ${bilan.count} facture(s) · Total TTC : ${formatMontantFcfa(bilan.total_ttc)}</p><table><thead><tr>${lignes[0].map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${lignes.slice(1).map((ligne) => `<tr>${ligne.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`;
+      telecharger("rapport-cloture.html", html, "text/html;charset=utf-8");
+      setNotice(`Rapport de clôture téléchargé · ouvrez-le et imprimez en PDF (${bilan.count} factures)`);
+    } catch {
+      setNotice("API injoignable — export indisponible pour le moment.");
+    }
   }
 
   return (
