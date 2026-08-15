@@ -35,7 +35,11 @@ export async function getDemandes(): Promise<DemandeDevis[]> {
   return apiFetch<DemandeDevis[]>("/client-space/demandes");
 }
 
-export async function createDemande(payload: { libelle: string; service: string }): Promise<DemandeDevis> {
+export async function createDemande(payload: {
+  libelle: string;
+  service: string;
+  type?: string;
+}): Promise<DemandeDevis> {
   return apiFetch<DemandeDevis>("/client-space/demandes", { method: "POST", body: payload });
 }
 

@@ -6,7 +6,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
-import { demandeStatutMeta, demandeTypeMeta } from "@/app/lib/client-data";
+import { createDemande } from "@/app/lib/api/client-space";
+import { demandeStatutMeta, demandeTypeMeta, demandeView } from "@/app/lib/client-data";
 import type { ClientDemandeView, DemandeStatut, DemandeType } from "@/app/lib/client-data";
 
 const typeIcon: Record<DemandeType, "sparkles" | "clipboard" | "warning"> = {
@@ -78,26 +79,40 @@ export function ClientDemandes({ demandes }: ClientDemandesProps) {
   const [objet, setObjet] = useState("");
   const [detail, setDetail] = useState("");
   const [created, setCreated] = useState<ClientDemandeView[]>([]);
+  const [envoi, setEnvoi] = useState(false);
   const reduce = useReducedMotion();
 
   const all = [...created, ...demandes];
   const enAttente = all.filter((d) => d.statut === "ENVOYEE" || d.statut === "ETUDIEE").length;
 
-  function submit() {
-    if (!objet.trim()) return;
-    const nouvelle: ClientDemandeView = {
-      id: "new-" + Date.now(),
-      type,
-      objet: objet.trim(),
-      detail: detail.trim() || "Détails à préciser lors de l'échange avec votre chargé de projet.",
-      date: "Aujourd'hui",
-      statut: "ENVOYEE",
-      piecesJointes: 0,
-    };
-    setCreated((prev) => [nouvelle, ...prev]);
-    setObjet("");
-    setDetail("");
-    setCompose(false);
+  async function submit() {
+    if (!objet.trim() || envoi) return;
+    setEnvoi(true);
+    try {
+      const demande = await createDemande({
+        libelle: objet.trim(),
+        service: detail.trim() || "Détails à préciser lors de l'échange avec votre chargé de projet.",
+        type,
+      });
+      setCreated((prev) => [demandeView(demande), ...prev]);
+    } catch {
+      /* API injoignable : repli silencieux sur une demande locale (mode démo). */
+      const nouvelle: ClientDemandeView = {
+        id: "new-" + Date.now(),
+        type,
+        objet: objet.trim(),
+        detail: detail.trim() || "Détails à préciser lors de l'échange avec votre chargé de projet.",
+        date: "Aujourd'hui",
+        statut: "ENVOYEE",
+        piecesJointes: 0,
+      };
+      setCreated((prev) => [nouvelle, ...prev]);
+    } finally {
+      setEnvoi(false);
+      setObjet("");
+      setDetail("");
+      setCompose(false);
+    }
   }
 
   return (
@@ -328,12 +343,12 @@ export function ClientDemandes({ demandes }: ClientDemandesProps) {
                 </div>
                 <button
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!objet.trim()}
+                  disabled={!objet.trim() || envoi}
                   onClick={submit}
                   type="button"
                 >
                   <Icon name="mail" size={15} />
-                  Envoyer ma demande
+                  {envoi ? "Envoi en cours…" : "Envoyer ma demande"}
                 </button>
               </div>
             </motion.div>

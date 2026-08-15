@@ -611,7 +611,7 @@ function commandeView(commande: Commande): ClientCommandeView {
   };
 }
 
-function demandeView(demande: DemandeDevis): ClientDemandeView {
+export function demandeView(demande: DemandeDevis): ClientDemandeView {
   return {
     id: demande.id,
     type: "DEVIS",
