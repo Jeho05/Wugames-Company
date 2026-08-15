@@ -6,6 +6,7 @@ import type {
   MessageResponse,
   RefreshResponse,
   RegisterPayload,
+  RegisterResult,
   Requires2fa,
 } from "@/app/lib/contracts";
 
@@ -42,8 +43,8 @@ export async function logout(): Promise<MessageResponse> {
   return apiFetch<MessageResponse>("/auth/logout", { method: "POST", retry: false });
 }
 
-export async function register(payload: RegisterPayload): Promise<AuthUserDto> {
-  return apiFetch<AuthUserDto>("/auth/register", { method: "POST", body: payload });
+export async function register(payload: RegisterPayload): Promise<RegisterResult> {
+  return apiFetchPublic<RegisterResult>("/auth/register", { method: "POST", body: payload });
 }
 
 export type TwoFaSetup = {

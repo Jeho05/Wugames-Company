@@ -17,7 +17,7 @@ export type BoutiqueCommande = {
   id: string;
   items: { produitId: string; nom: string; quantite: number; prix: number }[];
   total: number;
-  statut: "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
+  statut: "EN_ATTENTE" | "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
   date: string;
   moyen: "MOMO" | "CARTE" | "COMPTE";
 };

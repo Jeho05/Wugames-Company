@@ -154,6 +154,7 @@ const chantierStatuts: Record<string, ModuleStatus> = {
 };
 
 const commandeStatuts: Record<string, ModuleStatus> = {
+  EN_ATTENTE: status("En attente", "info"),
   EN_PREPARATION: status("En préparation", "info"),
   EXPEDIEE: status("Expédiée", "info"),
   LIVREE: status("Livrée", "success"),

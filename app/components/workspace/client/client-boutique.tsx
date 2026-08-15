@@ -26,6 +26,7 @@ type ClientBoutiqueProps = {
 };
 
 const commandeStatutMeta: Record<BoutiqueCommande["statut"], { label: string; badge: string }> = {
+  EN_ATTENTE: { label: "En attente", badge: "border-slate-200 bg-slate-50 text-slate-600" },
   EN_PREPARATION: { label: "En préparation", badge: "border-amber-200 bg-amber-50 text-amber-800" },
   EXPEDIEE: { label: "Expédiée", badge: "border-sky-200 bg-sky-50 text-sky-700" },
   LIVREE: { label: "Livrée", badge: "border-emerald-200 bg-emerald-50 text-emerald-700" },

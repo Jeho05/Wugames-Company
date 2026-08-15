@@ -255,6 +255,43 @@ ROLE_MGR_PARTENAIRE | ROLE_MGR_FILIALE | ROLE_DEV_DIGITAL | ROLE_GERANT
 > **des bugs du backend déployé** ; le front s'appuie sur son fallback silencieux « Mode
 > démonstration » pour absorber les 500.
 
+### Recheck (2026-08-15 après-midi) — la quasi-totalité est corrigée ✅
+
+| Endpoint | Avant | Après |
+|---|---|---|
+| `GET /missions`, `/chantiers`, `/commandes`, `/devis`, `/factures`, `/pointages`, `/primes`, `/notifications`, `/messagerie/conversations`, `/notifications-prefs` | 500 | **OK** (20 missions, 3 devis, 3 chantiers, 3 commandes, 4 pointages…) |
+| `POST /devis` | 400/500 | **OK** — `statut` initial `BROUILLON`, TVA appliquée (`montant_ttc` calculé) |
+| `PATCH /devis/{id}/statut` (`ENVOYE`, `SIGNE`) + `POST /devis/{id}/convertir` | — | **OK** — conversion → crée la facture liée (`devis_id` renseigné) |
+| `POST /commandes` | 500 | **OK** — `statut` initial **`EN_ATTENTE`** (⚠️ nouveau statut, le front l'a ajouté) ; sans `prix_unitaire`, le prix catalogue est utilisé |
+| `PATCH /commandes/{id}/statut` (`EN_PREPARATION` → `EXPEDIEE` → `LIVREE`) | — | **OK** — `livraison.date_livree` renseignée à `LIVREE` |
+| `POST /commandes/{id}/payer` | — | **OK** — réponse `{reference, mode, telephone, montant, instruction, commande}` |
+| `POST /commandes/{id}/confirmer-paiement` | — | **OK** — paiement `PAYE`, commande → `EXPEDIEE` automatiquement |
+| `POST /factures` + `PATCH /factures/{id}/statut` (`EMISE`, `PAYEE`) | 500 | **OK** — initial `BROUILLON` ; `date_paiement` renseignée à `PAYEE` |
+| `PATCH /notifications-prefs` | 500 | **OK** |
+| `POST /auth/password-reset/confirm` (token invalide) | 500 | **OK — 400** ✅ |
+| `GET /client-space/{profil,demandes,devis,commandes,missions,projets,documents,fidelite}` | 500/404 | **OK** — fidelite initiale : `BRONZE`, 0 pt |
+| `POST /client-space/demandes` | 400 | **OK** — forme `{ libelle, service }` (statut `RECUE`) ; `{type, description}` → 400 (forme invalide) |
+| `GET /missions/{id}/rapport` | — | **OK** — structure complète (pointages, photos, validateur, durée, distance) |
+| `PATCH /missions/{id}/statut` | — | **OK** |
+
+### Recheck final (2026-08-15 après-midi) — tout est corrigé ✅
+
+| Point | Avant | Après |
+|---|---|---|
+| **`POST /auth/register` (inscription libre)** | 401 sans token | **OK — public** : 201, `{message, access_token, refresh_token, user}`, rôle `ROLE_CLIENT_STD` + `client_profile` créés, auto-login, login + client-space fonctionnels. Le formulaire `/inscription` du front est branché dessus |
+| `POST /missions/{id}/affecter` | 500 | **OK** — 200 `{mission, suggestions}` (le 404 ponctuel venait d'un ouvrier supprimé du seed) |
+| `POST /clients` exposait `password_hash` | ⚠️ | **OK** — retiré de la réponse |
+| `POST /missions/{id}/pointages/verification` | 400 | **OK** — 200 même sans pointages |
+| DTO de l'OpenAPI | vides `{}` | **OK** — 44 schémas documentés (`RegisterDto`, `CreateMissionDto`, `CreateFactureDto`, `CreateCommandeDto`, `CreateLigneDevisDto`, `UpdateNotificationPrefsDto`, `CreateDemandeDevisDto`…) avec `required` corrects |
+| URL de la spec | `/api/v1/docs-json` | **⚠️ déplacée** : `https://wugames-holding-inc.vercel.app/docs-json` (racine) ; chemins préfixés `/api/v1/…` |
+
+Il ne reste **aucun bug fonctionnel connu** du backend. Points d'attention conservés : RBAC normaux
+(`GET /fidelite` réservé clients via `/client-space/fidelite`, `GET /stocks/produits` 403 en client →
+catalogue boutique en démo) ; `RegisterPayload.role` et `filiale_id` optionnels (le back attribue une
+filiale par défaut).
+
+### Historique (premier passage, avant correction)
+
 ### Fonctionnels
 
 | Endpoint | Note |

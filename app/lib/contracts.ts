@@ -94,8 +94,16 @@ export type RegisterPayload = {
   first_name: string;
   last_name: string;
   phone?: string;
-  role: RoleCode;
+  role?: RoleCode;
   filiale_id?: string | null;
+};
+
+/** Réponse de `POST /auth/register` : le compte est créé ET connecté. */
+export type RegisterResult = {
+  message: string;
+  access_token: string;
+  refresh_token: string;
+  user: AuthUserDto;
 };
 
 export type Session = {
@@ -583,7 +591,7 @@ export type UpdateChantierPayload = Partial<{
 /* Commandes boutique                                                  */
 /* ------------------------------------------------------------------ */
 
-export type CommandeStatut = "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
+export type CommandeStatut = "EN_ATTENTE" | "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
 
 export type CommandeStatutTransition =
   | CommandeStatut

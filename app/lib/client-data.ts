@@ -18,7 +18,7 @@ export type ClientGlobalState = "ok" | "action" | "critical";
 
 export type DevisStatut = "EN_ATTENTE" | "ACCEPTE" | "REFUSE" | "EXPIRE";
 
-export type CommandeStatut = "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
+export type CommandeStatut = "EN_ATTENTE" | "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
 
 export type ClientMissionView = {
   id: string;
@@ -138,6 +138,7 @@ export const devisStatutMeta: Record<DevisStatut, { label: string; tone: StatusT
 };
 
 export const commandeStatutMeta: Record<CommandeStatut, { label: string; tone: StatusTone }> = {
+  EN_ATTENTE: { label: "En attente", tone: "info" },
   EN_PREPARATION: { label: "En préparation", tone: "info" },
   EXPEDIEE: { label: "Expédiée", tone: "info" },
   LIVREE: { label: "Livrée", tone: "success" },

@@ -2,10 +2,26 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import * as authApi from "@/app/lib/api/auth";
+import { ApiError } from "@/app/lib/api-client";
+import { useAuth } from "@/app/lib/auth-context";
+
+function messageFrom(caught: unknown): string {
+  if (caught instanceof ApiError) {
+    if (caught.statusCode === 409) return "Un compte existe déjà avec cette adresse e-mail.";
+    if (caught.statusCode === 429) return "Trop de tentatives, réessayez dans une minute.";
+    if (caught.statusCode === 0 || !caught.statusCode) return "Impossible de contacter le serveur.";
+    return caught.message;
+  }
+  return "Une erreur est survenue. Veuillez réessayer.";
+}
 
 export function RegisterForm() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [accepted, setAccepted] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -13,11 +29,37 @@ export function RegisterForm() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setNotice(true);
+    setError("");
+
+    if (!email.trim()) {
+      setError("Veuillez renseigner votre adresse e-mail.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await authApi.register({
+        email: email.trim(),
+        password,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        phone: phone.trim() || undefined,
+        role: "ROLE_CLIENT_STD",
+      });
+      const outcome = await login(email, password);
+      if (outcome === "authenticated") {
+        router.push("/espace");
+      }
+    } catch (caught) {
+      setError(messageFrom(caught));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -116,13 +158,9 @@ export function RegisterForm() {
         </div>
       </div>
 
-      {notice ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3">
-          <p className="text-[11px] leading-5 text-amber-800">
-            <span className="font-bold">Inscription en libre accès temporairement suspendue.</span>{" "}
-            Les comptes sont créés par l&apos;administration WUGAMS. Contactez-nous à l&apos;adresse
-            admin@wugams.com pour ouvrir votre espace client ou fournisseur.
-          </p>
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3">
+          <p className="text-[11px] leading-5 text-red-800">{error}</p>
         </div>
       ) : (
         <div className="rounded-xl border border-sky-100 bg-[#edf6ff] px-3.5 py-2.5">
@@ -147,10 +185,10 @@ export function RegisterForm() {
       </label>
       <button
         className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={!accepted}
+        disabled={!accepted || submitting}
         type="submit"
       >
-        Créer mon espace
+        {submitting ? "Création en cours…" : "Créer mon espace"}
         <Icon name="arrow-right" size={17} />
       </button>
     </form>
