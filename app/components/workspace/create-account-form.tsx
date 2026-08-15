@@ -73,7 +73,7 @@ export function CreateAccountForm({ onClose, onCreated }: CreateAccountFormProps
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#0b1530]/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-sm font-bold tracking-[-0.02em] text-[#17294b]">
             Créer un compte (API)
@@ -89,7 +89,7 @@ export function CreateAccountForm({ onClose, onCreated }: CreateAccountFormProps
         </div>
 
         <form className="space-y-3.5 p-5" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1.5 block text-[11px] font-bold text-slate-500">Prénom</span>
               <input
@@ -121,7 +121,7 @@ export function CreateAccountForm({ onClose, onCreated }: CreateAccountFormProps
             />
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1.5 block text-[11px] font-bold text-slate-500">Mot de passe</span>
               <input

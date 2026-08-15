@@ -103,7 +103,7 @@ export function MissionDetail({
       >
         <motion.div
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          className="max-h-[92vh] w-full overflow-hidden rounded-t-3xl border border-white/[0.09] bg-[#0c1530] shadow-2xl shadow-black/60 sm:max-w-3xl sm:rounded-3xl"
+          className="max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-white/[0.09] bg-[#0c1530] shadow-2xl shadow-black/60 sm:max-w-3xl sm:rounded-3xl"
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           onClick={(event) => event.stopPropagation()}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}

@@ -146,7 +146,7 @@ export function WorkerServicesScreen({ services, proofs, onValidate, onToast }: 
             <motion.div
               aria-label="Détail du service"
               aria-modal="true"
-              className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-[#0f1a2e]"
+              className="pointer-events-auto max-h-[90vh] w-full max-w-sm overflow-y-auto rounded-3xl bg-white shadow-2xl dark:bg-[#0f1a2e]"
               initial={reduce ? undefined : { opacity: 0, y: 28, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}

@@ -85,7 +85,7 @@ export function ModuleCreateForm({ config, onClose, onSubmitRow, onCreated }: Mo
     <div
       aria-labelledby="module-create-title"
       aria-modal="true"
-      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+      className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
       role="dialog"
     >
       <div className="flex items-start justify-between gap-4">

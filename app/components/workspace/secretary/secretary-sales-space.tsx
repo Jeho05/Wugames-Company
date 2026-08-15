@@ -322,7 +322,7 @@ export function SecretarySalesSpace({ onToast }: SecretarySalesSpaceProps) {
             <motion.div
               aria-label="Encaissement"
               aria-modal="true"
-              className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-3xl bg-white p-6 shadow-2xl"
+              className="pointer-events-auto relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl"
               initial={{ opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}

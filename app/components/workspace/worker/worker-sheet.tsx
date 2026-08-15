@@ -30,7 +30,7 @@ export function WorkerSheet({ open, title, onClose, children }: WorkerSheetProps
           />
           <motion.div
             animate={{ y: 0 }}
-            className="absolute inset-x-0 bottom-0 rounded-t-[2rem] border-t border-slate-200 bg-white p-5 pb-8"
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[2rem] border-t border-slate-200 bg-white p-5 pb-8"
             exit={{ y: "100%" }}
             initial={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 380, damping: 38 }}
@@ -83,7 +83,7 @@ export function ConfirmDialog({ open, title, message, confirmLabel, tone = "prim
           />
           <motion.div
             animate={{ scale: 1, opacity: 1 }}
-            className="absolute inset-x-6 top-1/2 -translate-y-1/2 rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
+            className="absolute inset-x-6 top-1/2 max-h-[85vh] -translate-y-1/2 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
             exit={{ scale: 0.94, opacity: 0 }}
             initial={{ scale: 0.94, opacity: 0 }}
           >

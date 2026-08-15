@@ -107,7 +107,7 @@ export function TwoFaForm({ onClose, mode = "manage" }: TwoFaFormProps) {
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-[#0b1530]/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-sm font-bold tracking-[-0.02em] text-[#17294b]">
             Sécurité · Authentification à deux facteurs
@@ -174,7 +174,7 @@ export function TwoFaForm({ onClose, mode = "manage" }: TwoFaFormProps) {
                 ) : null}
 
                 {!disabling ? (
-                  <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                  <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-center sm:flex-row sm:items-center sm:text-left">
                     {qrCode ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

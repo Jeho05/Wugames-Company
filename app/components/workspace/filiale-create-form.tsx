@@ -78,7 +78,7 @@ export function FilialeCreateForm({ onClose, onSubmit }: FilialeCreateFormProps)
     <div
       aria-labelledby="filiale-create-title"
       aria-modal="true"
-      className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
+      className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
       role="dialog"
     >
       <div className="flex items-start justify-between gap-4">

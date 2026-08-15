@@ -431,7 +431,7 @@ export default function BoutiquePage() {
           <div
             aria-labelledby="checkout-title"
             aria-modal="true"
-            className="w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
             role="dialog"
           >
             <div className="flex items-start justify-between gap-4">
@@ -522,7 +522,7 @@ export default function BoutiquePage() {
 
       {orderDone ? (
         <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/45 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-8 text-center shadow-2xl">
             <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
               <Icon name="check" size={26} />
             </span>
