@@ -5,12 +5,19 @@ import type {
   MessageResponse,
   MouvementStock,
   Produit,
+  StockAlerte,
+  StockAlerteNiveau,
 } from "@/app/lib/contracts";
 
 export type ProduitFilters = {
   filiale_id?: string;
   statut?: string;
   fournisseur_id?: string;
+};
+
+export type AlerteFilters = {
+  filiale_id?: string;
+  niveau?: StockAlerteNiveau;
 };
 
 export async function listProduits(filters: ProduitFilters = {}): Promise<Produit[]> {
@@ -52,4 +59,8 @@ export async function commanderProduit(id: string): Promise<Produit> {
 
 export async function receptionnerProduit(id: string): Promise<Produit> {
   return apiFetch<Produit>(`/stocks/produits/${id}/reception`, { method: "POST" });
+}
+
+export async function getAlertes(filters: AlerteFilters = {}): Promise<StockAlerte[]> {
+  return apiFetch<StockAlerte[]>("/stocks/alertes", { query: filters });
 }

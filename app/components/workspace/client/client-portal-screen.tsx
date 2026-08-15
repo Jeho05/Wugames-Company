@@ -244,7 +244,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
         </div>
       </div>
 
-      <ClientProfil user={user} />
+      <ClientProfil fidelite={data.fidelite} user={user} />
 
       <ClientSearch cleans={cleans} data={data} key={searchOpen ? "open" : "closed"} onClose={() => setSearchOpen(false)} onNavigate={navigateTo} open={searchOpen} />
     </div>

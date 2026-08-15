@@ -14,6 +14,7 @@ export type AuthUser = {
   id: string;
   email: string;
   filiale: string;
+  filialeId: string | null;
   initials: string;
   name: string;
   role: RoleCode;
@@ -96,6 +97,7 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
     id: dto.id,
     email: dto.email,
     filiale,
+    filialeId: dto.filiale_id,
     initials: initialsOf(name),
     name,
     role,
@@ -115,6 +117,7 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
       id: full.id,
       email: full.email,
       filiale,
+      filialeId: full.filiale_id,
       initials: initialsOf(name),
       name,
       role: full.role,

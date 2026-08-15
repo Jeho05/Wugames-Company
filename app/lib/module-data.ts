@@ -1,4 +1,18 @@
-import type { ClientProfile, FournisseurProfile, Filiale, Produit, Mission, Facture, User, RoleCode } from "@/app/lib/contracts";
+import type {
+  Chantier,
+  ClientProfile,
+  Commande,
+  Conversation,
+  Devis,
+  FournisseurProfile,
+  Filiale,
+  Manager,
+  Mission,
+  Facture,
+  Produit,
+  User,
+  RoleCode,
+} from "@/app/lib/contracts";
 import type { ModuleRow, ModuleStatus, StatusTone } from "@/app/lib/demo-data";
 import { formatFcfa } from "@/app/lib/store-data";
 import * as clientsApi from "@/app/lib/api/clients";
@@ -9,6 +23,11 @@ import * as missionsApi from "@/app/lib/api/missions";
 import * as facturesApi from "@/app/lib/api/factures";
 import * as usersApi from "@/app/lib/api/users";
 import * as notificationsApi from "@/app/lib/api/notifications";
+import * as devisApi from "@/app/lib/api/devis";
+import * as chantiersApi from "@/app/lib/api/chantiers";
+import * as commandesApi from "@/app/lib/api/commandes";
+import * as messagerieApi from "@/app/lib/api/messagerie";
+import * as managersApi from "@/app/lib/api/managers";
 
 export type ModuleData = {
   rows: ModuleRow[];
@@ -117,6 +136,108 @@ const factureStatuts: Record<string, ModuleStatus> = {
   EN_RETARD: status("En retard", "danger"),
   ANNULEE: status("Annulée", "neutral"),
 };
+
+const devisStatuts: Record<string, ModuleStatus> = {
+  BROUILLON: status("Brouillon", "neutral"),
+  ENVOYE: status("Envoyé", "info"),
+  SIGNE: status("Signé", "success"),
+  REFUSE: status("Refusé", "danger"),
+  EXPIRE: status("Expiré", "neutral"),
+};
+
+const chantierStatuts: Record<string, ModuleStatus> = {
+  PLANIFIE: status("Planifié", "neutral"),
+  EN_COURS: status("En cours", "info"),
+  SUSPENDU: status("Suspendu", "warning"),
+  TERMINE: status("Terminé", "success"),
+  ANNULE: status("Annulé", "neutral"),
+};
+
+const commandeStatuts: Record<string, ModuleStatus> = {
+  EN_PREPARATION: status("En préparation", "info"),
+  EXPEDIEE: status("Expédiée", "info"),
+  LIVREE: status("Livrée", "success"),
+  ANNULEE: status("Annulée", "neutral"),
+};
+
+const roleLabels: Record<string, string> = {
+  ROLE_MGR_OPS: "Manager Opérations",
+  ROLE_MGR_PARTENAIRE: "Manager Partenariats",
+  ROLE_MGR_FILIALE: "Manager de Filiale",
+  ROLE_RESP_OUVRIERS: "Responsable Ouvriers",
+  ROLE_SECRETAIRE: "Secrétaire",
+  ROLE_COMPTABLE: "Comptable",
+  ROLE_DEV_DIGITAL: "Dev Digital",
+  ROLE_GERANT: "Gérant",
+};
+
+const MANAGER_ROLES: string[] = [
+  "ROLE_MGR_OPS",
+  "ROLE_MGR_PARTENAIRE",
+  "ROLE_MGR_FILIALE",
+  "ROLE_RESP_OUVRIERS",
+  "ROLE_SECRETAIRE",
+  "ROLE_COMPTABLE",
+  "ROLE_DEV_DIGITAL",
+];
+
+export function devisRow(devis: Devis): ModuleRow {
+  return {
+    référence: devis.numero,
+    client: devis.client ? fullName(devis.client.first_name, devis.client.last_name) : "—",
+    montant: formatFcfa(Number(devis.montant_ttc)),
+    date: formatDate(devis.date_validite, "Sans limite"),
+    statut: devisStatuts[devis.statut] ?? status(devis.statut, "neutral"),
+  };
+}
+
+export function chantierRow(chantier: Chantier): ModuleRow {
+  return {
+    chantier: chantier.titre,
+    client: chantier.client ? fullName(chantier.client.first_name, chantier.client.last_name) : "—",
+    responsable: "—",
+    échéance: formatDate(chantier.date_fin_prevue, "—"),
+    statut: chantierStatuts[chantier.statut] ?? status(chantier.statut, "neutral"),
+  };
+}
+
+export function commandeRow(commande: Commande): ModuleRow {
+  return {
+    reference: commande.numero,
+    articles: commande.articles.map((a) => `${a.designation} ×${a.quantite}`).join(" · "),
+    montant: formatFcfa(Number(commande.montant_total)),
+    livraison: formatDate(commande.livraison.date_prevue, commande.livraison.adresse ?? "—"),
+    status: commandeStatuts[commande.statut] ?? status(commande.statut, "neutral"),
+  };
+}
+
+export function conversationRow(conversation: Conversation): ModuleRow {
+  return {
+    sujet: conversation.sujet,
+    liéà: conversation.projet ?? "—",
+    interlocuteurs: conversation.participants.map((p) => fullName(p.first_name, p.last_name)).join(" · ") || "—",
+    dernièreactivité: formatDate(conversation.derniere_activite, "—"),
+    statut: conversation.non_lus > 0 ? status("Non lu", "info") : status("Répondu", "success"),
+  };
+}
+
+export function managerRow(manager: Manager): ModuleRow {
+  const user = manager.user;
+  const activite = manager.activite_du_mois;
+  const detail = [
+    activite?.missions ? `${activite.missions} missions` : null,
+    activite?.controles ? `${activite.controles} contrôles` : null,
+    activite?.commandes ? `${activite.commandes} commandes` : null,
+  ].filter(Boolean).join(" · ");
+  return {
+    manager: fullName(user.first_name, user.last_name, user.email),
+    role: roleLabels[user.role] ?? user.role,
+    filiale: user.filiale?.nom ?? "—",
+    perimetre: manager.perimetre ?? "—",
+    activite: detail || "—",
+    statut: user.is_active ? status("Actif", "success") : status("Inactif", "neutral"),
+  };
+}
 
 export function factureRow(facture: Facture): ModuleRow {
   return {
@@ -245,19 +366,87 @@ const apiLoaders: Record<string, Loader> = {
     };
   },
   devis: async () => {
-    const factures = await facturesApi.listFactures();
-    const payees = factures.filter((f) => f.statut === "PAYEE").length;
-    const enAttente = factures.filter((f) => f.statut === "EMISE" || f.statut === "EN_RETARD").length;
+    const devis = await devisApi.listDevis();
+    const signes = devis.filter((d) => d.statut === "SIGNE").length;
+    const envoyes = devis.filter((d) => d.statut === "ENVOYE").length;
     return {
-      rows: factures.map(factureRow),
+      rows: devis.map(devisRow),
       stats: [
-        { label: "Factures API", value: String(factures.length) },
-        { label: "Payées", value: String(payees) },
-        { label: "En attente", value: String(enAttente) },
+        { label: "Devis API", value: String(devis.length) },
+        { label: "Signés", value: String(signes) },
+        { label: "Envoyés", value: String(envoyes) },
       ],
       insights: [
-        { label: "Numérotation auto", value: factures[0]?.numero ? "Active" : "—" },
-        { label: "Exercice", value: String(factures[0]?.exercice_comptable ?? "—") },
+        { label: "Montant total TTC", value: formatFcfa(devis.reduce((sum, d) => sum + Number(d.montant_ttc), 0)) },
+        { label: "Refusés / expirés", value: String(devis.filter((d) => d.statut === "REFUSE" || d.statut === "EXPIRE").length) },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  chantiers: async () => {
+    const chantiers = await chantiersApi.listChantiers();
+    const enCours = chantiers.filter((c) => c.statut === "EN_COURS" || c.statut === "PLANIFIE").length;
+    const termines = chantiers.filter((c) => c.statut === "TERMINE").length;
+    return {
+      rows: chantiers.map(chantierRow),
+      stats: [
+        { label: "Chantiers API", value: String(chantiers.length) },
+        { label: "En cours / planifiés", value: String(enCours) },
+        { label: "Terminés", value: String(termines) },
+      ],
+      insights: [
+        { label: "Avancement moyen", value: chantiers.length ? `${Math.round(chantiers.reduce((sum, c) => sum + (c.avancement_pct ?? 0), 0) / chantiers.length)} %` : "—" },
+        { label: "Budget prévisionnel", value: formatFcfa(chantiers.reduce((sum, c) => sum + Number(c.budget_previsionnel ?? 0), 0)) },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  commandes: async () => {
+    const commandes = await commandesApi.listCommandes();
+    const enPreparation = commandes.filter((c) => c.statut === "EN_PREPARATION").length;
+    const livrees = commandes.filter((c) => c.statut === "LIVREE").length;
+    return {
+      rows: commandes.map(commandeRow),
+      stats: [
+        { label: "Commandes API", value: String(commandes.length) },
+        { label: "En préparation", value: String(enPreparation) },
+        { label: "Livrées", value: String(livrees) },
+      ],
+      insights: [
+        { label: "Total commandé", value: formatFcfa(commandes.reduce((sum, c) => sum + Number(c.montant_total), 0)) },
+        { label: "Payées", value: String(commandes.filter((c) => c.paiement?.statut === "PAYE").length) },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  messagerie: async () => {
+    const conversations = await messagerieApi.listConversations();
+    const nonLus = conversations.reduce((sum, c) => sum + (c.non_lus ?? 0), 0);
+    return {
+      rows: conversations.map(conversationRow),
+      stats: [
+        { label: "Conversations API", value: String(conversations.length) },
+        { label: "Non lues", value: String(nonLus) },
+        { label: "Actives", value: String(conversations.length) },
+      ],
+      insights: [
+        { label: "Dernière activité", value: conversations[0] ? formatDate(conversations[0].derniere_activite, "—") : "—" },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  managers: async () => {
+    const managers = await managersApi.listManagers();
+    const actifs = managers.filter((m) => m.user.is_active).length;
+    return {
+      rows: managers.filter((m) => MANAGER_ROLES.includes(m.user.role)).map(managerRow),
+      stats: [
+        { label: "Managers API", value: String(managers.length) },
+        { label: "Actifs", value: String(actifs) },
+        { label: "À activer", value: String(managers.length - actifs) },
+      ],
+      insights: [
+        { label: "Rôles couverts", value: Array.from(new Set(managers.map((m) => roleLabels[m.user.role] ?? m.user.role))).join(" · ") || "—" },
         { label: "Source", value: "API WUGAMS" },
       ],
     };

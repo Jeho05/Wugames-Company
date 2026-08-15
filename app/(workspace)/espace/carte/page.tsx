@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
+import { listChantiers } from "@/app/lib/api/chantiers";
+import { listPointages } from "@/app/lib/api/pointages";
 import { mapSites, pointagesHistory } from "@/app/lib/demo-data";
-import type { MapSite, StatusTone } from "@/app/lib/demo-data";
+import type { MapSite, PointageRecord, StatusTone } from "@/app/lib/demo-data";
+import type { Chantier, PointageHistorique } from "@/app/lib/contracts";
 
 const toneColor: Record<StatusTone, string> = {
   danger: "#e05252",
@@ -15,20 +18,105 @@ const toneColor: Record<StatusTone, string> = {
   warning: "#d9a441",
 };
 
-const filiales = ["Toutes", "Construction", "Rénovation", "Entretien", "Matériaux"];
+const chantierTone: Record<string, StatusTone> = {
+  PLANIFIE: "neutral",
+  EN_COURS: "info",
+  SUSPENDU: "warning",
+  TERMINE: "success",
+  ANNULE: "neutral",
+};
+
+const chantierLabel: Record<string, string> = {
+  PLANIFIE: "Planifié",
+  EN_COURS: "En cours",
+  SUSPENDU: "Suspendu",
+  TERMINE: "Terminé",
+  ANNULE: "Annulé",
+};
+
+/** Projette des coordonnées Abidjan (lat/lng) dans le viewBox de la carte stylisée. */
+function projectX(lat: number | null, lng: number | null, fallback: number): number {
+  if (lat == null || lng == null) return fallback;
+  const x = ((lng - -4.15) / (-3.8 - -4.15)) * 640 + 40;
+  return Math.max(20, Math.min(760, Math.round(x * 100) / 100));
+}
+
+function projectY(lat: number | null, lng: number | null, fallback: number): number {
+  if (lat == null || lng == null) return fallback;
+  const y = ((5.55 - lat) / (5.55 - 5.2)) * 360 + 60;
+  return Math.max(20, Math.min(760, Math.round(y * 100) / 100));
+}
+
+function hashPosition(id: string, mod: number): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return (hash % mod) + 1;
+}
+
+function chantierToSite(chantier: Chantier): MapSite {
+  return {
+    id: chantier.id.slice(0, 8).toUpperCase(),
+    client: chantier.client ? [chantier.client.first_name, chantier.client.last_name].filter(Boolean).join(" ") || chantier.client.email : chantier.titre,
+    equipe: `${chantier._missions ?? 0} mission${(chantier._missions ?? 0) > 1 ? "s" : ""}`,
+    effectif: chantier._pointages ?? 0,
+    filiale: chantier.filiale?.nom ?? "—",
+    adresse: chantier.adresse ?? "—",
+    statut: chantierLabel[chantier.statut] ?? chantier.statut,
+    tone: chantierTone[chantier.statut] ?? "neutral",
+    x: projectX(chantier.adresse_lat, chantier.adresse_lng, hashPosition(chantier.id, 61) + 8),
+    y: projectY(chantier.adresse_lat, chantier.adresse_lng, hashPosition(chantier.id, 47) + 6),
+  };
+}
+
+function pointageToRecord(pointage: PointageHistorique): PointageRecord {
+  return {
+    ouvrier: [pointage.ouvrier?.user?.first_name, pointage.ouvrier?.user?.last_name].filter(Boolean).join(" ") || pointage.ouvrier?.matricule || "Ouvrier",
+    mission: pointage.mission?.titre ?? pointage.mission_id.slice(0, 8).toUpperCase(),
+    type: pointage.type === "ARRIVEE" ? "Arrivée" : "Sortie",
+    horodatage: pointage.horodatage,
+    lat: String(pointage.lat),
+    lng: String(pointage.lng),
+    statut: pointage.verifie ? "Vérifié" : "À vérifier",
+  };
+}
 
 export default function CarteTerrainPage() {
   const [selected, setSelected] = useState<MapSite | null>(null);
   const [filiale, setFiliale] = useState("Toutes");
   const [toast, setToast] = useState("");
+  const [live, setLive] = useState<boolean | null>(null);
+  const [sites, setSites] = useState<MapSite[]>(mapSites);
+  const [pointages, setPointages] = useState<PointageRecord[]>(pointagesHistory);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([listChantiers(), listPointages()])
+      .then(([chantiers, pointagesApi]) => {
+        if (cancelled) return;
+        if (chantiers.length === 0) return;
+        setSites(chantiers.map(chantierToSite));
+        setPointages(pointagesApi.map(pointageToRecord));
+        setLive(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLive(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filiales = useMemo(() => ["Toutes", ...Array.from(new Set(sites.map((s) => s.filiale)).values()).filter(Boolean)], [sites]);
 
   const visibleSites = useMemo(
-    () => (filiale === "Toutes" ? mapSites : mapSites.filter((site) => site.filiale === filiale)),
-    [filiale]
+    () => (filiale === "Toutes" ? sites : sites.filter((site) => site.filiale === filiale)),
+    [filiale, sites],
   );
 
-  const activeSites = mapSites.filter((site) => site.statut !== "Notifiée").length;
-  const effectif = mapSites.reduce((total, site) => total + site.effectif, 0);
+  const activeSites = sites.filter((site) => site.tone !== "neutral").length;
+  const equipes = Array.from(new Set(sites.map((s) => s.equipe)).values()).length;
+  const effectif = sites.reduce((total, site) => total + site.effectif, 0);
 
   return (
     <div className="space-y-6">
@@ -50,23 +138,38 @@ export default function CarteTerrainPage() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {filiales.map((f) => (
-            <button
-              aria-pressed={filiale === f}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {filiales.map((f) => (
+              <button
+                aria-pressed={filiale === f}
+                className={
+                  "rounded-lg px-3 py-1.5 text-xs font-bold transition " +
+                  (filiale === f
+                    ? "bg-[#17294b] text-white shadow-sm"
+                    : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700")
+                }
+                key={f}
+                onClick={() => setFiliale(f)}
+                type="button"
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          {live !== null ? (
+            <span
               className={
-                "rounded-lg px-3 py-1.5 text-xs font-bold transition " +
-                (filiale === f
-                  ? "bg-[#17294b] text-white shadow-sm"
-                  : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700")
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold " +
+                (live
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                  : "bg-amber-50 text-amber-700 ring-1 ring-amber-200")
               }
-              key={f}
-              onClick={() => setFiliale(f)}
-              type="button"
             >
-              {f}
-            </button>
-          ))}
+              <Icon name={live ? "check" : "sparkles"} size={13} />
+              {live ? "Données en direct · API WUGAMS" : "Mode démonstration · API indisponible"}
+            </span>
+          ) : null}
         </div>
       </section>
 
@@ -90,9 +193,9 @@ export default function CarteTerrainPage() {
       <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
         {[
           { label: "Chantiers suivis", value: String(activeSites) },
-          { label: "Équipes déployées", value: "06" },
-          { label: "Ouvriers sur le terrain", value: String(effectif) },
-          { label: "Pointages du jour", value: String(pointagesHistory.length) },
+          { label: "Équipes déployées", value: String(equipes).padStart(2, "0") },
+          { label: "Ouvriers sur le terrain", value: String(effectif).padStart(2, "0") },
+          { label: "Pointages enregistrés", value: String(pointages.length).padStart(2, "0") },
         ].map((stat, index) => (
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" key={stat.label}>
             <p className="text-xs font-semibold text-slate-500">{stat.label}</p>
@@ -117,7 +220,7 @@ export default function CarteTerrainPage() {
               {(["success", "info", "warning", "neutral"] as StatusTone[]).map((tone) => (
                 <span className="inline-flex items-center gap-1.5" key={tone}>
                   <span className="size-2 rounded-full" style={{ backgroundColor: toneColor[tone] }} />
-                  {tone === "success" ? "Pointé" : tone === "info" ? "En cours" : tone === "warning" ? "Action requise" : "Planifié"}
+                  {tone === "success" ? "Terminé" : tone === "info" ? "En cours" : tone === "warning" ? "Suspendu" : "Planifié"}
                 </span>
               ))}
             </div>
@@ -191,7 +294,7 @@ export default function CarteTerrainPage() {
                 </div>
                 <p className="mt-1.5 truncate text-xs font-bold text-[#233856]">{site.client}</p>
                 <p className="mt-0.5 truncate text-[11px] text-slate-500">
-                  {site.equipe} · {site.effectif} ouvrier{site.effectif > 1 ? "s" : ""}
+                  {site.equipe} · {site.effectif} pointage{site.effectif > 1 ? "s" : ""}
                 </p>
               </button>
             ))}
@@ -225,7 +328,7 @@ export default function CarteTerrainPage() {
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Effectif</p>
-                    <p className="mt-1 text-sm font-bold text-[#233856]">{selected.effectif} ouvriers</p>
+                    <p className="mt-1 text-sm font-bold text-[#233856]">{selected.effectif} pointages</p>
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Filiale</p>
@@ -234,7 +337,7 @@ export default function CarteTerrainPage() {
                   <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dernier pointage</p>
                     <p className="mt-1 text-sm font-bold text-[#233856]">
-                      {pointagesHistory.find((p) => p.mission === selected.id)?.horodatage ?? "—"}
+                      {pointages.find((p) => p.mission === selected.id)?.horodatage ?? "—"}
                     </p>
                   </div>
                 </div>
@@ -271,7 +374,7 @@ export default function CarteTerrainPage() {
               </span>
             </div>
             <div className="mt-4 divide-y divide-slate-100">
-              {pointagesHistory.slice(0, 4).map((pointage, index) => (
+              {pointages.slice(0, 4).map((pointage, index) => (
                 <div className="flex items-center justify-between gap-3 py-3" key={index}>
                   <div className="min-w-0">
                     <p className="truncate text-xs font-bold text-[#233856]">{pointage.ouvrier}</p>

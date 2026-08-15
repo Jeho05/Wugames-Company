@@ -346,11 +346,13 @@ export type Facture = {
   filiale_id: string;
   client_id: string | null;
   mission_id: string | null;
+  devis_id: string | null;
   montant_ht: string | number;
   montant_ttc: string | number;
   statut: FactureStatut;
   date_emission: string | null;
   date_echeance: string | null;
+  date_paiement: string | null;
   exercice_comptable: number;
   numero_sequence: number;
   created_at: string;
@@ -363,6 +365,7 @@ export type CreateFacturePayload = {
   filiale_id: string;
   client_id?: string | null;
   mission_id?: string | null;
+  devis_id?: string | null;
   montant_ht: number;
   montant_ttc: number;
   date_echeance?: string;
@@ -441,4 +444,422 @@ export type AuditLog = {
   ip: string | null;
   created_at: string;
   user: { id: string; first_name: string; last_name: string; email: string } | null;
+};
+
+/* ------------------------------------------------------------------ */
+/* Alertes stock                                                       */
+/* ------------------------------------------------------------------ */
+
+export type StockAlerteNiveau = "RUPTURE" | "SOUS_SEUIL" | "SOUS_20PCT";
+
+export type StockAlerte = {
+  produit_id: string;
+  reference: string;
+  nom: string;
+  filiale: FilialeLite;
+  quantite_actuelle: number;
+  stock_minimum: number;
+  seuil_alerte_20pct: number;
+  niveau: StockAlerteNiveau;
+  statut: "RUPTURE" | "REAPPROVISIONNEMENT_REQUIS" | "COMMANDE_EN_COURS";
+  fournisseur_id: string | null;
+};
+
+/* ------------------------------------------------------------------ */
+/* Devis                                                               */
+/* ------------------------------------------------------------------ */
+
+export type DevisStatut = "BROUILLON" | "ENVOYE" | "SIGNE" | "REFUSE" | "EXPIRE";
+
+export type DevisLigne = {
+  id: string;
+  designation: string;
+  quantite: number;
+  prix_unitaire_ht: number;
+  montant_ht: number;
+};
+
+export type Devis = {
+  id: string;
+  numero: string;
+  filiale_id: string;
+  client_id: string | null;
+  lignes: DevisLigne[];
+  montant_ht: number;
+  montant_ttc: number;
+  statut: DevisStatut;
+  date_validite: string | null;
+  devis_sequence: number;
+  exercice_comptable: number;
+  created_at: string;
+  updated_at: string;
+  filiale?: FilialeLite;
+  client?: UserLite | null;
+  facture?: { id: string; numero: string } | null;
+};
+
+export type CreateDevisLignePayload = {
+  designation: string;
+  quantite: number;
+  prix_unitaire_ht: number;
+};
+
+export type CreateDevisPayload = {
+  filiale_id: string;
+  client_id?: string | null;
+  description?: string;
+  date_validite?: string;
+  lignes: CreateDevisLignePayload[];
+};
+
+export type UpdateDevisPayload = Partial<{
+  client_id: string;
+  description: string;
+  date_validite: string;
+  lignes: CreateDevisLignePayload[];
+}>;
+
+export type DevisConversion = { devis: Devis; facture: Facture };
+
+/* ------------------------------------------------------------------ */
+/* Chantiers                                                           */
+/* ------------------------------------------------------------------ */
+
+export type ChantierStatut = "PLANIFIE" | "EN_COURS" | "SUSPENDU" | "TERMINE" | "ANNULE";
+
+export type ChantierPhoto = { id: string; storage_url: string; uploaded_at: string };
+
+export type Chantier = {
+  id: string;
+  titre: string;
+  adresse: string | null;
+  adresse_lat: number | null;
+  adresse_lng: number | null;
+  filiale_id: string;
+  client_id: string | null;
+  budget_previsionnel: number;
+  depenses_engagees: number;
+  recettes: number;
+  avancement_pct: number;
+  statut: ChantierStatut;
+  date_debut: string | null;
+  date_fin_prevue: string | null;
+  photos?: ChantierPhoto[];
+  created_at: string;
+  updated_at: string;
+  filiale?: FilialeLite;
+  client?: UserLite | null;
+  _missions?: number;
+  _pointages?: number;
+};
+
+export type CreateChantierPayload = {
+  titre: string;
+  adresse?: string;
+  adresse_lat?: number;
+  adresse_lng?: number;
+  filiale_id: string;
+  client_id?: string | null;
+  budget_previsionnel?: number;
+  date_debut?: string;
+  date_fin_prevue?: string;
+};
+
+export type UpdateChantierPayload = Partial<{
+  titre: string;
+  adresse: string;
+  adresse_lat: number;
+  adresse_lng: number;
+  budget_previsionnel: number;
+  depenses_engagees: number;
+  recettes: number;
+  avancement_pct: number;
+  statut: ChantierStatut;
+  date_debut: string;
+  date_fin_prevue: string;
+}>;
+
+/* ------------------------------------------------------------------ */
+/* Commandes boutique                                                  */
+/* ------------------------------------------------------------------ */
+
+export type CommandeStatut = "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
+
+export type CommandeStatutTransition =
+  | CommandeStatut
+  | "EN_ATTENTE"
+  | "CONFIRMEE";
+
+export type ModePaiement = "MTN_MOMO" | "MOOV_MONEY" | "CARTE" | "A_LA_LIVRAISON";
+
+export type ArticleCommande = {
+  produit_id: string;
+  designation: string;
+  quantite: number;
+  prix_unitaire: number;
+  montant: number;
+};
+
+export type PaiementCommande = {
+  mode: ModePaiement;
+  statut: "EN_ATTENTE" | "PAYE" | "ECHOUE";
+  reference: string | null;
+};
+
+export type LivraisonCommande = {
+  adresse: string;
+  date_prevue: string | null;
+  date_livree: string | null;
+};
+
+export type Commande = {
+  id: string;
+  numero: string;
+  client_id: string;
+  filiale_id: string;
+  articles: ArticleCommande[];
+  montant_total: number;
+  statut: CommandeStatut;
+  paiement: PaiementCommande;
+  livraison: LivraisonCommande;
+  created_at: string;
+  updated_at: string;
+  client?: UserLite | null;
+};
+
+export type CreateLigneCommandePayload = {
+  produit_id: string;
+  quantite: number;
+  prix_unitaire?: number;
+};
+
+export type CreateCommandePayload = {
+  filiale_id: string;
+  client_id?: string;
+  adresse_livraison?: string;
+  date_prevue_livraison?: string;
+  lignes: CreateLigneCommandePayload[];
+};
+
+export type PayerCommandePayload = {
+  mode: "MTN_MOMO" | "MOOV_MONEY";
+  telephone: string;
+};
+
+export type PaiementMobile = { reference: string; statut: "EN_ATTENTE" };
+
+/* ------------------------------------------------------------------ */
+/* Primes                                                              */
+/* ------------------------------------------------------------------ */
+
+export type PrimeStatut = "CALCULEE" | "VALIDEE" | "PAYEE";
+
+export type Prime = {
+  id: string;
+  mois: string;
+  ouvrier_id: string;
+  ouvrier: { id: string; nom: string; matricule: string | null };
+  filiale_id: string;
+  rendement_global: number;
+  pointages_valides: number;
+  missions_terminees: number;
+  montant_base: number;
+  bonus_rendement: number;
+  malus_pointages: number;
+  montant_total: number;
+  statut: PrimeStatut;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UpdatePrimePayload = Partial<{
+  statut: PrimeStatut;
+  note: string;
+  montant_total: number;
+}>;
+
+/* ------------------------------------------------------------------ */
+/* Fidélité membres                                                    */
+/* ------------------------------------------------------------------ */
+
+export type FideliteTier = "BRONZE" | "ARGENT" | "OR";
+
+export type Fidelite = {
+  id: string;
+  client_id: string;
+  points_actuels: number;
+  points_cumules: number;
+  tier: FideliteTier;
+  reduction_boutique_pct: number;
+  updated_at: string;
+};
+
+export type FideliteMouvement = {
+  id: string;
+  fidelite_id: string;
+  type: "GAIN" | "UTILISATION" | "EXPIRATION";
+  points: number;
+  libelle: string;
+  created_at: string;
+};
+
+/* ------------------------------------------------------------------ */
+/* Messagerie                                                          */
+/* ------------------------------------------------------------------ */
+
+export type Conversation = {
+  id: string;
+  sujet: string;
+  projet: string | null;
+  participants: { id: string; first_name: string; last_name: string; role: RoleCode }[];
+  derniere_activite: string;
+  dernier_message: string;
+  non_lus: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Message = {
+  id: string;
+  conversation_id: string;
+  auteur_id: string;
+  contenu: string;
+  lu: boolean;
+  created_at: string;
+};
+
+export type CreateConversationPayload = {
+  sujet: string;
+  projet?: string;
+  filiale_id?: string;
+  participants_ids?: string[];
+  premier_message?: string;
+};
+
+export type SendMessagePayload = {
+  contenu: string;
+  pieces_jointes?: string[];
+};
+
+/* ------------------------------------------------------------------ */
+/* Managers                                                            */
+/* ------------------------------------------------------------------ */
+
+export type ManagerActivite = {
+  missions?: number;
+  controles?: number;
+  commandes?: number;
+};
+
+export type Manager = {
+  user: User;
+  perimetre?: string | null;
+  activite_du_mois?: ManagerActivite;
+};
+
+/* ------------------------------------------------------------------ */
+/* Historique des pointages                                            */
+/* ------------------------------------------------------------------ */
+
+export type PointageHistorique = {
+  id: string;
+  mission_id: string;
+  mission?: { titre: string } | null;
+  ouvrier?:
+    | { id: string; user?: { first_name?: string; last_name?: string }; matricule?: string | null }
+    | null;
+  type: PointageType;
+  horodatage: string;
+  lat: number;
+  lng: number;
+  verifie: boolean;
+};
+
+/* ------------------------------------------------------------------ */
+/* Espace client — modules restants                                    */
+/* ------------------------------------------------------------------ */
+
+export type DemandeDevisStatut = "RECUE" | "EN_COURS" | "A_CONFIRMER" | "TERMINEE";
+
+export type DemandeDevis = {
+  id: string;
+  libelle: string;
+  service: string;
+  statut: DemandeDevisStatut;
+  created_at: string;
+};
+
+export type ClientProjet = {
+  id: string;
+  titre: string;
+  adresse: string | null;
+  avancement_pct: number;
+  statut: ChantierStatut;
+  prochaine_visite: string | null;
+  photos_count: number;
+};
+
+export type ClientDocumentType = "RAPPORT" | "DEVIS" | "PHOTO" | "PLANNING";
+
+export type ClientDocument = {
+  id: string;
+  titre: string;
+  type: ClientDocumentType;
+  projet: string | null;
+  date: string;
+  auteur: string | null;
+};
+
+/* ------------------------------------------------------------------ */
+/* Préférences de notifications externes                               */
+/* ------------------------------------------------------------------ */
+
+export type NotificationPrefs = {
+  user_id: string;
+  canaux: { push: boolean; sms: boolean; whatsapp: boolean };
+  types: Record<string, string[]>;
+  telephone: string | null;
+};
+
+export type UpdateNotificationPrefsPayload = Partial<{
+  canaux: { push?: boolean; sms?: boolean; whatsapp?: boolean };
+  types: Record<string, string[]>;
+  telephone: string;
+}>;
+
+/* ------------------------------------------------------------------ */
+/* Missions — rapport & auto-affectation                               */
+/* ------------------------------------------------------------------ */
+
+export type MissionRapport = {
+  mission: Mission;
+  rapport_texte: string | null;
+  photos: MissionPhoto[];
+  pointages: Pointage[];
+  ouvrier: { id: string; nom: string; matricule: string | null } | null;
+  validateur: { id: string; nom: string } | null;
+  duree_totale_minutes: number | null;
+  distance_totale_m: number | null;
+};
+
+export type MissionSuggestion = {
+  ouvrier_id: string;
+  nom: string;
+  specialite: string;
+  rendement_global: number;
+  missions_terminees_30j: number;
+  deja_affecte_aujourdhui: boolean;
+};
+
+export type AffecterMissionResult = {
+  mission: Mission;
+  suggestions: MissionSuggestion[];
+};
+
+export type VerificationPointageStatut = "VALIDE" | "REJETE";
+
+export type VerifierPointagePayload = {
+  statut: VerificationPointageStatut;
+  motif?: string;
 };

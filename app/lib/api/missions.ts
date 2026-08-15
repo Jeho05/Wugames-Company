@@ -1,5 +1,13 @@
 import { apiFetch } from "@/app/lib/api-client";
-import type { CreateMissionPayload, Mission, MissionStatut, Pointage } from "@/app/lib/contracts";
+import type {
+  AffecterMissionResult,
+  CreateMissionPayload,
+  Mission,
+  MissionRapport,
+  MissionStatut,
+  Pointage,
+  VerifierPointagePayload,
+} from "@/app/lib/contracts";
 
 export async function listMissions(): Promise<Mission[]> {
   return apiFetch<Mission[]>("/missions");
@@ -21,6 +29,24 @@ export async function updateMissionStatut(
   return apiFetch<Mission>(`/missions/${id}/statut`, {
     method: "PATCH",
     body: rapportTexte ? { statut, rapport_texte: rapportTexte } : { statut },
+  });
+}
+
+export async function affecterMission(id: string, ouvrierId?: string): Promise<AffecterMissionResult> {
+  return apiFetch<AffecterMissionResult>(`/missions/${id}/affecter`, {
+    method: "POST",
+    body: ouvrierId ? { ouvrier_id: ouvrierId } : {},
+  });
+}
+
+export async function getMissionRapport(id: string): Promise<MissionRapport> {
+  return apiFetch<MissionRapport>(`/missions/${id}/rapport`);
+}
+
+export async function verifierPointages(id: string, payload: VerifierPointagePayload): Promise<Mission> {
+  return apiFetch<Mission>(`/missions/${id}/pointages/verification`, {
+    method: "POST",
+    body: payload,
   });
 }
 

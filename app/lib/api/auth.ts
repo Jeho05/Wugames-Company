@@ -71,7 +71,7 @@ export async function requestPasswordReset(email: string): Promise<MessageRespon
 }
 
 export async function confirmPasswordReset(token: string, newPassword: string): Promise<MessageResponse> {
-  return apiFetchPublic<MessageResponse>("/auth/password-reset", {
+  return apiFetchPublic<MessageResponse>("/auth/password-reset/confirm", {
     method: "POST",
     body: { token: token.trim(), new_password: newPassword },
   });

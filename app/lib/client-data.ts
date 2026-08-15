@@ -1,18 +1,24 @@
 import type {
+  ChantierStatut,
+  Commande,
+  Devis,
   Facture,
   FactureStatut,
+  Fidelite,
   Mission,
   MissionStatut,
   Notification,
+  ClientProjet,
+  DemandeDevis,
 } from "@/app/lib/contracts";
-import { getCommandes, getDevis, getFactures, getMissions } from "@/app/lib/api/client-space";
+import { getCommandes, getDemandes, getDevis, getFactures, getFidelite, getMissions, getProjets } from "@/app/lib/api/client-space";
 import { listNotifications } from "@/app/lib/api/notifications";
 
 export type ClientGlobalState = "ok" | "action" | "critical";
 
 export type DevisStatut = "EN_ATTENTE" | "ACCEPTE" | "REFUSE" | "EXPIRE";
 
-export type CommandeStatut = "EN_PREPARATION" | "LIVREE" | "ANNULEE";
+export type CommandeStatut = "EN_PREPARATION" | "EXPEDIEE" | "LIVREE" | "ANNULEE";
 
 export type ClientMissionView = {
   id: string;
@@ -96,6 +102,7 @@ export type ClientPortalData = {
   notifications: ClientNotificationView[];
   demandes: ClientDemandeView[];
   projets: ClientProjetView[];
+  fidelite: Fidelite | null;
 };
 
 /* ------------------------------------------------------------------ */
@@ -132,8 +139,35 @@ export const devisStatutMeta: Record<DevisStatut, { label: string; tone: StatusT
 
 export const commandeStatutMeta: Record<CommandeStatut, { label: string; tone: StatusTone }> = {
   EN_PREPARATION: { label: "En préparation", tone: "info" },
+  EXPEDIEE: { label: "Expédiée", tone: "info" },
   LIVREE: { label: "Livrée", tone: "success" },
   ANNULEE: { label: "Annulée", tone: "danger" },
+};
+
+/** Correspondance des statuts devis de l'API vers les statuts de l'UI client. */
+const devisStatutFromApi: Record<string, DevisStatut> = {
+  BROUILLON: "EN_ATTENTE",
+  ENVOYE: "EN_ATTENTE",
+  SIGNE: "ACCEPTE",
+  REFUSE: "REFUSE",
+  EXPIRE: "EXPIRE",
+};
+
+/** Correspondance des statuts demandes de l'API vers les statuts de l'UI client. */
+const demandeStatutFromApi: Record<string, DemandeStatut> = {
+  RECUE: "ENVOYEE",
+  EN_COURS: "ETUDIEE",
+  A_CONFIRMER: "DEVIS_PROPOSE",
+  TERMINEE: "ACCEPTEE",
+};
+
+/** Correspondance des statuts chantiers de l'API vers les statuts de l'UI client (missions). */
+const projetStatutFromApi: Record<ChantierStatut, MissionStatut> = {
+  PLANIFIE: "PLANIFIE",
+  EN_COURS: "EN_COURS",
+  SUSPENDU: "ACCEPTE",
+  TERMINE: "TERMINE",
+  ANNULE: "TERMINE",
 };
 
 export const demandeTypeMeta: Record<DemandeType, { label: string; tone: StatusTone }> = {
@@ -246,11 +280,13 @@ const demoFactures: Facture[] = [
     filiale_id: "f1",
     client_id: "c1",
     mission_id: "dm1",
+    devis_id: null,
     montant_ht: "4 245 763",
     montant_ttc: "5 010 000",
     statut: "EMISE",
     date_emission: "2026-07-28",
     date_echeance: "2026-08-15",
+    date_paiement: null,
     exercice_comptable: 2026,
     numero_sequence: 184,
     created_at: "2026-07-28T10:00:00.000Z",
@@ -262,11 +298,13 @@ const demoFactures: Facture[] = [
     filiale_id: "f1",
     client_id: "c1",
     mission_id: "dm2",
+    devis_id: null,
     montant_ht: "1 900 000",
     montant_ttc: "2 242 000",
     statut: "PAYEE",
     date_emission: "2026-06-02",
     date_echeance: "2026-06-17",
+    date_paiement: "2026-06-16",
     exercice_comptable: 2026,
     numero_sequence: 181,
     created_at: "2026-06-02T10:00:00.000Z",
@@ -278,11 +316,13 @@ const demoFactures: Facture[] = [
     filiale_id: "f1",
     client_id: "c1",
     mission_id: "dm3",
+    devis_id: null,
     montant_ht: "980 000",
     montant_ttc: "1 156 400",
     statut: "PAYEE",
     date_emission: "2026-05-28",
     date_echeance: "2026-06-12",
+    date_paiement: "2026-06-11",
     exercice_comptable: 2026,
     numero_sequence: 179,
     created_at: "2026-05-28T10:00:00.000Z",
@@ -541,6 +581,62 @@ function notificationView(notification: Notification): ClientNotificationView | 
   };
 }
 
+function devisView(devis: Devis): ClientDevisView {
+  const objet = devis.lignes && devis.lignes.length > 0
+    ? devis.lignes.map((ligne) => ligne.designation).join(" · ")
+    : devis.client
+      ? `Devis pour ${[devis.client.first_name, devis.client.last_name].filter(Boolean).join(" ") || devis.client.email}`
+      : "Devis WUGAMS";
+  return {
+    id: devis.id,
+    numero: devis.numero,
+    objet: objet.slice(0, 64),
+    montant: Number(devis.montant_ttc ?? devis.montant_ht ?? 0),
+    date: formatDateFr(devis.created_at),
+    validite: devis.date_validite ? formatDateFr(devis.date_validite) : "30 jours",
+    statut: devisStatutFromApi[devis.statut] ?? "EN_ATTENTE",
+  };
+}
+
+function commandeView(commande: Commande): ClientCommandeView {
+  return {
+    id: commande.id,
+    numero: commande.numero,
+    date: formatDateFr(commande.created_at),
+    statut: commande.statut,
+    nbArticles: commande.articles.reduce((sum, article) => sum + article.quantite, 0),
+    montant: Number(commande.montant_total ?? 0),
+    articles: commande.articles.map((article) => `${article.designation} — ${article.quantite} × ${formatFcfaCompact(article.prix_unitaire)}`),
+  };
+}
+
+function demandeView(demande: DemandeDevis): ClientDemandeView {
+  return {
+    id: demande.id,
+    type: "DEVIS",
+    objet: demande.libelle,
+    detail: demande.service,
+    date: formatDateFr(demande.created_at),
+    statut: demandeStatutFromApi[demande.statut] ?? "ENVOYEE",
+    piecesJointes: 0,
+  };
+}
+
+function projetView(projet: ClientProjet): ClientProjetView {
+  return {
+    id: projet.id,
+    titre: projet.titre,
+    filiale: "—",
+    statut: projetStatutFromApi[projet.statut] ?? "PLANIFIE",
+    progression: projet.avancement_pct ?? 0,
+    debut: "—",
+    fin: projet.prochaine_visite ? formatDateFr(projet.prochaine_visite) : null,
+    equipe: projet.photos_count > 0 ? `${projet.photos_count} photo${projet.photos_count > 1 ? "s" : ""}` : "—",
+    galerie: [],
+    rapport: null,
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* Chargement                                                          */
 /* ------------------------------------------------------------------ */
@@ -554,16 +650,21 @@ export const demoClientPortalData: ClientPortalData = {
   notifications: demoNotifications,
   demandes: demoDemandes,
   projets: demoProjets,
+  fidelite: null,
 };
 
 export async function loadClientPortalData(): Promise<ClientPortalData> {
-  const [facturesRes, devisRes, commandesRes, missionsRes, notificationsRes] = await Promise.allSettled([
-    getFactures(),
-    getDevis(),
-    getCommandes(),
-    getMissions(),
-    listNotifications(),
-  ]);
+  const [facturesRes, devisRes, commandesRes, missionsRes, notificationsRes, demandesRes, projetsRes, fideliteRes] =
+    await Promise.allSettled([
+      getFactures(),
+      getDevis(),
+      getCommandes(),
+      getMissions(),
+      listNotifications(),
+      getDemandes(),
+      getProjets(),
+      getFidelite(),
+    ]);
 
   const live =
     facturesRes.status === "fulfilled" ||
@@ -580,47 +681,26 @@ export async function loadClientPortalData(): Promise<ClientPortalData> {
     : demoMissions;
 
   const apiDevis = devisRes.status === "fulfilled" && devisRes.value.length > 0
-    ? (devisRes.value as unknown[]).map((raw, index) => {
-        const entry = raw as Record<string, unknown>;
-        const numero = String(entry.numero ?? entry.reference ?? `DEV-2026-${String(100 + index)}`);
-        return {
-          id: String(entry.id ?? numero),
-          numero,
-          objet: String(entry.objet ?? entry.titre ?? "Devis WUGAMS"),
-          montant: Number(entry.montant ?? entry.montant_ttc ?? 0),
-          date: formatDateFr(String(entry.date ?? entry.created_at ?? "")),
-          validite: String(entry.validite ?? "30 jours"),
-          statut: (String(entry.statut ?? "EN_ATTENTE") as DevisStatut) in devisStatutMeta
-            ? (String(entry.statut) as DevisStatut)
-            : "EN_ATTENTE",
-        } satisfies ClientDevisView;
-      })
+    ? devisRes.value.map(devisView)
     : demoDevis;
 
   const apiCommandes = commandesRes.status === "fulfilled" && commandesRes.value.length > 0
-    ? (commandesRes.value as unknown[]).map((raw, index) => {
-        const entry = raw as Record<string, unknown>;
-        const numero = String(entry.numero ?? entry.reference ?? `CMD-2026-${String(100 + index)}`);
-        const rawStatut = String(entry.statut ?? "EN_PREPARATION");
-        return {
-          id: String(entry.id ?? numero),
-          numero,
-          date: formatDateFr(String(entry.date ?? entry.created_at ?? "")),
-          statut: (rawStatut as CommandeStatut) in commandeStatutMeta
-            ? (rawStatut as CommandeStatut)
-            : "EN_PREPARATION",
-          nbArticles: Number(entry.nb_articles ?? (Array.isArray(entry.articles) ? entry.articles.length : 0)),
-          montant: Number(entry.montant ?? entry.montant_ttc ?? 0),
-          articles: Array.isArray(entry.articles)
-            ? (entry.articles as unknown[]).map((article) => String(article))
-            : [],
-        } satisfies ClientCommandeView;
-      })
+    ? commandesRes.value.map(commandeView)
     : demoCommandes;
 
   const apiNotifications = notificationsRes.status === "fulfilled" && notificationsRes.value.length > 0
     ? notificationsRes.value.map(notificationView).filter((n): n is ClientNotificationView => n !== null)
     : demoNotifications;
+
+  const apiDemandes = demandesRes.status === "fulfilled" && demandesRes.value.length > 0
+    ? demandesRes.value.map(demandeView)
+    : demoDemandes;
+
+  const apiProjets = projetsRes.status === "fulfilled" && projetsRes.value.length > 0
+    ? projetsRes.value.map(projetView)
+    : demoProjets;
+
+  const apiFidelite = fideliteRes.status === "fulfilled" ? fideliteRes.value : null;
 
   return {
     live,
@@ -629,7 +709,8 @@ export async function loadClientPortalData(): Promise<ClientPortalData> {
     devis: apiDevis,
     commandes: apiCommandes,
     notifications: apiNotifications,
-    demandes: demoDemandes,
-    projets: demoProjets,
+    demandes: apiDemandes,
+    projets: apiProjets,
+    fidelite: apiFidelite,
   };
 }

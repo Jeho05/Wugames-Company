@@ -1,16 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
+import { useAuth } from "@/app/lib/auth-context";
 import {
   boutiqueCategorieMeta,
+  boutiqueCommandeFromApi,
   demoBoutiqueCommandes,
   demoBoutiqueProduits,
   formatMontantFcfa,
+  loadBoutiqueData,
+  passerCommandeApi,
   type BoutiqueCommande,
   type BoutiqueProduit,
 } from "@/app/lib/client-shop-data";
@@ -23,18 +27,36 @@ type ClientBoutiqueProps = {
 
 const commandeStatutMeta: Record<BoutiqueCommande["statut"], { label: string; badge: string }> = {
   EN_PREPARATION: { label: "En préparation", badge: "border-amber-200 bg-amber-50 text-amber-800" },
-  EN_COURS: { label: "En cours de livraison", badge: "border-sky-200 bg-sky-50 text-sky-700" },
+  EXPEDIEE: { label: "Expédiée", badge: "border-sky-200 bg-sky-50 text-sky-700" },
   LIVREE: { label: "Livrée", badge: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+  ANNULEE: { label: "Annulée", badge: "border-rose-200 bg-rose-50 text-rose-700" },
 };
 
 const categorieOrder: BoutiqueProduit["categorie"][] = ["entretien", "materiaux", "mobilier", "outillage"];
 
 export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqueProps) {
-  const [produits] = useState<BoutiqueProduit[]>(demoBoutiqueProduits);
+  const { user } = useAuth();
+  const [produits, setProduits] = useState<BoutiqueProduit[]>(demoBoutiqueProduits);
   const [commandes, setCommandes] = useState<BoutiqueCommande[]>(demoBoutiqueCommandes);
+  const [live, setLive] = useState(false);
   const [panier, setPanier] = useState<PanierLigne[]>([]);
   const [categorie, setCategorie] = useState<BoutiqueProduit["categorie"] | "toutes">("toutes");
   const [commandeOk, setCommandeOk] = useState(false);
+  const [telephone, setTelephone] = useState("");
+  const [envoi, setEnvoi] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadBoutiqueData(user?.filialeId ?? null).then((data) => {
+      if (cancelled) return;
+      setProduits(data.produits);
+      setCommandes(data.commandes);
+      setLive(data.live);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.filialeId]);
 
   const total = useMemo(() => panier.reduce((sum, ligne) => sum + ligne.produit.prix * ligne.quantite, 0), [panier]);
   const totalUnites = useMemo(() => panier.reduce((sum, ligne) => sum + ligne.quantite, 0), [panier]);
@@ -65,8 +87,25 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
     );
   }
 
-  function commander() {
-    if (panier.length === 0) return;
+  async function commander() {
+    if (panier.length === 0 || envoi) return;
+
+    const commandeEnLigne = live && user?.filialeId && telephone.trim().length >= 8;
+    if (commandeEnLigne) {
+      setEnvoi(true);
+      try {
+        const commande = await passerCommandeApi(user.filialeId as string, panier, telephone.trim());
+        setCommandes((prev) => [boutiqueCommandeFromApi(commande), ...prev]);
+        setPanier([]);
+        setCommandeOk(true);
+        return;
+      } catch {
+        /* bascule silencieuse vers le flux de démonstration */
+      } finally {
+        setEnvoi(false);
+      }
+    }
+
     const nouvelle: BoutiqueCommande = {
       id: `bc-${Date.now()}`,
       items: panier.map((l) => ({ produitId: l.produit.id, nom: l.produit.nom, quantite: l.quantite, prix: l.produit.prix })),
@@ -83,9 +122,16 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
   return (
     <ClientSection
       action={
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
-          <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-          Espace Wu · livraison 7 j/7
+        <span
+          className={
+            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold " +
+            (live
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"
+              : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300")
+          }
+        >
+          <span className={"size-1.5 animate-pulse rounded-full " + (live ? "bg-emerald-500" : "bg-amber-500")} />
+          {live ? "Espace Wu · données en direct" : "Espace Wu · démonstration"}
         </span>
       }
       icon="shopping-bag"
@@ -272,13 +318,33 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
                   <span className="text-[10px] font-bold text-slate-300">Total</span>
                   <span className="text-[15px] font-extrabold tabular-nums">{formatMontantFcfa(total)}</span>
                 </div>
+                {live ? (
+                  <div className="mt-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2 dark:border-white/10 dark:bg-white/[0.03]">
+                    <Icon className="shrink-0 text-[#0f7a5f] dark:text-emerald-300" name="phone" size={14} />
+                    <input
+                      aria-label="Numéro Mobile Money"
+                      autoComplete="tel"
+                      className="w-full bg-transparent text-[11px] font-bold text-[#16233a] placeholder:text-slate-300 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
+                      inputMode="tel"
+                      onChange={(event) => setTelephone(event.target.value)}
+                      placeholder="Numéro Mobile Money (MTN/Moov)"
+                      type="tel"
+                      value={telephone}
+                    />
+                  </div>
+                ) : null}
                 <button
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0f7a5f] px-4 py-3 text-[12px] font-extrabold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-[#0e6e57] active:scale-[0.99]"
-                  onClick={commander}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0f7a5f] px-4 py-3 text-[12px] font-extrabold text-white shadow-lg shadow-emerald-900/20 transition hover:bg-[#0e6e57] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={(live && telephone.trim().length < 8) || envoi}
+                  onClick={() => void commander()}
                   type="button"
                 >
-                  <Icon name="check" size={14} />
-                  Commander ({formatMontantFcfa(total)})
+                  {envoi ? (
+                    <Icon className="animate-spin" name="refresh" size={14} />
+                  ) : (
+                    <Icon name="check" size={14} />
+                  )}
+                  {envoi ? "Paiement en cours…" : `Commander (${formatMontantFcfa(total)})`}
                 </button>
                 <p className="mt-2 text-center text-[9px] text-slate-300">
                   Paiement Mobile Money ou imputé sur votre compte membre · retrait à l&apos;Espace Wu

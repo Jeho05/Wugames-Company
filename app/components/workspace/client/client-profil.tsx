@@ -8,10 +8,12 @@ import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
+import type { Fidelite } from "@/app/lib/contracts";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
 
 type ClientProfilProps = {
   user: WorkspaceUser;
+  fidelite?: Fidelite | null;
 };
 
 const contactRows: { label: string; value: string; icon: IconName }[] = [
@@ -21,7 +23,7 @@ const contactRows: { label: string; value: string; icon: IconName }[] = [
   { label: "Entreprise", value: "WUGAMS BTP & Services", icon: "building" },
 ];
 
-export function ClientProfil({ user }: ClientProfilProps) {
+export function ClientProfil({ user, fidelite }: ClientProfilProps) {
   const [twoFa, setTwoFa] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { logout } = useAuth();
@@ -81,6 +83,23 @@ export function ClientProfil({ user }: ClientProfilProps) {
               </div>
             ))}
           </dl>
+
+          {fidelite ? (
+            <div className="mt-4 flex items-center gap-4 rounded-2xl border border-[#e3a641]/25 bg-gradient-to-r from-[#e3a641]/[0.12] to-transparent px-4 py-3.5">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#17294b] text-[#f2c56d]">
+                <Icon name="sparkles" size={18} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[#b47e1e]">Fidélité {fidelite.tier}</p>
+                <p className="mt-0.5 text-sm font-extrabold tracking-tight text-[#16233a] dark:text-white">
+                  {fidelite.points_actuels.toLocaleString("fr-FR")} pts
+                </p>
+                <p className="mt-0.5 text-[11px] text-slate-400">
+                  Réduction boutique · {fidelite.reduction_boutique_pct}% · {fidelite.points_cumules.toLocaleString("fr-FR")} pts cumulés
+                </p>
+              </div>
+            </div>
+          ) : null}
         </motion.article>
 
         <motion.article

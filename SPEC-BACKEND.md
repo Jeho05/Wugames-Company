@@ -206,7 +206,7 @@ Réponse : `{ "message": "string" }` (toujours `200`, que l'email existe ou non 
 Le back génère un token à usage unique (TTL 1 h) et l'expédie **par email** (ou via le provider
 §4.19). Un token déjà consommé est invalidé (jeton à stocker hashé).
 
-**Étape 2 — confirmer avec le token** (publique) :
+**Étape 2 — confirmer avec le token** (publique) — endpoint distinct `POST /auth/password-reset/confirm` :
 ```json
 // Requête
 { "token": "uuid", "new_password": "NouveauMotDePasse123!" }
@@ -245,6 +245,59 @@ ROLE_MGR_PARTENAIRE | ROLE_MGR_FILIALE | ROLE_DEV_DIGITAL | ROLE_GERANT
 
 > Les 3 nouveaux comptes alimentent les boutons « un clic » de la page `/connexion` et les
 > command centers par rôle du front.
+
+---
+
+## 2.6 Constat de déploiement — smoke tests live (2026-08-15)
+
+> Testés contre `https://wugames-holding-inc.vercel.app` (base `/api/v1`), compte gérant
+> `admin@wugams.com` + compte client créé via `POST /clients`. Les écarts ci-dessous sont
+> **des bugs du backend déployé** ; le front s'appuie sur son fallback silencieux « Mode
+> démonstration » pour absorber les 500.
+
+### Fonctionnels
+
+| Endpoint | Note |
+|---|---|
+| `POST /auth/login`, `POST /auth/me`, `POST /auth/logout` | OK (JWT : `sub`, `email`, `role`, `filiale_id`, `two_factor_enabled`, `profile_id`) |
+| `GET/POST /clients`, `/fournisseurs`, `/filiales`, `/users`, `/managers`, `/evaluations` | OK |
+| `GET /stocks/produits`, `GET /stocks/alertes`, `POST /stocks/mouvements`, `POST /stocks/produits` | OK |
+| `GET /audit-logs` | OK — query **required** : `table_cible`, `entite_id` |
+| `POST /missions` | OK — **ne pas envoyer `statut`** (défaut `PLANIFIE`) ; `client_id`, `date_planifiee` acceptés |
+| `POST /users` | OK — `{ email, password, first_name, last_name, role, filiale_id }` |
+| `POST /clients` | OK — forme **plate** : `{ email, password, first_name, last_name }` (+ `telephone`, `adresse` optionnels). Crée `ROLE_CLIENT_STD` + `client_profile`. ⚠️ renvoie `password_hash` dans la réponse |
+| `GET /client-space/profil`, `GET /client-space/missions` | OK (missions : 0 élément pour un client sans mission) |
+| `POST /auth/password-reset/confirm` | Endpoint présent, mais token invalide → **500** (un 400 serait propre) |
+
+### En échec — HTTP 500 (bug backend, DTO/params pourtant corrects)
+
+`GET /missions`, `GET /chantiers`, `GET /commandes`, `GET /devis`, `GET /factures`,
+`GET /primes`, `GET /pointages`, `GET /notifications`, `GET /messagerie/conversations`,
+`GET /notifications-prefs`, `POST /devis`, `POST /commandes`, `POST /factures`,
+`PATCH /notifications-prefs`, `GET /fidelite`, `GET /fidelite/historique`,
+`GET /client-space/{demandes,devis,commandes,projets,documents,fidelite}`,
+`POST /client-space/demandes` (400 — DTO non documenté, 3 formes testées).
+
+### RBAC vérifié en live
+
+- Client (std/membre) : `GET /stocks/produits` → **403** (catalogue boutique non visible côté
+  stock ; le front utilise la démo pour le catalogue et le fallback pour la commande).
+- `GET /client-space/factures` → **403** pour `ROLE_CLIENT_STD` (réservé membre).
+- Secrétaire (filiale liée) : `GET /missions`, `/chantiers`, `/primes`, `/pointages` → **403**
+  (réservés gérant/dev digital) ; `GET /commandes`, `/devis`, `/factures` → 500 (même bug que gérant).
+
+### DTO réels (spécifiés dans `/docs-json`)
+
+- `CreateLigneDevisDto` : `designation`, `quantite`, `prix_unitaire_ht` (**tous required** — pas `prix_unitaire`).
+- `CreateLigneCommandeDto` : `produit_id`, `quantite` (required), `prix_unitaire` (optionnel).
+- `CreateDevisDto` / `CreateCommandeDto` : `filiale_id` + `lignes` required.
+- `UpdateNotificationPrefsDto` : `{ canaux: object, types: object, telephone: string }` (endpoint `/notifications-prefs`).
+
+### Comptes créés par les smoke tests (à nettoyer au prochain reset)
+
+`client.smoke.1786792986@wugams.com` (CLIENT_MEMBRE, sans profile), `d.smoke.1786793027@wugams.com`
+(CLIENT_STD, avec profile), `secretaire.smoke.1786792705@wugams.com` (SECRETAIRE, filiale MAT),
+missions « Test smoke mission * », commande créée si le 500 est corrigé. Mot de passe commun : `SmokeTest123!`.
 
 ---
 

@@ -1,13 +1,7 @@
-import type { Mission, MissionStatut, Notification } from "@/app/lib/contracts";
-import { getCommandes, getDevis, getMissions } from "@/app/lib/api/client-space";
+import type { Commande, Devis, Mission, MissionStatut, Notification, ClientProjet } from "@/app/lib/contracts";
+import { getCommandes, getDevis, getMissions, getProjets } from "@/app/lib/api/client-space";
 import { listNotifications } from "@/app/lib/api/notifications";
-import {
-  commandeStatutMeta,
-  devisStatutMeta,
-  formatDateFr,
-  formatDateTimeFr,
-  missionStatutMeta,
-} from "@/app/lib/client-data";
+import { formatDateFr, formatDateTimeFr, missionStatutMeta } from "@/app/lib/client-data";
 import type { ClientProjetView, CommandeStatut, DevisStatut } from "@/app/lib/client-data";
 
 export type ClientStdGlobalState = "ok" | "action" | "critical";
@@ -296,6 +290,66 @@ function notificationView(notification: Notification): ClientStdNotificationView
   };
 }
 
+function devisView(devis: Devis): ClientStdDevisView {
+  const objet = devis.lignes && devis.lignes.length > 0
+    ? devis.lignes.map((ligne) => ligne.designation).join(" · ")
+    : devis.client
+      ? `Devis pour ${[devis.client.first_name, devis.client.last_name].filter(Boolean).join(" ") || devis.client.email}`
+      : "Devis WUGAMS";
+  return {
+    id: devis.id,
+    numero: devis.numero,
+    objet: objet.slice(0, 64),
+    montant: Number(devis.montant_ttc ?? devis.montant_ht ?? 0),
+    date: formatDateFr(devis.created_at),
+    validite: devis.date_validite ? formatDateFr(devis.date_validite) : "30 jours",
+    statut: devisStatutFromApi[devis.statut] ?? "EN_ATTENTE",
+  };
+}
+
+const devisStatutFromApi: Record<string, DevisStatut> = {
+  BROUILLON: "EN_ATTENTE",
+  ENVOYE: "EN_ATTENTE",
+  SIGNE: "ACCEPTE",
+  REFUSE: "REFUSE",
+  EXPIRE: "EXPIRE",
+};
+
+const projetStatutFromApi: Record<string, MissionStatut> = {
+  PLANIFIE: "PLANIFIE",
+  EN_COURS: "EN_COURS",
+  SUSPENDU: "ACCEPTE",
+  TERMINE: "TERMINE",
+  ANNULE: "TERMINE",
+};
+
+function commandeView(commande: Commande): ClientStdCommandeView {
+  return {
+    id: commande.id,
+    numero: commande.numero,
+    date: formatDateFr(commande.created_at),
+    statut: commande.statut,
+    nbArticles: commande.articles.reduce((sum, article) => sum + article.quantite, 0),
+    montant: Number(commande.montant_total ?? 0),
+    articles: commande.articles.map((article) => `${article.designation} — ${article.quantite} × ${article.prix_unitaire}`),
+  };
+}
+
+function projetView(projet: ClientProjet): ClientProjetView {
+  return {
+    id: projet.id,
+    titre: projet.titre,
+    filiale: "—",
+    statut: projetStatutFromApi[projet.statut] ?? "PLANIFIE",
+    progression: projet.avancement_pct ?? 0,
+    debut: "—",
+    fin: projet.prochaine_visite ? formatDateFr(projet.prochaine_visite) : null,
+    equipe: projet.photos_count > 0 ? `${projet.photos_count} photo${projet.photos_count > 1 ? "s" : ""}` : "—",
+    galerie: [],
+    rapport: null,
+  };
+}
+
 /* ------------------------------------------------------------------ */
 /* Chargement — aucun endpoint financier pour le ROLE_CLIENT_STD       */
 /* ------------------------------------------------------------------ */
@@ -310,11 +364,12 @@ export const demoClientStdData: ClientStdData = {
 };
 
 export async function loadClientStdData(): Promise<ClientStdData> {
-  const [missionsRes, commandesRes, devisRes, notificationsRes] = await Promise.allSettled([
+  const [missionsRes, commandesRes, devisRes, notificationsRes, projetsRes] = await Promise.allSettled([
     getMissions(),
     getCommandes(),
     getDevis(),
     listNotifications(),
+    getProjets(),
   ]);
 
   const live =
@@ -327,47 +382,20 @@ export async function loadClientStdData(): Promise<ClientStdData> {
     : demoMissions;
 
   const apiCommandes = commandesRes.status === "fulfilled" && commandesRes.value.length > 0
-    ? (commandesRes.value as unknown[]).map((raw, index) => {
-        const entry = raw as Record<string, unknown>;
-        const numero = String(entry.numero ?? entry.reference ?? `CMD-2026-${String(100 + index)}`);
-        const rawStatut = String(entry.statut ?? "EN_PREPARATION");
-        return {
-          id: String(entry.id ?? numero),
-          numero,
-          date: formatDateFr(String(entry.date ?? entry.created_at ?? "")),
-          statut: (rawStatut as CommandeStatut) in commandeStatutMeta
-            ? (rawStatut as CommandeStatut)
-            : "EN_PREPARATION",
-          nbArticles: Number(entry.nb_articles ?? (Array.isArray(entry.articles) ? entry.articles.length : 0)),
-          montant: Number(entry.montant ?? entry.montant_ttc ?? 0),
-          articles: Array.isArray(entry.articles)
-            ? (entry.articles as unknown[]).map((article) => String(article))
-            : [],
-        } satisfies ClientStdCommandeView;
-      })
+    ? commandesRes.value.map(commandeView)
     : demoCommandes;
 
   const apiDevis = devisRes.status === "fulfilled" && devisRes.value.length > 0
-    ? (devisRes.value as unknown[]).map((raw, index) => {
-        const entry = raw as Record<string, unknown>;
-        const numero = String(entry.numero ?? entry.reference ?? `DEV-2026-${String(100 + index)}`);
-        return {
-          id: String(entry.id ?? numero),
-          numero,
-          objet: String(entry.objet ?? entry.titre ?? "Devis WUGAMS"),
-          montant: Number(entry.montant ?? entry.montant_ttc ?? 0),
-          date: formatDateFr(String(entry.date ?? entry.created_at ?? "")),
-          validite: String(entry.validite ?? "30 jours"),
-          statut: (String(entry.statut ?? "EN_ATTENTE") as DevisStatut) in devisStatutMeta
-            ? (String(entry.statut) as DevisStatut)
-            : "EN_ATTENTE",
-        } satisfies ClientStdDevisView;
-      })
+    ? devisRes.value.map(devisView)
     : demoDevis;
 
   const apiNotifications = notificationsRes.status === "fulfilled" && notificationsRes.value.length > 0
     ? notificationsRes.value.map(notificationView).filter((n): n is ClientStdNotificationView => n !== null)
     : demoNotifications;
+
+  const apiProjets = projetsRes.status === "fulfilled" && projetsRes.value.length > 0
+    ? projetsRes.value.map(projetView)
+    : demoProjets;
 
   return {
     live,
@@ -375,6 +403,6 @@ export async function loadClientStdData(): Promise<ClientStdData> {
     commandes: apiCommandes,
     devis: apiDevis,
     notifications: apiNotifications,
-    projets: demoProjets,
+    projets: apiProjets,
   };
 }
