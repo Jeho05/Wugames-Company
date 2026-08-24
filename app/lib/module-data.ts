@@ -1,9 +1,12 @@
 import type {
   Chantier,
+  ClientDocument,
   ClientProfile,
+  ClientProjet,
   Commande,
   Conversation,
   Devis,
+  DemandeDevis,
   FournisseurProfile,
   Filiale,
   Manager,
@@ -28,6 +31,7 @@ import * as chantiersApi from "@/app/lib/api/chantiers";
 import * as commandesApi from "@/app/lib/api/commandes";
 import * as messagerieApi from "@/app/lib/api/messagerie";
 import * as managersApi from "@/app/lib/api/managers";
+import * as clientSpaceApi from "@/app/lib/api/client-space";
 
 export type ModuleData = {
   rows: ModuleRow[];
@@ -162,6 +166,13 @@ const commandeStatuts: Record<string, ModuleStatus> = {
   ANNULEE: status("Annulée", "neutral"),
 };
 
+const demandeStatuts: Record<string, ModuleStatus> = {
+  RECUE: status("Reçue", "neutral"),
+  EN_COURS: status("En cours", "info"),
+  A_CONFIRMER: status("À confirmer", "warning"),
+  TERMINEE: status("Terminée", "success"),
+};
+
 const roleLabels: Record<string, string> = {
   ROLE_MGR_OPS: "Manager Opérations",
   ROLE_MGR_PARTENAIRE: "Manager Partenariats",
@@ -223,6 +234,36 @@ export function conversationRow(conversation: Conversation): ModuleRow {
   };
 }
 
+export function clientProjetRow(projet: ClientProjet): ModuleRow {
+  return {
+    projet: projet.titre,
+    adresse: projet.adresse ?? "—",
+    avancement: `${projet.avancement_pct ?? 0} %`,
+    updated: formatDate(projet.prochaine_visite, "—"),
+    statut: chantierStatuts[projet.statut] ?? status(projet.statut, "neutral"),
+  };
+}
+
+export function demandeRow(demande: DemandeDevis): ModuleRow {
+  return {
+    demande: demande.libelle,
+    service: demande.service,
+    created: formatDate(demande.created_at),
+    contact: "—",
+    statut: demandeStatuts[demande.statut] ?? status(demande.statut, "neutral"),
+  };
+}
+
+export function clientDocumentRow(doc: ClientDocument): ModuleRow {
+  return {
+    document: doc.titre,
+    projet: doc.projet ?? "—",
+    date: formatDate(doc.date),
+    author: doc.auteur ?? "—",
+    statut: status("Disponible", "success"),
+  };
+}
+
 export function managerRow(manager: Manager): ModuleRow {
   const user = manager.user;
   const activite = manager.activite_du_mois;
@@ -278,7 +319,13 @@ function notificationRow(notification: unknown): ModuleRow {
 /* Chargement par module                                               */
 /* ------------------------------------------------------------------ */
 
-type Loader = () => Promise<ModuleData>;
+type Loader = (role: RoleCode) => Promise<ModuleData>;
+
+const CLIENT_ROLES: readonly RoleCode[] = ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"];
+
+function isClient(role: RoleCode): boolean {
+  return (CLIENT_ROLES as readonly string[]).includes(role);
+}
 
 const apiLoaders: Record<string, Loader> = {
   clients: async () => {
@@ -403,7 +450,23 @@ const apiLoaders: Record<string, Loader> = {
       ],
     };
   },
-  commandes: async () => {
+  commandes: async (role) => {
+    if (isClient(role)) {
+      const commandes = await clientSpaceApi.getCommandes();
+      return {
+        rows: commandes.map(commandeRow),
+        stats: [
+          { label: "Commandes", value: String(commandes.length) },
+          { label: "En préparation", value: String(commandes.filter((c) => c.statut === "EN_PREPARATION").length) },
+          { label: "Livrées", value: String(commandes.filter((c) => c.statut === "LIVREE").length) },
+        ],
+        insights: [
+          { label: "Total commandé", value: formatFcfa(commandes.reduce((sum, c) => sum + Number(c.montant_total), 0)) },
+          { label: "Payées", value: String(commandes.filter((c) => c.paiement?.statut === "PAYE").length) },
+          { label: "Source", value: "API WUGAMS" },
+        ],
+      };
+    }
     const commandes = await commandesApi.listCommandes();
     const enPreparation = commandes.filter((c) => c.statut === "EN_PREPARATION").length;
     const livrees = commandes.filter((c) => c.statut === "LIVREE").length;
@@ -437,6 +500,22 @@ const apiLoaders: Record<string, Loader> = {
       ],
     };
   },
+  messages: async () => {
+    const conversations = await messagerieApi.listConversations();
+    const nonLus = conversations.reduce((sum, c) => sum + (c.non_lus ?? 0), 0);
+    return {
+      rows: conversations.map(conversationRow),
+      stats: [
+        { label: "Conversations", value: String(conversations.length) },
+        { label: "Non lues", value: String(nonLus) },
+        { label: "Actives", value: String(conversations.length) },
+      ],
+      insights: [
+        { label: "Dernière activité", value: conversations[0] ? formatDate(conversations[0].derniere_activite, "—") : "—" },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
   managers: async () => {
     const managers = await managersApi.listManagers();
     const actifs = managers.filter((m) => m.user.is_active).length;
@@ -453,7 +532,23 @@ const apiLoaders: Record<string, Loader> = {
       ],
     };
   },
-  factures: async () => {
+  factures: async (role) => {
+    if (isClient(role)) {
+      const factures = await clientSpaceApi.getFactures();
+      return {
+        rows: factures.map(factureRow),
+        stats: [
+          { label: "Factures", value: String(factures.length) },
+          { label: "Payées", value: String(factures.filter((f) => f.statut === "PAYEE").length) },
+          { label: "En attente", value: String(factures.filter((f) => f.statut === "EMISE" || f.statut === "EN_RETARD").length) },
+        ],
+        insights: [
+          { label: "Montant total TTC", value: formatFcfa(factures.reduce((sum, f) => sum + Number(f.montant_ttc), 0)) },
+          { label: "Annulées", value: String(factures.filter((f) => f.statut === "ANNULEE").length) },
+          { label: "Source", value: "API WUGAMS" },
+        ],
+      };
+    }
     const factures = await facturesApi.listFactures();
     const payees = factures.filter((f) => f.statut === "PAYEE").length;
     const enAttente = factures.filter((f) => f.statut === "EMISE" || f.statut === "EN_RETARD").length;
@@ -471,18 +566,51 @@ const apiLoaders: Record<string, Loader> = {
       ],
     };
   },
-  ouvriers: async () => {
-    const users = await usersApi.listUsers();
-    const ouvriers = users.filter((u) => u.role === "ROLE_OUVRIER");
+  projets: async () => {
+    const projets = await clientSpaceApi.getProjets();
+    const enCours = projets.filter((p) => p.statut === "EN_COURS" || p.statut === "PLANIFIE").length;
     return {
-      rows: ouvriers.map(userRow),
+      rows: projets.map(clientProjetRow),
       stats: [
-        { label: "Ouvriers API", value: String(ouvriers.length) },
-        { label: "Actifs", value: String(ouvriers.filter((u) => u.is_active).length) },
-        { label: "Matriculés", value: String(ouvriers.filter((u) => u.ouvrier_profile?.matricule).length) },
+        { label: "Projets", value: String(projets.length) },
+        { label: "En cours", value: String(enCours) },
+        { label: "Terminés", value: String(projets.filter((p) => p.statut === "TERMINE").length) },
       ],
       insights: [
-        { label: "Spécialités renseignées", value: String(ouvriers.filter((u) => u.ouvrier_profile?.specialite).length) },
+        { label: "Avancement moyen", value: projets.length ? `${Math.round(projets.reduce((sum, p) => sum + (p.avancement_pct ?? 0), 0) / projets.length)} %` : "—" },
+        { label: "Avec photos", value: String(projets.filter((p) => p.photos_count > 0).length) },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  demandes: async () => {
+    const demandes = await clientSpaceApi.getDemandes();
+    const enCours = demandes.filter((d) => d.statut === "EN_COURS" || d.statut === "RECUE").length;
+    return {
+      rows: demandes.map(demandeRow),
+      stats: [
+        { label: "Demandes", value: String(demandes.length) },
+        { label: "En traitement", value: String(enCours) },
+        { label: "Terminées", value: String(demandes.filter((d) => d.statut === "TERMINEE").length) },
+      ],
+      insights: [
+        { label: "À confirmer", value: String(demandes.filter((d) => d.statut === "A_CONFIRMER").length) },
+        { label: "Source", value: "API WUGAMS" },
+      ],
+    };
+  },
+  documents: async () => {
+    const documents = await clientSpaceApi.getDocuments();
+    return {
+      rows: documents.map(clientDocumentRow),
+      stats: [
+        { label: "Documents", value: String(documents.length) },
+        { label: "Rapports", value: String(documents.filter((d) => d.type === "RAPPORT").length) },
+        { label: "Photos", value: String(documents.filter((d) => d.type === "PHOTO").length) },
+      ],
+      insights: [
+        { label: "Devis", value: String(documents.filter((d) => d.type === "DEVIS").length) },
+        { label: "Plannings", value: String(documents.filter((d) => d.type === "PLANNING").length) },
         { label: "Source", value: "API WUGAMS" },
       ],
     };
@@ -553,11 +681,11 @@ export async function loadModuleData(slug: string, role: RoleCode): Promise<Modu
   const loader = apiLoaders[slug];
   if (!loader) return { data: { rows: [], stats: [], insights: [] }, source: "demo" };
 
-  const usableRoles: RoleCode[] = ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_DEV_DIGITAL", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR"];
+  const usableRoles: RoleCode[] = ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_DEV_DIGITAL", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"];
   if (!usableRoles.includes(role)) return { data: { rows: [], stats: [], insights: [] }, source: "demo" };
 
   try {
-    return { data: await loader(), source: "api" };
+    return { data: await loader(role), source: "api" };
   } catch {
     return { data: { rows: [], stats: [], insights: [] }, source: "demo" };
   }
