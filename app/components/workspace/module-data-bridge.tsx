@@ -160,7 +160,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     setToastMsg("");
   }, []);
 
-  const createConfig = getModuleCreateConfig(slug);
+  const createConfig = getModuleCreateConfig(slug, user?.role);
 
   function renderCreateForm(props: CreateRenderProps): ReactNode {
     if (slug === "filiales") {
@@ -190,7 +190,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
         </div>
       ) : null}
 
-      <ModuleScreen definition={mergedDefinition} renderCreateForm={renderCreateForm} onRowClick={slug === "notifications" ? handleRowClick : slug === "missions" ? handleMissionRowClick : undefined} initialCreateOpen={initialCreateOpen} />
+      <ModuleScreen definition={mergedDefinition} renderCreateForm={renderCreateForm} onRowClick={slug === "notifications" ? handleRowClick : slug === "missions" ? handleMissionRowClick : undefined} initialCreateOpen={initialCreateOpen} showCreateButton={slug === "filiales" || !!createConfig} />
 
       {affectMissionId && (
         <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/40 p-4">

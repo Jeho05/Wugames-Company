@@ -20,6 +20,7 @@ type ModuleScreenProps = {
   renderCreateForm?: (props: CreateFormProps) => React.ReactNode;
   onRowClick?: (row: ModuleRow) => void;
   initialCreateOpen?: boolean;
+  showCreateButton?: boolean;
 };
 
 function isModuleStatus(value: string | ModuleStatus): value is ModuleStatus {
@@ -45,7 +46,7 @@ function exportCsv(rows: ModuleRow[], definition: ModuleDefinition) {
   URL.revokeObjectURL(url);
 }
 
-export function ModuleScreen({ definition, renderCreateForm, onRowClick, initialCreateOpen = false }: ModuleScreenProps) {
+export function ModuleScreen({ definition, renderCreateForm, onRowClick, initialCreateOpen = false, showCreateButton = true }: ModuleScreenProps) {
   const [activeTab, setActiveTab] = useState(definition.tabs[0]);
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [query, setQuery] = useState("");
@@ -92,6 +93,7 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
             </p>
           </div>
         </div>
+        {showCreateButton ? (
         <button
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
           onClick={() => setCreateOpen(true)}
@@ -100,6 +102,7 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
           <Icon name="plus" size={17} />
           {definition.actionLabel}
         </button>
+        ) : null}
       </section>
 
       {toast ? (

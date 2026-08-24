@@ -8,6 +8,8 @@ import * as filialesApi from "@/app/lib/api/filiales";
 import * as missionsApi from "@/app/lib/api/missions";
 import * as stocksApi from "@/app/lib/api/stocks";
 import * as usersApi from "@/app/lib/api/users";
+import * as clientSpaceApi from "@/app/lib/api/client-space";
+import * as messagerieApi from "@/app/lib/api/messagerie";
 import {
   chantierRow,
   clientRow,
@@ -19,6 +21,8 @@ import {
   produitRow,
 } from "@/app/lib/module-data";
 import type { ModuleRow } from "@/app/lib/demo-data";
+
+const CLIENT_CREATE_ROLES = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
 
 export type CreateFieldOption = { value: string; label: string };
 
@@ -287,8 +291,71 @@ export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
       }),
     rowMapper: (entity) => commandeRow(entity as Parameters<typeof commandeRow>[0]),
   },
+  demandes: {
+    title: "Nouvelle demande",
+    eyebrow: "Espace client",
+    fields: [
+      { name: "libelle", label: "Objet de la demande", type: "text", required: true, placeholder: "Rénovation intérieure" },
+      { name: "service", label: "Service souhaité", type: "select", required: true, options: [
+        { value: "Rénovation", label: "Rénovation" },
+        { value: "Dépannage", label: "Dépannage" },
+        { value: "Devis travaux", label: "Devis travaux" },
+        { value: "Entretien", label: "Entretien" },
+        { value: "Autre", label: "Autre" },
+      ]},
+      { name: "type", label: "Type", type: "select", options: [
+        { value: "TRAVAUX", label: "Travaux" },
+        { value: "DEVIS", label: "Devis" },
+        { value: "INTERVENTION", label: "Intervention" },
+      ]},
+    ],
+    submit: async (values) =>
+      clientSpaceApi.createDemande({
+        libelle: values.libelle.trim(),
+        service: values.service,
+        type: values.type || undefined,
+      }),
+  },
+  projets: {
+    title: "Demander un devis",
+    eyebrow: "Espace client",
+    fields: [
+      { name: "libelle", label: "Objet du devis", type: "text", required: true, placeholder: "Rénovation résidence" },
+      { name: "service", label: "Service souhaité", type: "select", required: true, options: [
+        { value: "Rénovation", label: "Rénovation" },
+        { value: "Dépannage", label: "Dépannage" },
+        { value: "Devis travaux", label: "Devis travaux" },
+        { value: "Entretien", label: "Entretien" },
+        { value: "Autre", label: "Autre" },
+      ]},
+    ],
+    submit: async (values) =>
+      clientSpaceApi.createDemande({
+        libelle: values.libelle.trim(),
+        service: values.service,
+        type: "DEVIS",
+      }),
+  },
+  messages: {
+    title: "Nouvelle conversation",
+    eyebrow: "Messagerie",
+    fields: [
+      { name: "sujet", label: "Sujet", type: "text", required: true, placeholder: "Suivi de chantier" },
+      { name: "projet", label: "Projet associé", type: "text", placeholder: "Optionnel" },
+      { name: "premier_message", label: "Votre message", type: "textarea", required: true, placeholder: "Décrivez votre demande..." },
+    ],
+    submit: async (values) =>
+      messagerieApi.createConversation({
+        sujet: values.sujet.trim(),
+        projet: values.projet?.trim() || undefined,
+        premier_message: values.premier_message?.trim() || undefined,
+      }),
+  },
 };
 
-export function getModuleCreateConfig(slug: string): ModuleCreateConfig | null {
+export function getModuleCreateConfig(slug: string, role?: string): ModuleCreateConfig | null {
+  if (role && CLIENT_CREATE_ROLES.has(role)) {
+    if (slug === "factures" || slug === "commandes" || slug === "documents") return null;
+  }
   return moduleCreateConfigs[slug] ?? null;
 }
