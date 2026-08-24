@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import type { ClientNotificationView, NotificationKind } from "@/app/lib/client-data";
+import { markAsRead } from "@/app/lib/api/notifications";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
 
 const kindMeta: Record<NotificationKind, { icon: IconName; tone: string }> = {
@@ -19,19 +20,32 @@ const kindMeta: Record<NotificationKind, { icon: IconName; tone: string }> = {
 
 type ClientNotificationsProps = {
   notifications: ClientNotificationView[];
+  live?: boolean;
 };
 
-export function ClientNotifications({ notifications }: ClientNotificationsProps) {
+export function ClientNotifications({ notifications, live = false }: ClientNotificationsProps) {
   const [items, setItems] = useState(notifications);
   const reduce = useReducedMotion();
   const nonLues = items.filter((n) => !n.lu).length;
 
   function markRead(id: string) {
     setItems((current) => current.map((n) => (n.id === id ? { ...n, lu: true } : n)));
+    if (!live) return;
+    markAsRead(id).catch(() => {
+      /* API injoignable : l'état local reste cohérent. */
+    });
   }
 
   function markAllRead() {
     setItems((current) => current.map((n) => ({ ...n, lu: true })));
+    if (!live) return;
+    for (const notification of items) {
+      if (!notification.lu) {
+        markAsRead(notification.id).catch(() => {
+          /* API injoignable : l'état local reste cohérent. */
+        });
+      }
+    }
   }
 
   return (

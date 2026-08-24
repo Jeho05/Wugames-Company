@@ -9,7 +9,6 @@ import { formatFcfa } from "@/app/lib/store-data";
 import type { ClientPortalData } from "@/app/lib/client-data";
 import type { CleansOverview } from "@/app/lib/cleans-data";
 import { mode2vieArticles } from "@/app/lib/mode2vie-data";
-import { demoBoutiqueProduits } from "@/app/lib/client-shop-data";
 
 type SearchResult = {
   id: string;
@@ -100,7 +99,14 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
       ...data.projets.filter(matches).map((p) => build(p, "Projets")),
       ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
       ...mode2vieArticles.filter(matches).map((a) => build(a, "Mode2Vie")),
-      ...demoBoutiqueProduits.filter(matches).map((p) => build(p, "Espace Wu")),
+      ...data.commandes.map((commande) => ({
+        id: commande.id,
+        titre: commande.articles[0]?.split("—")[0]?.trim() ?? commande.numero,
+        numero: commande.numero,
+        statut: commande.statut,
+        montant: commande.montant,
+        date: commande.date,
+      })).filter(matches).map((item) => build(item, "Espace Wu")),
       ...data.missions.filter(matches).map((m) => build(m, "Missions")),
       ...data.factures.filter(matches).map((f) => build(f, "Factures")),
       ...data.devis.filter(matches).map((d) => build(d, "Devis")),

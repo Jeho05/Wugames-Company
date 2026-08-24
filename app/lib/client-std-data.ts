@@ -339,7 +339,7 @@ function projetView(projet: ClientProjet): ClientProjetView {
   return {
     id: projet.id,
     titre: projet.titre,
-    filiale: "—",
+    filiale: projet.adresse ?? "—",
     statut: projetStatutFromApi[projet.statut] ?? "PLANIFIE",
     progression: projet.avancement_pct ?? 0,
     debut: "—",

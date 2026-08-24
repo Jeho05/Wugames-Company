@@ -20,6 +20,20 @@ export function ClientFactures({ factures }: ClientFacturesProps) {
     .filter((f) => f.statut === "EMISE")
     .reduce((sum, f) => sum + Number(f.montant_ttc), 0);
 
+  function exportCsv(_numero: string) {
+    const header = "Numéro;Montant TTC;Émise le;Échéance;Statut";
+    const lines = factures.map((f) =>
+      `${f.numero};${formatFcfa(Number(f.montant_ttc))};${formatDateFr(f.date_emission)};${formatDateFr(f.date_echeance)};${f.statut}`
+    );
+    const csv = "\uFEFF" + [header, ...lines].join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "factures-" + new Date().toISOString().slice(0, 10) + ".csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <ClientSection
       action={
@@ -74,6 +88,7 @@ export function ClientFactures({ factures }: ClientFacturesProps) {
                     montantHt={montantHt}
                     montantTtc={montantTtc}
                     onToggle={() => setExpanded(isOpen ? null : facture.id)}
+                    onExportCsv={exportCsv}
                   />
                 );
               })}
@@ -96,6 +111,7 @@ function FragmentRow({
   montantTtc,
   montantHt,
   onToggle,
+  onExportCsv,
 }: {
   facture: Facture;
   index: number;
@@ -103,6 +119,7 @@ function FragmentRow({
   montantTtc: number;
   montantHt: number;
   onToggle: () => void;
+  onExportCsv: (numero: string) => void;
 }) {
   return (
     <>
@@ -135,8 +152,9 @@ function FragmentRow({
             <button
               aria-label={`Télécharger ${facture.numero}`}
               className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-[#17294b] focus-visible:outline-2 focus-visible:outline-offset-2"
-              title="Télécharger le PDF"
+              title="Télécharger le CSV"
               type="button"
+              onClick={() => onExportCsv(facture.numero)}
             >
               <Icon name="download" size={15} />
             </button>

@@ -92,7 +92,6 @@ export function ClientDemandes({ demandes }: ClientDemandesProps) {
       const demande = await createDemande({
         libelle: objet.trim(),
         service: detail.trim() || "Détails à préciser lors de l'échange avec votre chargé de projet.",
-        type,
       });
       setCreated((prev) => [demandeView(demande), ...prev]);
     } catch {

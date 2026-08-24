@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import type { ClientStdNotificationKind, ClientStdNotificationView } from "@/app/lib/client-std-data";
+import { markAsRead } from "@/app/lib/api/notifications";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
 
 const kindMeta: Record<ClientStdNotificationKind, { icon: IconName; tone: string }> = {
@@ -17,19 +18,32 @@ const kindMeta: Record<ClientStdNotificationKind, { icon: IconName; tone: string
 
 type ClientStdNotificationsProps = {
   notifications: ClientStdNotificationView[];
+  live?: boolean;
 };
 
-export function ClientStdNotifications({ notifications }: ClientStdNotificationsProps) {
+export function ClientStdNotifications({ notifications, live = false }: ClientStdNotificationsProps) {
   const [items, setItems] = useState(notifications);
   const reduce = useReducedMotion();
   const nonLues = items.filter((n) => !n.lu).length;
 
   function markRead(id: string) {
     setItems((current) => current.map((n) => (n.id === id ? { ...n, lu: true } : n)));
+    if (!live) return;
+    markAsRead(id).catch(() => {
+      /* API injoignable : l'état local reste cohérent. */
+    });
   }
 
   function markAllRead() {
     setItems((current) => current.map((n) => ({ ...n, lu: true })));
+    if (!live) return;
+    for (const notification of items) {
+      if (!notification.lu) {
+        markAsRead(notification.id).catch(() => {
+          /* API injoignable : l'état local reste cohérent. */
+        });
+      }
+    }
   }
 
   return (

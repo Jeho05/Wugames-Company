@@ -201,7 +201,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
       <ClientCommandes commandes={data.commandes} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <ClientNotifications key={live ? "live" : "demo"} notifications={data.notifications} />
+        <ClientNotifications key={live ? "live" : "demo"} live={live} notifications={data.notifications} />
         <div className="space-y-4">
           <button
             className="flex w-full items-center justify-between rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-5 text-left transition hover:border-[#17294b]/40 hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 dark:border-white/15 dark:bg-white/[0.03]"

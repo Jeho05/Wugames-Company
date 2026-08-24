@@ -121,6 +121,7 @@ const missionStatuts: Record<string, ModuleStatus> = {
 
 export function missionRow(mission: Mission): ModuleRow {
   return {
+    id: mission.id,
     mission: mission.titre,
     équipe: mission.ouvrier?.user ? fullName(mission.ouvrier.user.first_name, mission.ouvrier.user.last_name) : "—",
     lieu: mission.filiale?.nom ?? "—",

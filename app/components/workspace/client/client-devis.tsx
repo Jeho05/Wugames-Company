@@ -18,6 +18,20 @@ export function ClientDevis({ devis }: ClientDevisProps) {
   const reduce = useReducedMotion();
   const enAttente = devis.filter((d) => d.statut === "EN_ATTENTE").length;
 
+  function exportCsv() {
+    const header = "Numéro;Objet;Montant;Date;Validité;Statut";
+    const lines = devis.map((d) =>
+      `${d.numero};${d.objet};${formatFcfa(d.montant)};${d.date};${d.validite};${d.statut}`
+    );
+    const csv = "\uFEFF" + [header, ...lines].join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "devis-" + new Date().toISOString().slice(0, 10) + ".csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <ClientSection
       action={
@@ -98,8 +112,9 @@ export function ClientDevis({ devis }: ClientDevisProps) {
                   <button
                     aria-label={`Télécharger ${quote.numero}`}
                     className="grid size-9.5 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-[#17294b] focus-visible:outline-2 focus-visible:outline-offset-2"
-                    title="Télécharger le PDF"
+                    title="Télécharger le CSV"
                     type="button"
+                    onClick={exportCsv}
                   >
                     <Icon name="download" size={15} />
                   </button>

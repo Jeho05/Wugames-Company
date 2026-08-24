@@ -6,6 +6,7 @@ import { Icon } from "@/app/components/ui/app-icon";
 import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
 import { ApiError } from "@/app/lib/api-client";
 import { listEvaluations, updateEvaluation } from "@/app/lib/api/evaluations";
+import { listUsers } from "@/app/lib/api/users";
 import { getModuleDefinition, type OuvrierPerformance } from "@/app/lib/demo-data";
 import {
   rendement9S,
@@ -53,26 +54,61 @@ export default function OuvriersPage() {
 
   useEffect(() => {
     let cancelled = false;
-    listEvaluations()
-      .then((evaluations) => {
-        if (cancelled) return;
-        if (evaluations.length === 0) return;
-        const { workers: mapped, ids } = evaluationsToWorkers(evaluations);
-        setEvaluationIds(ids);
-        setWorkers(mapped);
-        setSelected(mapped[0].nom);
-        setScores(
-          Object.fromEntries(
-            mapped.map((worker) => [
-              worker.nom,
-              criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6),
-            ])
-          )
-        );
-      })
-      .catch(() => {
-        if (cancelled) return;
-      });
+    Promise.allSettled([listUsers(), listEvaluations()]).then(([usersResult, evalResult]) => {
+      if (cancelled) return;
+      
+      // Build worker map from users (ROLE_OUVRIER)
+      const userMap = new Map<string, { nom: string; specialite?: string }>();
+      if (usersResult.status === "fulfilled") {
+        for (const u of usersResult.value) {
+          if (u.role === "ROLE_OUVRIER") {
+            const nom = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
+            userMap.set(nom, { nom, specialite: u.ouvrier_profile?.specialite ?? undefined });
+          }
+        }
+      }
+      
+      // Merge evaluations
+      const evaluationIds: Record<string, string> = {};
+      const workerMap = new Map<string, OuvrierPerformance>();
+      
+      if (evalResult.status === "fulfilled" && evalResult.value.length > 0) {
+        const { workers: mapped, ids } = evaluationsToWorkers(evalResult.value);
+        for (const w of mapped) {
+          workerMap.set(w.nom, w);
+          if (ids[w.nom]) evaluationIds[w.nom] = ids[w.nom];
+        }
+      }
+      
+      // Add users without evaluations (default scores)
+      for (const [nom, info] of userMap) {
+        if (!workerMap.has(nom)) {
+          workerMap.set(nom, {
+            nom,
+            noteTexte: 0,
+            semaines: criteria.map(() => 28), // base 40 * 0.7 = 28 default
+          });
+        }
+      }
+      
+      const workers = Array.from(workerMap.values());
+      if (workers.length === 0) {
+        setWorkers([]);
+        setEvaluationIds({});
+        return;
+      }
+      setEvaluationIds(evaluationIds);
+      setWorkers(workers);
+      setSelected(workers[0].nom);
+      setScores(
+        Object.fromEntries(
+          workers.map((worker) => [
+            worker.nom,
+            criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6),
+          ])
+        )
+      );
+    });
     return () => {
       cancelled = true;
     };
@@ -88,6 +124,24 @@ export default function OuvriersPage() {
         })),
     [workers]
   );
+
+  function exportGrilleCsv() {
+    const header = ["Ouvrier", ...criteria.map((c) => c.code), "Total S1-S9", "Rendement 9S %", "Rendement texte %", "Global BR-14 %"];
+    const lines = workers.map((w) => {
+      const total = w.semaines.reduce((s, n) => s + n, 0);
+      const r9 = rendement9S(w.semaines).toFixed(1);
+      const rt = rendementTexte(w.noteTexte).toFixed(1);
+      const gl = rendementGlobal(w.semaines, w.noteTexte).toFixed(1);
+      return [w.nom, ...w.semaines.map(String), String(total), r9, rt, gl].join(";");
+    });
+    const csv = "\uFEFF" + [header.join(";"), ...lines].join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "grille-s1-s9-" + new Date().toISOString().slice(0, 10) + ".csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   if (!definition) {
     return null;
@@ -340,6 +394,7 @@ export default function OuvriersPage() {
               <button
                 className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-[#426b95] transition hover:border-slate-300"
                 type="button"
+                onClick={exportGrilleCsv}
               >
                 <Icon name="download" size={14} />
                 Exporter la grille

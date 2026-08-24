@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -29,6 +29,17 @@ export function ClientStdProfil({ user }: ClientStdProfilProps) {
   const { logout } = useAuth();
   const router = useRouter();
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    import("@/app/lib/api/auth")
+      .then(async ({ me }) => {
+        const payload = await me();
+        setTwoFa(payload.two_factor_enabled);
+      })
+      .catch(() => {
+        /* API injoignable : conserver l'état par défaut. */
+      });
+  }, []);
 
   function handleLogout() {
     if (loggingOut) return;

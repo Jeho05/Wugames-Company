@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
@@ -19,6 +19,7 @@ type ModuleScreenProps = {
   definition: ModuleDefinition;
   renderCreateForm?: (props: CreateFormProps) => React.ReactNode;
   onRowClick?: (row: ModuleRow) => void;
+  initialCreateOpen?: boolean;
 };
 
 function isModuleStatus(value: string | ModuleStatus): value is ModuleStatus {
@@ -44,11 +45,17 @@ function exportCsv(rows: ModuleRow[], definition: ModuleDefinition) {
   URL.revokeObjectURL(url);
 }
 
-export function ModuleScreen({ definition, renderCreateForm, onRowClick }: ModuleScreenProps) {
+export function ModuleScreen({ definition, renderCreateForm, onRowClick, initialCreateOpen = false }: ModuleScreenProps) {
   const [activeTab, setActiveTab] = useState(definition.tabs[0]);
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+    if (initialCreateOpen && renderCreateForm) {
+      setCreateOpen(true);
+    }
+  }, [initialCreateOpen, renderCreateForm]);
 
   const visibleRows = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("fr");

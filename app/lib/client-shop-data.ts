@@ -104,20 +104,25 @@ export async function loadBoutiqueData(filialeId: string | null): Promise<Boutiq
     clientSpaceApi.getCommandes(),
   ]);
 
+  const produitsFulfilled = produitsRes.status === "fulfilled";
+  const commandesFulfilled = commandesRes.status === "fulfilled";
+
+  /* API joignable : les listes réelles s'affichent, même vides.
+     La démonstration ne sert que lorsque l'API est totalement injoignable. */
   const produits =
-    produitsRes.status === "fulfilled" && produitsRes.value.length > 0
+    produitsFulfilled
       ? produitsRes.value.map(boutiqueProduitFromApi)
       : demoBoutiqueProduits;
 
   const commandes =
-    commandesRes.status === "fulfilled" && commandesRes.value.length > 0
+    commandesFulfilled
       ? commandesRes.value.map(boutiqueCommandeFromApi)
       : demoBoutiqueCommandes;
 
   return {
     produits,
     commandes,
-    live: produitsRes.status === "fulfilled" || commandesRes.status === "fulfilled",
+    live: produitsFulfilled || commandesFulfilled,
   };
 }
 

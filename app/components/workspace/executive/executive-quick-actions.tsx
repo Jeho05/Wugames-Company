@@ -18,7 +18,7 @@ const quickActions: QuickAction[] = [
   { href: "/espace/administration?creer=1", label: "Nouvel utilisateur", icon: "users", tile: "bg-sky-50 text-sky-600" },
   { href: "/espace/clients?creer=1", label: "Nouveau client", icon: "user-plus", tile: "bg-violet-50 text-violet-600" },
   { href: "/espace/missions?creer=1", label: "Nouvelle mission", icon: "clipboard", tile: "bg-indigo-50 text-indigo-600" },
-  { href: "/espace/devis", label: "Nouvelle facture", icon: "file-text", tile: "bg-emerald-50 text-emerald-600" },
+  { href: "/espace/factures?creer=1", label: "Nouvelle facture", icon: "file-text", tile: "bg-emerald-50 text-emerald-600" },
   { href: "/espace/filiales?creer=1", label: "Nouvelle filiale", icon: "building", tile: "bg-amber-50 text-amber-600" },
   { href: "/espace/stocks?creer=1", label: "Ajouter produit", icon: "package", tile: "bg-teal-50 text-teal-600" },
   { href: "/espace/stocks", label: "Gérer stock", icon: "boxes", tile: "bg-rose-50 text-rose-600" },

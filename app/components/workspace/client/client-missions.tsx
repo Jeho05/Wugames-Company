@@ -39,7 +39,8 @@ const progressTone: Record<MissionStatut, string> = {
 
 function MissionTimeline({ mission }: { mission: ClientMissionView }) {
   const reduce = useReducedMotion();
-  const dates = timelineDates[mission.id] ?? timelineDates.dm1;
+  const demoDates = timelineDates[mission.id];
+  const dates = demoDates ?? [mission.date !== "—" ? mission.date : "—", "—", "—", "—", "—", "—"];
   const activeIndex = timelineSteps.findIndex((step) => step.from.includes(mission.statut));
 
   return (

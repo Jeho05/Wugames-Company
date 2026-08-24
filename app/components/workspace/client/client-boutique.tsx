@@ -43,6 +43,7 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
   const [panier, setPanier] = useState<PanierLigne[]>([]);
   const [categorie, setCategorie] = useState<BoutiqueProduit["categorie"] | "toutes">("toutes");
   const [commandeOk, setCommandeOk] = useState(false);
+  const [erreurCommande, setErreurCommande] = useState("");
   const [telephone, setTelephone] = useState("");
   const [envoi, setEnvoi] = useState(false);
 
@@ -78,6 +79,7 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
       return [...prev, { produit, quantite: 1 }];
     });
     setCommandeOk(false);
+    setErreurCommande("");
   }
 
   function retirer(produitId: string) {
@@ -90,6 +92,14 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
 
   async function commander() {
     if (panier.length === 0 || envoi) return;
+
+    if (live && !user?.filialeId) {
+      setCommandeOk(false);
+      setErreurCommande(
+        "La commande en ligne n'est pas disponible pour votre compte : aucune filiale n'est rattachée. Contactez WUGAMS pour finaliser votre commande.",
+      );
+      return;
+    }
 
     const commandeEnLigne = live && user?.filialeId && telephone.trim().length >= 8;
     if (commandeEnLigne) {
@@ -287,6 +297,11 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
               </p>
             ) : (
               <>
+                {erreurCommande ? (
+                  <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-700">
+                    {erreurCommande}
+                  </div>
+                ) : null}
                 <ul className="mt-3 space-y-2">
                   {panier.map((ligne) => (
                     <li
