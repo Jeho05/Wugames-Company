@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
-const BACKEND_URL = process.env.BACKEND_URL;
-
-if (!BACKEND_URL) {
-  throw new Error("BACKEND_URL manquant dans .env.local — ajoutez BACKEND_URL=https://votre-backend.vercel.app");
-}
+const BACKEND_URL = process.env.BACKEND_URL ?? "https://wugames-holding-inc.vercel.app";
 
 /** @type {NextConfig} */
 const nextConfig: NextConfig = {

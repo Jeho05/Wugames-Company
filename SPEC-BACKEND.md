@@ -98,7 +98,7 @@ Flux complet : login → (2FA si requis) → sessions → refresh → logout →
 #### `POST /auth/login` — publique
 ```json
 // Requête
-{ "email": "admin@wugams.com", "password": "admin1234" }
+{ "email": "utilisateur@exemple.com", "password": "••••••••" }
 ```
 Deux réponses possibles :
 
@@ -110,7 +110,7 @@ Deux réponses possibles :
   "expires_in": "7d",
   "user": {
     "id": "uuid",
-    "email": "admin@wugams.com",
+    "email": "utilisateur@exemple.com",
     "role": "ROLE_GERANT",
     "filiale_id": "uuid | null",
     "two_factor_enabled": false,
@@ -151,7 +151,7 @@ Renvoie le payload JWT décodé :
 ```json
 {
   "sub": "uuid",
-  "email": "admin@wugams.com",
+  "email": "utilisateur@exemple.com",
   "role": "ROLE_GERANT",
   "filiale_id": "uuid | null",
   "two_factor_enabled": false,
@@ -171,8 +171,8 @@ Révoque le refresh token (best-effort). Réponse : `{ "message": "string" }`.
 ```json
 // Requête
 {
-  "email": "user@wugams.com",
-  "password": "motdepasse",
+  "email": "nouveau.utilisateur@exemple.com",
+  "password": "••••••••",
   "first_name": "Prénom",
   "last_name": "Nom",
   "phone": "+2250700000000 (optionnel)",
@@ -200,7 +200,7 @@ Valide le token TOTP et active la 2FA. Réponse : `{ "message": "string" }`.
 **Étape 1 — demander la réinitialisation** (publique, pas de révélation de compte) :
 ```json
 // Requête
-{ "email": "user@wugams.com" }
+{ "email": "utilisateur@exemple.com" }
 ```
 Réponse : `{ "message": "string" }` (toujours `200`, que l'email existe ou non — anti-énumération).
 Le back génère un token à usage unique (TTL 1 h) et l'expédie **par email** (ou via le provider
@@ -234,17 +234,8 @@ ROLE_MGR_PARTENAIRE | ROLE_MGR_FILIALE | ROLE_DEV_DIGITAL | ROLE_GERANT
 
 ### 2.5 Comptes de test à maintenir
 
-| Rôle | Email | Mot de passe |
-|---|---|---|
-| Gérant (accès complet + administration) | `admin@wugams.com` | `admin1234` |
-| Client membre | `client.https@test.wugams` | `Test1234!` |
-| Ouvrier | `ouvrier.https@test.wugams` | `Test1234!` |
-| **Secrétaire (nouveau)** | `secretaire@test.wugams` | `Test1234!` |
-| **Manager Opérations (nouveau)** | `manager.ops@test.wugams` | `Test1234!` |
-| **Resp. ouvriers (nouveau)** | `resp.ouvriers@test.wugams` | `Test1234!` |
-
-> Les 3 nouveaux comptes alimentent les boutons « un clic » de la page `/connexion` et les
-> command centers par rôle du front.
+> Les identifiants de test ne doivent **jamais** être committés dans le code source.
+> Ils sont gérés côté back-end et communiqués via canaux sécurisés séparément.
 
 ---
 
@@ -337,9 +328,7 @@ sécurité. Le portail client l'appelle : la section Factures est donc vide pour
 
 ### Comptes créés par les smoke tests (à nettoyer au prochain reset)
 
-`client.smoke.1786792986@wugams.com` (CLIENT_MEMBRE, sans profile), `d.smoke.1786793027@wugams.com`
-(CLIENT_STD, avec profile), `secretaire.smoke.1786792705@wugams.com` (SECRETAIRE, filiale MAT),
-missions « Test smoke mission * », commande créée si le 500 est corrigé. Mot de passe commun : `SmokeTest123!`.
+Comptes smoke test créés automatiquement (emails jetables `*.smoke.*@wugams.com`, mot de passe commun `SmokeTest123!`).
 
 ---
 

@@ -10,20 +10,13 @@ Ouvrir ensuite http://localhost:3000.
 
 La connexion et le back-office appellent l'API en direct via un proxy Next.js (`next.config.ts` : `/api/v1/*` → back-end). Le back-end n'envoyant pas d'en-têtes CORS, ce proxy évite tout appel inter-origines.
 
-## Comptes de test (API déployée)
-
-- Gérant : `admin@wugams.com` / `admin1234` (ROLE_GERANT — accès complet, administration comprise).
-- Client membre : `client.https@test.wugams` / `Test1234!`.
-- Ouvrier : `ouvrier.https@test.wugams` / `Test1234!`.
-
-Ces trois comptes sont proposés en un clic sur `/connexion`. L'inscription en libre accès (`/inscription`) est volontairement désactivée : l'endpoint de création de compte du back-end n'accepte que le rôle Gérant.
-
 ## Pages livrées
 
 - / - vitrine institutionnelle WUGAMS.
-- /connexion - connexion API (avec flux 2FA), comptes de test.
+- /connexion - connexion client (espace client).
+- /connexion-travailleur - connexion travailleur (employés, managers, gérant).
 - /espace - tableau de bord consolidé (filiales, factures, missions, alertes stock, notifications — données API).
-- /espace/[module] - vues clients, fournisseurs, filiales, stocks, missions, devis, factures, ouvriers et notifications branchées sur l'API ; les autres modules restent en démo (données de `app/lib/demo-data.ts`) en attendant leurs endpoints.
+- /espace/[module] - vues clients, fournisseurs, filiales, stocks, missions, devis, factures, ouvriers et notifications branchées sur l'API.
 - /espace/administration - comptes et journal d'audit réels (réservé Gérant / Dev Digital).
 - /espace/ouvriers - module + grille de performance S1-S9 alimentée par les évaluations de l'API.
 
