@@ -9,8 +9,6 @@ import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
 import { LoadingButton } from "@/app/components/ui/loading-button";
 
-const demoAccount = { label: "Compte test ouvrier", email: "ouvrier.https@test.wugams", password: "Test1234!" };
-
 const darkInput =
   "w-full rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[#e3a641] focus:bg-white/[0.08] focus:ring-4 focus:ring-[#e3a641]/15";
 
@@ -121,23 +119,6 @@ export function WorkerLoginForm() {
 
   return (
     <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-      <div>
-        <span className="text-[11px] font-semibold text-slate-400">Compte de test :</span>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          <button
-            className="rounded-lg border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[11px] font-bold text-slate-300 transition hover:border-[#e3a641]/40 hover:bg-white/[0.1] hover:text-[#f2c56d]"
-            onClick={() => {
-              setEmail(demoAccount.email);
-              setPassword(demoAccount.password);
-              setError("");
-            }}
-            type="button"
-          >
-            {demoAccount.label}
-          </button>
-        </div>
-      </div>
-
       <div>
         <label className="mb-1.5 block text-xs font-bold text-slate-300" htmlFor="worker-email">
           Adresse e-mail

@@ -10,14 +10,6 @@ import { confirmPasswordReset, requestPasswordReset } from "@/app/lib/api/auth";
 import { Icon } from "@/app/components/ui/app-icon";
 import { LoadingButton } from "@/app/components/ui/loading-button";
 
-const demoAccounts = [
-  { label: "Gérant", email: "admin@wugams.com", password: "admin1234" },
-  { label: "Secrétaire", email: "secretaire@test.wugams", password: "Test1234!" },
-  { label: "Manager Ops", email: "manager.ops@test.wugams", password: "Test1234!" },
-  { label: "Resp. Ouvriers", email: "resp.ouvriers@test.wugams", password: "Test1234!" },
-  { label: "Client", email: "client.https@test.wugams", password: "Test1234!" },
-];
-
 type ResetView = "reset-request" | "reset-confirm";
 
 export function LoginForm() {
@@ -82,12 +74,6 @@ export function LoginForm() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function handleDemoSelect(account: { email: string; password: string }) {
-    setEmail(account.email);
-    setPassword(account.password);
-    setError("");
   }
 
   async function handleResetRequest(event: FormEvent<HTMLFormElement>) {
@@ -283,23 +269,6 @@ export function LoginForm() {
 
   return (
     <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-      {/* Comptes de test back-end */}
-      <div>
-        <span className="text-[11px] font-semibold text-slate-400">Comptes de test :</span>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {demoAccounts.map((acc) => (
-            <button
-              className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-600 transition hover:border-[#7ea5ca] hover:bg-sky-50 hover:text-[#17294b]"
-              key={acc.email}
-              onClick={() => handleDemoSelect(acc)}
-              type="button"
-            >
-              {acc.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div>
         <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="email">
           Adresse e-mail

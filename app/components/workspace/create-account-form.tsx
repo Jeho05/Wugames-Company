@@ -115,7 +115,7 @@ export function CreateAccountForm({ onClose, onCreated }: CreateAccountFormProps
             <input
               className={inputClass}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="awa.kone@wugams.com"
+              placeholder="prenom.nom@exemple.com"
               type="email"
               value={email}
             />

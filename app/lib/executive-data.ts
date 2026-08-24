@@ -166,10 +166,10 @@ const demoFactureRepartition = [
 ];
 
 const demoAudits: AuditLog[] = [
-  { id: "d1", user_id: "u1", action: "CREATE", table_cible: "missions", entite_id: "KOFFI-041", valeur_avant: null, valeur_apres: { statut: "PLANIFIE" }, ip: "196.12.4.8", created_at: new Date().toISOString(), user: { id: "u1", first_name: "Aïcha", last_name: "Koné", email: "aicha.kone@wugams.com" } },
-  { id: "d2", user_id: "u2", action: "UPDATE", table_cible: "factures", entite_id: "FAC-2026-084", valeur_avant: { statut: "EMISE" }, valeur_apres: { statut: "PAYEE" }, ip: "196.12.4.8", created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(), user: { id: "u2", first_name: "Salif", last_name: "Traoré", email: "salif.traore@wugams.com" } },
-  { id: "d3", user_id: "u3", action: "CREATE", table_cible: "clients", entite_id: "CL-104", valeur_avant: null, valeur_apres: { type: "MEMBRE" }, ip: "196.12.4.9", created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), user: { id: "u3", first_name: "Mariam", last_name: "Bamba", email: "mariam.bamba@wugams.com" } },
-  { id: "d4", user_id: "u4", action: "UPDATE", table_cible: "stocks", entite_id: "P-002", valeur_avant: { quantite_actuelle: 24 }, valeur_apres: { quantite_actuelle: 64 }, ip: "196.12.4.10", created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), user: { id: "u4", first_name: "Jean", last_name: "Kouassi", email: "jean.kouassi@wugams.com" } },
+  { id: "d1", user_id: "u1", action: "CREATE", table_cible: "missions", entite_id: "KOFFI-041", valeur_avant: null, valeur_apres: { statut: "PLANIFIE" }, ip: "196.12.4.8", created_at: new Date().toISOString(), user: { id: "u1", first_name: "Aïcha", last_name: "Koné", email: "demo.a.kone@wugams.example" } },
+  { id: "d2", user_id: "u2", action: "UPDATE", table_cible: "factures", entite_id: "FAC-2026-084", valeur_avant: { statut: "EMISE" }, valeur_apres: { statut: "PAYEE" }, ip: "196.12.4.8", created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(), user: { id: "u2", first_name: "Salif", last_name: "Traoré", email: "demo.s.traore@wugams.example" } },
+  { id: "d3", user_id: "u3", action: "CREATE", table_cible: "clients", entite_id: "CL-104", valeur_avant: null, valeur_apres: { type: "MEMBRE" }, ip: "196.12.4.9", created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), user: { id: "u3", first_name: "Mariam", last_name: "Bamba", email: "demo.m.bamba@wugams.example" } },
+  { id: "d4", user_id: "u4", action: "UPDATE", table_cible: "stocks", entite_id: "P-002", valeur_avant: { quantite_actuelle: 24 }, valeur_apres: { quantite_actuelle: 64 }, ip: "196.12.4.10", created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), user: { id: "u4", first_name: "Jean", last_name: "Kouassi", email: "demo.j.kouassi@wugams.example" } },
 ];
 
 /* ------------------------------------------------------------------ */

@@ -122,12 +122,12 @@ const demoNotifications: SecretaryNotificationItem[] = [
 ];
 
 const demoSearchIndex: SearchEntry[] = [
-  { id: "s1", kind: "client", title: "SCI Les Palmiers", subtitle: "client@lespalmiers.com · +229 01 23 45 67", href: "/espace/clients" },
-  { id: "s2", kind: "client", title: "Résidence Koffi", subtitle: "contact@residencekoffi.bj · +229 98 76 54 32", href: "/espace/clients" },
+  { id: "s1", kind: "client", title: "SCI Les Palmiers", subtitle: "client@lespalmiers.com · +229 00 00 00 11", href: "/espace/clients" },
+  { id: "s2", kind: "client", title: "Résidence Koffi", subtitle: "contact@residencekoffi.bj · +229 00 00 00 22", href: "/espace/clients" },
   { id: "s3", kind: "fournisseur", title: "BatiPro CI", subtitle: "contact@batipro.ci · +225 07 65 43 21", href: "/espace/fournisseurs" },
-  { id: "s4", kind: "fournisseur", title: "Matériaux Bénin", subtitle: "ventes@materiauxbenin.bj · +229 90 12 34 56", href: "/espace/fournisseurs" },
-  { id: "s5", kind: "utilisateur", title: "Yao Christian", subtitle: "christian.yao@wugams.com · ROLE_OUVRIER", href: "/espace/ouvriers" },
-  { id: "s6", kind: "utilisateur", title: "Mariam Bamba", subtitle: "mariam.bamba@wugams.com · ROLE_SECRETAIRE", href: "/espace/administration" },
+  { id: "s4", kind: "fournisseur", title: "Matériaux Bénin", subtitle: "ventes@materiauxbenin.bj · +229 00 00 00 44", href: "/espace/fournisseurs" },
+  { id: "s5", kind: "utilisateur", title: "Yao Christian", subtitle: "christian.yao@wugams.example · ROLE_OUVRIER", href: "/espace/ouvriers" },
+  { id: "s6", kind: "utilisateur", title: "Mariam Bamba", subtitle: "mariam.bamba@wugams.example · ROLE_SECRETAIRE", href: "/espace/administration" },
 ];
 
 const demoAgenda: AgendaEvent[] = [
@@ -632,9 +632,9 @@ export type CompteCreation = {
 };
 
 export const demoSecComptes: CompteCreation[] = [
-  { id: "cc1", nom: "Yao Christian", email: "christian.yao@wugams.com", telephone: "+229 01 23 45 67", role: "ROLE_OUVRIER", statut: "EN_ATTENTE", demandePar: "Mariam Bamba", date: "2026-08-13T08:12:00.000Z" },
-  { id: "cc2", nom: "Bureaux N'Dri", email: "contact@bureauxndri.bj", telephone: "+229 90 12 34 56", role: "ROLE_CLIENT_MEMBRE", statut: "EN_ATTENTE", demandePar: "Formulaire site", date: "2026-08-12T18:45:00.000Z" },
-  { id: "cc3", nom: "Matériaux Bénin", email: "ventes@materiauxbenin.bj", telephone: "+229 97 88 99 00", role: "ROLE_FOURNISSEUR", statut: "VALIDE", demandePar: "Koffi Amoussou", date: "2026-08-10T11:20:00.000Z" },
+  { id: "cc1", nom: "Yao Christian", email: "christian.yao@wugams.example", telephone: "+229 00 00 00 01", role: "ROLE_OUVRIER", statut: "EN_ATTENTE", demandePar: "Mariam Bamba", date: "2026-08-13T08:12:00.000Z" },
+  { id: "cc2", nom: "Bureaux N'Dri", email: "contact@bureauxndri.bj", telephone: "+229 00 00 00 02", role: "ROLE_CLIENT_MEMBRE", statut: "EN_ATTENTE", demandePar: "Formulaire site", date: "2026-08-12T18:45:00.000Z" },
+  { id: "cc3", nom: "Matériaux Bénin", email: "ventes@materiauxbenin.bj", telephone: "+229 00 00 00 03", role: "ROLE_FOURNISSEUR", statut: "VALIDE", demandePar: "Koffi Amoussou", date: "2026-08-10T11:20:00.000Z" },
 ];
 
 export function formatMontantFcfa(amount: number): string {

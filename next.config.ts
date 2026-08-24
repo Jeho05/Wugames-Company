@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
-/** URL du back-end WUGAMS ERP (optionnel, défaut : instance Vercel déployée). */
-const BACKEND_URL = process.env.BACKEND_URL ?? "https://wugames-holding-inc.vercel.app";
+const BACKEND_URL = process.env.BACKEND_URL;
+
+if (!BACKEND_URL) {
+  throw new Error("BACKEND_URL manquant dans .env.local — ajoutez BACKEND_URL=https://votre-backend.vercel.app");
+}
 
 /** @type {NextConfig} */
 const nextConfig: NextConfig = {
@@ -25,5 +28,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-

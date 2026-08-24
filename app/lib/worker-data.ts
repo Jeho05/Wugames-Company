@@ -325,7 +325,7 @@ export async function loadWorkerOverview(userId: string | null, ouvrierId: strin
       worker: { nom: "Yao Kouassi", matricule: "WGM-0184", specialite: "Peinture & finitions" },
       filiale: "WUGAMS Matériaux",
       twoFactor: true,
-      email: "yao.kouassi@wugams.com",
+      email: "yao.kouassi@wugams.example",
       phone: "+225 07 12 45 89",
     };
   }

@@ -88,7 +88,7 @@ export default function AdministrationPage() {
             Votre rôle actuel ({user.role}) ne permet pas d&apos;y accéder.
           </p>
           <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-500">
-            Connectez-vous avec <strong>admin@wugams.com</strong> pour découvrir le module.
+            Connectez-vous avec un compte Gérant ou Dev Digital pour accéder au module.
           </p>
         </div>
       </div>
