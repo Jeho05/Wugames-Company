@@ -62,7 +62,7 @@ export function ClientStdKpiGrid({
   ];
 
   return (
-    <ul className="grid grid-cols-2 gap-3.5 lg:grid-cols-3 xl:gap-4" aria-label="Indicateurs clés">
+    <ul className="grid grid-cols-2 gap-3.5 lg:grid-cols-3 lg:gap-4 xl:gap-5" aria-label="Indicateurs clés">
       {kpis.map((kpi, index) => (
         <li key={kpi.id}>
           <motion.article
@@ -72,12 +72,12 @@ export function ClientStdKpiGrid({
             transition={{ duration: 0.5, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="flex items-start justify-between gap-3">
-              <span className={"grid size-10 place-items-center rounded-2xl transition-transform duration-300 group-hover:scale-110 " + iconTone[kpi.tone]}>
-                <Icon name={kpi.icon} size={18} />
+              <span className={"grid size-11 place-items-center rounded-2xl transition-transform duration-300 group-hover:scale-110 " + iconTone[kpi.tone]}>
+                <Icon name={kpi.icon} size={19} />
               </span>
-              <Sparkline color={sparkColor[kpi.tone]} data={kpi.spark} height={26} width={72} />
+              <Sparkline color={sparkColor[kpi.tone]} data={kpi.spark} height={28} width={76} />
             </div>
-            <p className="mt-4 truncate text-2xl font-bold tracking-[-0.04em] text-[#16233a] dark:text-white sm:text-[26px]">
+            <p className="mt-5 truncate text-2xl font-bold tracking-[-0.04em] text-[#16233a] dark:text-white sm:text-[26px]">
               {kpi.value}
             </p>
             <p className="mt-1 truncate text-xs font-bold text-slate-600 dark:text-slate-300">{kpi.label}</p>

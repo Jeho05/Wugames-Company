@@ -78,7 +78,7 @@ export function ClientStdNotifications({ notifications, live = false }: ClientSt
               <li key={notification.id}>
                 <button
                   className={
-                    "group flex w-full items-start gap-4 rounded-2xl p-3 text-left transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:bg-white/[0.03] " +
+                    "group flex w-full items-start gap-4 rounded-2xl p-3.5 text-left transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:bg-white/[0.03] " +
                     (notification.lu ? "" : "bg-[#f7f9fc] dark:bg-white/[0.04]")
                   }
                   onClick={() => markRead(notification.id)}
@@ -88,7 +88,7 @@ export function ClientStdNotifications({ notifications, live = false }: ClientSt
                     <span className={"grid size-10 shrink-0 place-items-center rounded-2xl " + meta.tone}>
                       <Icon name={meta.icon} size={17} />
                     </span>
-                    {!isLast ? <span className="mt-1.5 w-px flex-1 bg-slate-100 dark:bg-white/[0.06]" /> : null}
+                    {!isLast ? <span className="mt-2 w-px flex-1 bg-slate-100 dark:bg-white/[0.06]" /> : null}
                   </div>
                   <div className="min-w-0 flex-1 pb-1">
                     <div className="flex items-center justify-between gap-3">
@@ -106,14 +106,14 @@ export function ClientStdNotifications({ notifications, live = false }: ClientSt
                         {notification.time}
                       </span>
                     </div>
-                    <p className="mt-1 truncate text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    <p className="mt-1.5 truncate text-xs leading-5 text-slate-500 dark:text-slate-400">
                       {notification.detail}
                     </p>
                   </div>
                   {!notification.lu ? (
                     <motion.span
                       aria-label="Non lu"
-                      className="mt-1.5 size-2 shrink-0 rounded-full bg-[#e3a641]"
+                      className="mt-2 size-2 shrink-0 rounded-full bg-[#e3a641]"
                       initial={reduce ? undefined : { scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.3, delay: index * 0.04 }}
@@ -124,7 +124,7 @@ export function ClientStdNotifications({ notifications, live = false }: ClientSt
             );
           })}
         </ol>
-        <p className="mt-3 border-t border-slate-100 pt-4 text-[11px] font-medium text-slate-400 dark:border-white/5">
+        <p className="mt-4 border-t border-slate-100 pt-4 text-[11px] font-medium text-slate-400 dark:border-white/5">
           Cliquez sur une notification pour la marquer comme lue.
         </p>
       </div>

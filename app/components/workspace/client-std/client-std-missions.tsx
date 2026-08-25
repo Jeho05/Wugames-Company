@@ -112,32 +112,32 @@ export function ClientStdMissions({ missions }: ClientStdMissionsProps) {
           const meta = missionStatutMeta[mission.statut];
           return (
             <motion.article
-              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-950/[0.08] dark:border-white/10 dark:bg-[#101c36] dark:shadow-none"
+              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-950/[0.08] sm:p-6 dark:border-white/10 dark:bg-[#101c36] dark:shadow-none"
               initial={reduce ? undefined : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               key={mission.id}
               transition={{ duration: 0.5, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.06] text-[#17294b] transition-colors group-hover:bg-[#17294b] group-hover:text-[#f2c56d] dark:bg-white/[0.06] dark:text-slate-300">
-                    <Icon name="hardhat" size={16} />
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.06] text-[#17294b] transition-colors group-hover:bg-[#17294b] group-hover:text-[#f2c56d] dark:bg-white/[0.06] dark:text-slate-300">
+                    <Icon name="hardhat" size={17} />
                   </span>
                   <MissionBadge statut={mission.statut} />
                 </div>
-                <span className="text-[11px] font-semibold text-slate-400">{mission.date}</span>
+                <span className="shrink-0 text-[11px] font-semibold text-slate-400">{mission.date}</span>
               </div>
 
-              <h3 className="mt-4 line-clamp-2 text-[15px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+              <h3 className="mt-5 line-clamp-2 text-[15px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
                 {mission.titre}
               </h3>
 
-              <div className="mt-4">
+              <div className="mt-5">
                 <div className="flex items-center justify-between text-[11px] font-semibold">
                   <span className="text-slate-400">Progression</span>
                   <span className="text-[#16233a] dark:text-slate-300">{mission.progression}%</span>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
                   <motion.div
                     className={"h-full rounded-full " + progressTone[mission.statut]}
                     initial={reduce ? undefined : { width: 0 }}
@@ -147,7 +147,7 @@ export function ClientStdMissions({ missions }: ClientStdMissionsProps) {
                 </div>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-[11px] font-medium text-slate-500 dark:border-white/5 dark:text-slate-400">
+              <div className="mt-5 space-y-2.5 border-t border-slate-100 pt-4 text-[11px] font-medium text-slate-500 dark:border-white/5 dark:text-slate-400">
                 <p className="flex items-center gap-2">
                   <Icon name="users" size={13} className="text-slate-400" />
                   {mission.equipe}
@@ -158,17 +158,19 @@ export function ClientStdMissions({ missions }: ClientStdMissionsProps) {
                 </p>
               </div>
 
-              <div className="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/5">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  {meta.label}
-                </span>
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
-                  onClick={() => setSelected(mission)}
-                  type="button"
-                >
-                  Voir <Icon name="arrow-right" size={13} />
-                </button>
+              <div className="mt-auto pt-5">
+                <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    {meta.label}
+                  </span>
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
+                    onClick={() => setSelected(mission)}
+                    type="button"
+                  >
+                    Voir <Icon name="arrow-right" size={13} />
+                  </button>
+                </div>
               </div>
             </motion.article>
           );

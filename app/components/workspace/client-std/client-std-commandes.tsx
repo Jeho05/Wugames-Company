@@ -33,12 +33,12 @@ export function ClientStdCommandes({ commandes }: ClientStdCommandesProps) {
           <table className="w-full min-w-[720px] border-collapse text-left">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-white/5 dark:bg-white/[0.03]">
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Commande</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Date</th>
-                <th className="px-5 py-3.5 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Articles</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">État</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Voir</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Commande</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Date</th>
+                <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Articles</th>
+                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">État</th>
+                <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</th>
+                <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Voir</th>
               </tr>
             </thead>
             <tbody>
@@ -51,7 +51,7 @@ export function ClientStdCommandes({ commandes }: ClientStdCommandesProps) {
             </tbody>
           </table>
         </div>
-        <p className="border-t border-slate-100 px-5 py-3.5 text-[11px] font-medium text-slate-400 dark:border-white/5">
+        <p className="border-t border-slate-100 px-6 py-4 text-[11px] font-medium text-slate-400 dark:border-white/5">
           Chaque commande est préparée par nos équipes puis livrée à l&apos;adresse indiquée.
         </p>
       </div>
@@ -81,7 +81,7 @@ function FragmentRow({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35, delay: index * 0.04 }}
       >
-        <td className="px-5 py-4">
+        <td className="px-6 py-4">
           <span className="inline-flex items-center gap-2.5">
             <span className="grid size-8 place-items-center rounded-lg bg-[#17294b]/[0.06] text-[#17294b] dark:bg-white/[0.06] dark:text-slate-300">
               <Icon name="shopping-bag" size={15} />
@@ -89,17 +89,17 @@ function FragmentRow({
             <span className="text-[13px] font-bold text-[#16233a] dark:text-slate-100">{commande.numero}</span>
           </span>
         </td>
-        <td className="px-5 py-4 text-xs font-medium text-slate-500 dark:text-slate-400">{commande.date}</td>
-        <td className="px-5 py-4 text-center text-[13px] font-bold tabular-nums text-[#16233a] dark:text-slate-100">
+        <td className="px-6 py-4 text-xs font-medium text-slate-500 dark:text-slate-400">{commande.date}</td>
+        <td className="px-6 py-4 text-center text-[13px] font-bold tabular-nums text-[#16233a] dark:text-slate-100">
           {commande.nbArticles}
         </td>
-        <td className="px-5 py-4">
+        <td className="px-6 py-4">
           <CommandeBadge statut={commande.statut} />
         </td>
-        <td className="px-5 py-4 text-right text-[13px] font-bold tabular-nums text-[#16233a] dark:text-slate-100">
+        <td className="px-6 py-4 text-right text-[13px] font-bold tabular-nums text-[#16233a] dark:text-slate-100">
           {formatFcfa(commande.montant)}
         </td>
-        <td className="px-5 py-4">
+        <td className="px-6 py-4">
           <div className="flex justify-end">
             <button
               aria-expanded={isOpen}
@@ -127,7 +127,7 @@ function FragmentRow({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <td className="px-5 pb-5 pt-1" colSpan={6}>
+            <td className="px-6 pb-5 pt-1" colSpan={6}>
               {commande.articles.length > 0 ? (
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {commande.articles.map((article) => (

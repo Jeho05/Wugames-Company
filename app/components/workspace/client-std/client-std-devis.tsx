@@ -61,9 +61,9 @@ export function ClientStdDevis({ devis }: ClientStdDevisProps) {
               key={quote.id}
               transition={{ duration: 0.5, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="p-5">
+              <div className="p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{quote.numero}</p>
                     <h3 className="mt-1.5 line-clamp-2 text-[15px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
                       {quote.objet}
@@ -72,10 +72,10 @@ export function ClientStdDevis({ devis }: ClientStdDevisProps) {
                   <DevisBadge statut={quote.statut} />
                 </div>
 
-                <div className="mt-5 flex items-end justify-between border-t border-slate-100 pt-4 dark:border-white/5">
+                <div className="mt-6 flex items-end justify-between border-t border-slate-100 pt-5 dark:border-white/5">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums tracking-[-0.03em] text-[#16233a] dark:text-white">
+                    <p className="mt-1.5 text-xl font-bold tabular-nums tracking-[-0.03em] text-[#16233a] dark:text-white">
                       {formatFcfa(quote.montant)}
                     </p>
                   </div>
@@ -85,7 +85,7 @@ export function ClientStdDevis({ devis }: ClientStdDevisProps) {
                   </div>
                 </div>
 
-                <div className="mt-5 flex items-center gap-2">
+                <div className="mt-5 flex items-center gap-2.5">
                   <button
                     aria-expanded={isOpen}
                     className={

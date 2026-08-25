@@ -74,37 +74,37 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
       ) : (
         <>
           {/* Carte abonnement */}
-          <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#17294b] to-[#243a61] p-6 text-white shadow-lg shadow-[#17294b]/15 dark:border-white/10">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#17294b] to-[#243a61] p-6 text-white shadow-lg shadow-[#17294b]/15 sm:p-7 dark:border-white/10">
+            <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#f2c56d]">
                   {actif ? "Abonnement en cours" : "Aucun abonnement actif"}
                 </p>
-                <h3 className="mt-2 text-lg font-bold tracking-[-0.02em]">
+                <h3 className="mt-2.5 text-lg font-bold tracking-[-0.02em]">
                   {actif ? `${planActif?.nom ?? abonnement.planNom}` : "Choisissez votre plan"}
                 </h3>
-                <p className="mt-1 text-xs text-slate-300">
+                <p className="mt-1.5 text-xs text-slate-300">
                   {abonnement.nbToilettes} toilettes · {formatFcfa(abonnement.prixMensuel)} / mois
                 </p>
                 {actif && abonnement.dateDebut ? (
-                  <p className="mt-2 text-[11px] font-semibold text-slate-300">
+                  <p className="mt-2.5 text-[11px] font-semibold text-slate-300">
                     <Icon name="calendar" size={13} className="mr-1 inline text-[#f2c56d]" />
                     Activé le {abonnement.dateDebut}
                   </p>
                 ) : null}
-                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
                   <Icon name="map" size={13} className="text-[#f2c56d]" />
                   {abonnement.localisation}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-slate-300">Prochain passage</p>
-                <p className="mt-1 text-sm font-bold">{abonnement.prochainPassage ?? "—"}</p>
+                <p className="mt-1.5 text-sm font-bold">{abonnement.prochainPassage ?? "—"}</p>
                 <p className="mt-1 text-[10px] text-slate-300">Prochain paiement : {abonnement.prochainPaiement ?? "—"}</p>
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-white/10 pt-4 text-[11px] font-semibold text-slate-300">
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-5 text-[11px] font-semibold text-slate-300">
               <span className="inline-flex items-center gap-1.5">
                 <Icon name="check" size={13} className="text-emerald-400" />
                 Preuve photo avant / après
@@ -121,13 +121,13 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
           </div>
 
           {/* Plans */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid gap-3.5 sm:grid-cols-2">
             {cleansPlans.map((plan, index) => {
               const estPlanActif = actif && abonnement.planId === plan.id;
               return (
                 <motion.div
                   className={
-                    "relative flex flex-col rounded-3xl border bg-white p-5 shadow-sm transition " +
+                    "relative flex flex-col rounded-3xl border bg-white p-5 shadow-sm transition sm:p-6 " +
                     (plan.premium
                       ? "border-[#f2c56d]/60 shadow-[#b47e1e]/10 dark:border-[#f2c56d]/30"
                       : "border-slate-200/80 dark:border-white/10") +
@@ -146,19 +146,19 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h4 className="text-[15px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">{plan.nom}</h4>
-                      <p className="mt-0.5 text-[11px] text-slate-400">{plan.tagline}</p>
+                      <p className="mt-1 text-[11px] text-slate-400">{plan.tagline}</p>
                     </div>
                     {estPlanActif ? (
-                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
+                      <span className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
                         Votre plan
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-4 text-2xl font-extrabold tabular-nums text-[#16233a] dark:text-white">
+                  <p className="mt-5 text-2xl font-extrabold tabular-nums text-[#16233a] dark:text-white">
                     {plan.prixMensuel.toLocaleString("fr-FR")}
                     <span className="text-xs font-semibold text-slate-400"> FCFA / mois</span>
                   </p>
-                  <ul className="mt-4 space-y-1.5">
+                  <ul className="mt-5 space-y-2">
                     {plan.avantages.map((avantage) => (
                       <li className="flex items-start gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400" key={avantage}>
                         <Icon name="check" size={13} className="mt-0.5 shrink-0 text-emerald-500" />
@@ -168,7 +168,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   </ul>
                   {estPlanActif ? (
                     <button
-                      className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[12px] font-bold text-amber-700"
+                      className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[12px] font-bold text-amber-700"
                       onClick={handleContactWugams}
                       type="button"
                     >
@@ -176,7 +176,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                     </button>
                   ) : (
                     <button
-                      className="mt-5 rounded-2xl border border-[#17294b]/20 bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2"
+                      className="mt-6 rounded-2xl border border-[#17294b]/20 bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2"
                       onClick={() => activer(plan.id)}
                       type="button"
                     >

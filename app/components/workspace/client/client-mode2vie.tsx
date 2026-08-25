@@ -80,22 +80,22 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
             ) : null}
 
             <div className="flex items-center justify-between gap-3 overflow-hidden">
-              <span className="shrink-0 rounded-full border border-[#f2c56d]/40 bg-[#f2c56d]/10 px-2.5 py-1 text-[10px] font-bold text-[#b47e1e]">
+              <span className="shrink-0 rounded-full border border-[#f2c56d]/40 bg-[#f2c56d]/10 px-3 py-1 text-[10px] font-bold text-[#b47e1e]">
                 {article.categorie}
               </span>
               <span className="shrink-0 text-[10px] font-semibold text-slate-400">{article.date}</span>
             </div>
 
             {article.verset ? (
-              <p className="mt-4 rounded-2xl bg-[#17294b] px-3.5 py-3 text-[11px] font-semibold italic leading-5 text-[#f2c56d]">
+              <p className="mt-5 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[11px] font-semibold italic leading-5 text-[#f2c56d]">
                 « {article.verset} »
               </p>
             ) : null}
 
-            <h3 className="mt-4 min-w-0 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+            <h3 className="mt-5 min-w-0 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
               {article.titre}
             </h3>
-            <p className="mt-1.5 line-clamp-3 min-w-0 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{article.extrait}</p>
+            <p className="mt-2 line-clamp-3 min-w-0 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{article.extrait}</p>
 
             <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/5">
               <div className="min-w-0">
