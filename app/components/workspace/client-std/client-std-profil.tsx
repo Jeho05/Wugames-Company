@@ -65,9 +65,9 @@ export function ClientStdProfil({ user }: ClientStdProfilProps) {
 
   return (
     <ClientSection icon="user" id="std-profil" subtitle="Vos informations et la sécurité de votre compte" title="Mon profil">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         <motion.article
-          className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36]"
+          className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-950/[0.03] sm:p-6 dark:border-white/10 dark:bg-[#101c36]"
           initial={reduce ? undefined : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -97,7 +97,7 @@ export function ClientStdProfil({ user }: ClientStdProfilProps) {
             </div>
           </div>
 
-          <dl className="mt-7 grid gap-3 sm:grid-cols-2">
+          <dl className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {contactRows.map((row) => (
               <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-[#fafbfd] px-4 py-3.5 dark:border-white/5 dark:bg-white/[0.03]" key={row.label}>
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.06] text-[#17294b] dark:bg-white/[0.06] dark:text-slate-300">
@@ -113,7 +113,7 @@ export function ClientStdProfil({ user }: ClientStdProfilProps) {
         </motion.article>
 
         <motion.article
-          className="flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36]"
+          className="flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-950/[0.03] sm:p-6 dark:border-white/10 dark:bg-[#101c36]"
           initial={reduce ? undefined : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -128,19 +128,19 @@ export function ClientStdProfil({ user }: ClientStdProfilProps) {
             </div>
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-[#fafbfd] px-4 py-3.5 dark:border-white/5 dark:bg-white/[0.03]">
-            <div className="flex items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-[#fafbfd] px-4 py-3.5 dark:border-white/5 dark:bg-white/[0.03]">
+            <div className="flex min-w-0 items-center gap-3">
               <span
                 className={
-                  "grid size-9 place-items-center rounded-xl " +
+                  "grid size-9 shrink-0 place-items-center rounded-xl " +
                   (twoFa ? "bg-emerald-500/[0.12] text-emerald-600" : "bg-slate-200/70 text-slate-500")
                 }
               >
                 <Icon name="shield" size={16} />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Double authentification</p>
-                <p className="mt-0.5 text-[11px] text-slate-400">
+                <p className="mt-0.5 truncate text-[11px] text-slate-400">
                   {twoFa ? "Activée — votre compte est protégé" : "Recommandée pour sécuriser vos accès"}
                 </p>
               </div>
