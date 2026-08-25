@@ -81,7 +81,7 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1100px_420px_at_50%_-10%,rgba(255,255,255,0.09),transparent_60%)]" />
 
         <div className="relative z-10 px-6 pb-8 pt-8 sm:px-10 sm:pb-10 sm:pt-10">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-6 min-w-0 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#f2c56d]">
                 Portail client · WUGAMS
@@ -111,39 +111,39 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-2.5 sm:gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-3 py-1.5 text-[11px] font-semibold text-slate-200 backdrop-blur sm:gap-2 sm:px-4 sm:text-xs">
-                  <Icon name="calendar" size={13} className="text-[#f2c56d]" />
+              <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-2.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-[10px] font-semibold text-slate-200 backdrop-blur sm:gap-2 sm:px-3.5 sm:text-[11px]">
+                  <Icon name="calendar" size={12} className="text-[#f2c56d]" />
                   {today ? today.dateLabel : "Chargement…"}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-3 py-1.5 text-[11px] font-semibold text-slate-200 backdrop-blur sm:gap-2 sm:px-4 sm:text-xs">
-                  <Icon name="clock" size={13} className="text-[#f2c56d]" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-[10px] font-semibold text-slate-200 backdrop-blur sm:gap-2 sm:px-3.5 sm:text-[11px]">
+                  <Icon name="clock" size={12} className="text-[#f2c56d]" />
                   {now ?? "…"}
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-3 py-1.5 backdrop-blur sm:gap-2.5 sm:px-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 backdrop-blur sm:gap-2 sm:px-3.5">
                   <span className={"relative flex size-2.5 " + stateGlow[state]}>
                     <span className={"absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 " + stateDot[state]} />
                     <span className={"relative inline-flex size-2.5 rounded-full ring-2 " + stateDot[state]} />
                   </span>
-                  <span className="text-[11px] font-bold text-white sm:text-xs">{stateMeta.label}</span>
+                  <span className="text-[10px] font-bold text-white sm:text-[11px]">{stateMeta.label}</span>
                 </span>
               </div>
             </div>
 
-            <div className="grid w-full grid-cols-3 gap-2 sm:gap-3 lg:w-[420px]">
+            <div className="grid w-full grid-cols-3 gap-2 sm:gap-3 lg:w-[380px] xl:w-[420px]">
               {stats.map((stat, index) => (
                 <motion.div
-                  className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-4 text-center backdrop-blur sm:px-4 sm:py-5"
+                  className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] px-2 py-3 text-center backdrop-blur sm:px-3 sm:py-4 md:px-4 md:py-5"
                   initial={reduce ? undefined : { opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={stat.label}
                   transition={{ duration: 0.5, delay: 0.25 + index * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <span className="mx-auto grid size-8 place-items-center rounded-xl bg-[#e3a641]/15 text-[#f2c56d] sm:size-9">
-                    <Icon name={stat.icon} size={15} />
+                  <span className="mx-auto grid size-7 place-items-center rounded-lg bg-[#e3a641]/15 text-[#f2c56d] sm:size-8 md:size-9 md:rounded-xl">
+                    <Icon name={stat.icon} size={14} />
                   </span>
-                  <p className="mt-2.5 text-lg font-bold tracking-[-0.04em] sm:text-2xl">{stat.value}</p>
-                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-400 sm:text-[10px]">{stat.label}</p>
+                  <p className="mt-2 text-base font-bold tracking-[-0.04em] sm:mt-2.5 sm:text-lg md:text-xl lg:text-2xl">{stat.value}</p>
+                  <p className="mt-0.5 truncate text-[8px] font-semibold uppercase tracking-wide text-slate-400 sm:text-[9px] md:text-[10px]">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
