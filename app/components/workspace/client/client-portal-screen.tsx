@@ -14,7 +14,7 @@ import { ClientCommandes } from "@/app/components/workspace/client/client-comman
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
 import { ClientProfil } from "@/app/components/workspace/client/client-profil";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
-import { ClientEspaceWugams } from "@/app/components/workspace/client/client-espace-wugams";
+import { ClientEspacesWugams } from "@/app/components/workspace/client/client-demandes";
 import {
   demoClientPortalData,
   globalStateFrom,
@@ -31,7 +31,7 @@ type ClientPortalScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "portail-apercu", label: "Vue d'ensemble", icon: "dashboard" },
-  { id: "portail-espace-wugams", label: "Mon Espace Wugams", icon: "building" },
+  { id: "portail-espaces-wugams", label: "Espaces Wugams", icon: "building" },
   { id: "portail-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
   { id: "portail-missions", label: "Missions", icon: "hardhat" },
   { id: "portail-factures", label: "Factures", icon: "file-text" },
@@ -159,7 +159,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
         </div>
       </div>
 
-      <ClientEspaceWugams cleans={cleans} />
+      <ClientEspacesWugams demandes={data.demandes} cleans={cleans} />
       <ClientMode2Vie />
 
       <ClientMissions missions={data.missions} />

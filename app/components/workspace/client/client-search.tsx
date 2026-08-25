@@ -12,7 +12,7 @@ import { mode2vieArticles } from "@/app/lib/mode2vie-data";
 
 type SearchResult = {
   id: string;
-  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Demandes" | "Projets" | "Wugams Cleans" | "Mode2Vie" | "Espace Wu";
+  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Espaces Wugams" | "Projets" | "Wugams Cleans" | "Mode2Vie" | "Espace Wu";
   sectionId: string;
   icon: IconName;
   title: string;
@@ -24,7 +24,7 @@ const sectionIcon: Record<SearchResult["section"], IconName> = {
   Factures: "file-text",
   Devis: "sparkles",
   Commandes: "shopping-bag",
-  Demandes: "clipboard",
+  "Espaces Wugams": "building",
   Projets: "camera",
   "Wugams Cleans": "sparkles",
   Mode2Vie: "newspaper",
@@ -95,7 +95,7 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
           .join(" "),
       ).includes(q);
     return [
-      ...data.demandes.filter(matches).map((d) => build(d, "Demandes")),
+      ...data.demandes.filter(matches).map((d) => build(d, "Espaces Wugams")),
       ...data.projets.filter(matches).map((p) => build(p, "Projets")),
       ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
       ...mode2vieArticles.filter(matches).map((a) => build(a, "Mode2Vie")),
@@ -234,8 +234,8 @@ function sectionIdOf(section: SearchResult["section"]): string {
       return "portail-devis";
     case "Commandes":
       return "portail-commandes";
-    case "Demandes":
-      return "portail-demandes";
+    case "Espaces Wugams":
+      return "portail-espaces-wugams";
     case "Projets":
       return "portail-projets";
     case "Wugams Cleans":

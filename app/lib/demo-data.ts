@@ -97,7 +97,7 @@ export const clientNavigationGroups: {
     items: [
       { href: "/espace", icon: "dashboard", label: "Vue d'ensemble" },
       { href: "/espace/projets", icon: "folder", label: "Mes projets" },
-      { href: "/espace/demandes", icon: "clipboard", label: "Mes demandes" },
+      { href: "/espace/demandes", icon: "building", label: "Espaces Wugams" },
     ],
   },
   {
@@ -577,7 +577,7 @@ export const modules: Record<string, ModuleDefinition> = {
       { label: "Terminées", value: "05" },
     ],
     tabs: ["Toutes", "En cours", "À confirmer", "Terminées"],
-    title: "Mes demandes",
+    title: "Espaces Wugams",
   },
   projets: {
     actionLabel: "Demander un devis",

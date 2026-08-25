@@ -13,7 +13,7 @@ import { ClientStdDevis } from "@/app/components/workspace/client-std/client-std
 import { ClientStdNotifications } from "@/app/components/workspace/client-std/client-std-notifications";
 import { ClientStdProfil } from "@/app/components/workspace/client-std/client-std-profil";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
-import { ClientEspaceWugams } from "@/app/components/workspace/client/client-espace-wugams";
+import { ClientEspacesWugams } from "@/app/components/workspace/client/client-demandes";
 import {
   clientStdProgress,
   clientStdStateFrom,
@@ -31,7 +31,7 @@ type ClientStdScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "std-apercu", label: "Vue d'ensemble", icon: "dashboard" },
-  { id: "std-espace-wugams", label: "Mon Espace Wugams", icon: "building" },
+  { id: "std-espaces-wugams", label: "Espaces Wugams", icon: "building" },
   { id: "std-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
   { id: "std-missions", label: "Missions", icon: "hardhat" },
   { id: "std-commandes", label: "Commandes", icon: "shopping-bag" },
@@ -153,7 +153,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
         </div>
       </div>
 
-      <ClientEspaceWugams cleans={cleans} sectionId="std-espace-wugams" />
+      <ClientEspacesWugams demandes={[]} cleans={cleans} sectionId="std-espaces-wugams" />
       <ClientMode2Vie sectionId="std-mode2vie" />
 
       <ClientStdMissions missions={data.missions} />

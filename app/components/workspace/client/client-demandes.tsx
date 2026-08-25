@@ -4,11 +4,29 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import type { IconName } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
+import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
+import { ClientBoutique } from "@/app/components/workspace/client/client-boutique";
 import { createDemande } from "@/app/lib/api/client-space";
 import { demandeStatutMeta, demandeTypeMeta, demandeView } from "@/app/lib/client-data";
 import type { ClientDemandeView, DemandeStatut, DemandeType } from "@/app/lib/client-data";
+import type { CleansOverview } from "@/app/lib/cleans-data";
+
+type TabId = "demandes" | "clean" | "boutique";
+
+type ClientEspacesWugamsProps = {
+  demandes: ClientDemandeView[];
+  cleans: CleansOverview;
+  sectionId?: string;
+};
+
+const subTabs: { id: TabId; label: string; icon: IconName }[] = [
+  { id: "demandes", label: "Mes demandes", icon: "clipboard" },
+  { id: "clean", label: "Wugams Clean", icon: "sparkles" },
+  { id: "boutique", label: "Espace Wu", icon: "shopping-bag" },
+];
 
 const typeIcon: Record<DemandeType, "sparkles" | "clipboard" | "warning"> = {
   DEVIS: "sparkles",
@@ -68,11 +86,8 @@ function DemandeTimeline({ statut }: { statut: DemandeStatut }) {
   );
 }
 
-type ClientDemandesProps = {
-  demandes: ClientDemandeView[];
-};
-
-export function ClientDemandes({ demandes }: ClientDemandesProps) {
+export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-espaces-wugams" }: ClientEspacesWugamsProps) {
+  const [tab, setTab] = useState<TabId>("demandes");
   const [selected, setSelected] = useState<ClientDemandeView | null>(null);
   const [compose, setCompose] = useState(false);
   const [type, setType] = useState<DemandeType>("DEVIS");
@@ -95,7 +110,6 @@ export function ClientDemandes({ demandes }: ClientDemandesProps) {
       });
       setCreated((prev) => [demandeView(demande), ...prev]);
     } catch {
-      /* API injoignable : repli silencieux sur une demande locale (mode démo). */
       const nouvelle: ClientDemandeView = {
         id: "new-" + Date.now(),
         type,
@@ -117,83 +131,128 @@ export function ClientDemandes({ demandes }: ClientDemandesProps) {
   return (
     <ClientSection
       action={
-        <button
-          className="inline-flex items-center gap-1.5 rounded-2xl bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
-          onClick={() => setCompose(true)}
-          type="button"
-        >
-          <Icon name="plus" size={14} />
-          Nouvelle demande
-        </button>
-      }
-      icon="clipboard"
-      id="portail-demandes"
-      subtitle="Devis, services et réclamations — chaque demande suit son cycle jusqu'à la décision"
-      title="Mes demandes"
-    >
-      <div className="grid gap-3 md:grid-cols-2">
-        {all.length === 0 ? (
-          <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03]">
-            <Icon name="clipboard" size={22} className="text-slate-300" />
-            <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune demande pour le moment</p>
-            <p className="max-w-64 text-xs leading-5 text-slate-400">
-              Décrivez votre besoin : devis, service ou réclamation. Réponse sous 24 h ouvrées.
-            </p>
-          </div>
-        ) : (
-          all.map((demande, index) => {
-            const typeMeta = demandeTypeMeta[demande.type];
-            const statutMeta = demandeStatutMeta[demande.statut];
-            return (
-              <motion.article
-                className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-white/10 dark:bg-[#101c36]"
-                initial={reduce ? undefined : { opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                key={demande.id}
-                transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.06] text-[#17294b] dark:bg-white/[0.06] dark:text-slate-300">
-                      <Icon name={typeIcon[demande.type]} size={16} />
-                    </span>
-                    <StatusBadge tone={typeMeta.tone}>{typeMeta.label}</StatusBadge>
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-400">{demande.date}</span>
-                </div>
-
-                <h3 className="mt-4 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
-                  {demande.objet}
-                </h3>
-                <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{demande.detail}</p>
-
-                <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3.5 dark:border-white/5">
-                  <span className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
-                    <Icon name="folder" size={12} />
-                    {demande.piecesJointes} pièce{demande.piecesJointes > 1 ? "s" : ""} jointe{demande.piecesJointes > 1 ? "s" : ""}
-                  </span>
-                  <button
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-[11px] font-bold text-[#16233a] transition hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200"
-                    onClick={() => setSelected(demande)}
-                    type="button"
-                  >
-                    Suivre <Icon name="arrow-right" size={12} />
-                  </button>
-                </div>
-              </motion.article>
-            );
-          })
-        )}
-      </div>
-
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-semibold text-slate-400">
-          {enAttente} demande{enAttente > 1 ? "s" : ""} en cours de traitement
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#17294b]/20 bg-[#17294b]/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#17294b]">
+          <Icon name="building" size={12} />
+          Espace WUGAMS
         </span>
-        {all.some((d) => d.statut === "DEVIS_PROPOSE") ? (
-          <StatusBadge tone="warning">Un devis vous attend</StatusBadge>
-        ) : null}
+      }
+      icon="building"
+      id={sectionId}
+      subtitle="Demandes, Wugams Clean et Espace Wu — tous vos services au même endroit"
+      title="Espaces Wugams"
+    >
+      {/* Sous-onglets */}
+      <div className="scrollbar-none -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1">
+        {subTabs.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button
+              aria-current={active ? "true" : undefined}
+              className={
+                "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 " +
+                (active
+                  ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/20"
+                  : "border-slate-200/90 bg-white text-slate-500 hover:border-slate-300 hover:text-[#17294b] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-white")
+              }
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              type="button"
+            >
+              <Icon name={t.icon} size={13} className={active ? "text-[#f2c56d]" : undefined} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Contenu Demandes */}
+      {tab === "demandes" && (
+        <div className="mt-2">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Devis, services et réclamations — chaque demande suit son cycle jusqu&apos;à la décision
+            </p>
+            <button
+              className="inline-flex items-center gap-1.5 rounded-2xl bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
+              onClick={() => setCompose(true)}
+              type="button"
+            >
+              <Icon name="plus" size={14} />
+              Nouvelle demande
+            </button>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            {all.length === 0 ? (
+              <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03]">
+                <Icon name="clipboard" size={22} className="text-slate-300" />
+                <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune demande pour le moment</p>
+                <p className="max-w-64 text-xs leading-5 text-slate-400">
+                  Décrivez votre besoin : devis, service ou réclamation. Réponse sous 24 h ouvrées.
+                </p>
+              </div>
+            ) : (
+              all.map((demande, index) => {
+                const typeMeta = demandeTypeMeta[demande.type];
+                const statutMeta = demandeStatutMeta[demande.statut];
+                return (
+                  <motion.article
+                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-white/10 dark:bg-[#101c36]"
+                    initial={reduce ? undefined : { opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={demande.id}
+                    transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.06] text-[#17294b] dark:bg-white/[0.06] dark:text-slate-300">
+                          <Icon name={typeIcon[demande.type]} size={16} />
+                        </span>
+                        <StatusBadge tone={typeMeta.tone}>{typeMeta.label}</StatusBadge>
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-400">{demande.date}</span>
+                    </div>
+
+                    <h3 className="mt-4 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+                      {demande.objet}
+                    </h3>
+                    <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{demande.detail}</p>
+
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3.5 dark:border-white/5">
+                      <span className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
+                        <Icon name="folder" size={12} />
+                        {demande.piecesJointes} pièce{demande.piecesJointes > 1 ? "s" : ""} jointe{demande.piecesJointes > 1 ? "s" : ""}
+                      </span>
+                      <button
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-[11px] font-bold text-[#16233a] transition hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200"
+                        onClick={() => setSelected(demande)}
+                        type="button"
+                      >
+                        Suivre <Icon name="arrow-right" size={12} />
+                      </button>
+                    </div>
+                  </motion.article>
+                );
+              })
+            )}
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold text-slate-400">
+              {enAttente} demande{enAttente > 1 ? "s" : ""} en cours de traitement
+            </span>
+            {all.some((d) => d.statut === "DEVIS_PROPOSE") ? (
+              <StatusBadge tone="warning">Un devis vous attend</StatusBadge>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Contenu Wugams Clean */}
+      {tab === "clean" && <ClientCleans cleans={cleans} sectionId="portail-cleans" embedded />}
+
+      {/* Contenu Espace Wu */}
+      {tab === "boutique" && <ClientBoutique sectionId="portail-boutique" embedded />}
 
       <AnimatePresence>
         {selected ? (
