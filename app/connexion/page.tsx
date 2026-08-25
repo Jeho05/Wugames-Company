@@ -64,7 +64,7 @@ export default function LoginPage() {
             </p>
             <p className="mt-2 text-center text-[11px] text-slate-400">
               <Link className="font-semibold text-[#426b95] hover:text-[#17294b]" href="/">
-                Retour à l&apos;accueil
+                Retour à l'accueil
               </Link>
             </p>
           </div>

@@ -216,9 +216,9 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                     key={group.dateComplete}
                     transition={{ duration: 0.4, delay: gi * 0.06, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <div className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-white/5">
+                    <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-3 dark:border-white/5 sm:gap-2">
                       <Icon name="calendar" size={14} className="text-[#17294b]" />
-                      <p className="text-[13px] font-bold text-[#16233a] dark:text-slate-100">
+                      <p className="text-[12px] font-bold text-[#16233a] dark:text-slate-100 sm:text-[13px]">
                         {group.jour} {group.dateComplete}
                       </p>
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-white/[0.06]">
@@ -236,7 +236,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                                 {service.toiletteNumero}
                               </span>
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-1.5">
                                   <p className="text-[12px] font-bold text-[#16233a] dark:text-slate-100">
                                     Toilette #{service.toiletteNumero}
                                   </p>
@@ -246,31 +246,31 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                                 </div>
                                 <p className="mt-0.5 text-[10px] text-slate-400">{service.heure} · {service.cleaner}</p>
                               </div>
-                              {service.photoAvant && service.photoApres ? (
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    className="group/photo relative h-10 w-12 shrink-0 overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2"
-                                    onClick={() => setProof(service)}
-                                    type="button"
-                                  >
-                                    <img alt="Avant" className="h-full w-full object-cover" src={service.photoAvant} />
-                                    <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[7px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
-                                      AVANT
-                                    </span>
-                                  </button>
-                                  <button
-                                    className="group/photo relative h-10 w-12 shrink-0 overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2"
-                                    onClick={() => setProof(service)}
-                                    type="button"
-                                  >
-                                    <img alt="Après" className="h-full w-full object-cover" src={service.photoApres} />
-                                    <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[7px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
-                                      APRÈS
-                                    </span>
-                                  </button>
-                                </div>
-                              ) : null}
                             </div>
+                            {service.photoAvant && service.photoApres ? (
+                              <div className="flex items-center gap-2 pl-11">
+                                <button
+                                  className="group/photo relative h-16 w-20 shrink-0 overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 sm:h-10 sm:w-12"
+                                  onClick={() => setProof(service)}
+                                  type="button"
+                                >
+                                  <img alt="Avant" className="h-full w-full object-cover" src={service.photoAvant} />
+                                  <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[7px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
+                                    AVANT
+                                  </span>
+                                </button>
+                                <button
+                                  className="group/photo relative h-16 w-20 shrink-0 overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 sm:h-10 sm:w-12"
+                                  onClick={() => setProof(service)}
+                                  type="button"
+                                >
+                                  <img alt="Après" className="h-full w-full object-cover" src={service.photoApres} />
+                                  <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[7px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
+                                    APRÈS
+                                  </span>
+                                </button>
+                              </div>
+                            ) : null}
                             {/* Notes du travailleur */}
                             {service.notesTravailleur ? (
                               <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-400/20 dark:bg-amber-400/10">
