@@ -216,7 +216,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
         >
           <span className="flex items-center gap-3">
             <Icon name="arrow-right" className="rotate-180" size={17} />
-            {isClient ? "Retour à l\u2019accueil" : "Voir la vitrine"}
+            <span>{isClient ? "Retour à l\u2019accueil" : "Voir la vitrine"}</span>
           </span>
         </Link>
       </aside>
