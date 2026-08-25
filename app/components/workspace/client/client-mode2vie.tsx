@@ -54,10 +54,10 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
         ))}
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {articles.map((article, index) => (
           <motion.article
-            className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-950/[0.08] dark:border-white/10 dark:bg-[#101c36]"
+            className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl hover:shadow-slate-950/[0.08] dark:border-white/10 dark:bg-[#101c36]"
             initial={reduce ? undefined : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             key={article.id}
@@ -67,23 +67,23 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
             {article.diasporama.length > 0 ? (
               <div className="relative mb-3 overflow-hidden rounded-2xl">
                 <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
-                  {article.diasporama.slice(0, 7).map((img, i) => (
-                    <img
-                      alt={`${article.titre} — image ${i + 1}`}
-                      className="h-24 w-24 shrink-0 rounded-xl object-cover sm:h-28 sm:w-28"
-                      key={i}
-                      src={img}
-                    />
-                  ))}
+                    {article.diasporama.slice(0, 7).map((img, i) => (
+                      <img
+                        alt={`${article.titre} — image ${i + 1}`}
+                        className="h-20 w-20 shrink-0 rounded-xl object-cover sm:h-28 sm:w-28"
+                        key={i}
+                        src={img}
+                      />
+                    ))}
                 </div>
               </div>
             ) : null}
 
-            <div className="flex items-center justify-between gap-3">
-              <span className="rounded-full border border-[#f2c56d]/40 bg-[#f2c56d]/10 px-2.5 py-1 text-[10px] font-bold text-[#b47e1e]">
+            <div className="flex items-center justify-between gap-3 overflow-hidden">
+              <span className="shrink-0 rounded-full border border-[#f2c56d]/40 bg-[#f2c56d]/10 px-2.5 py-1 text-[10px] font-bold text-[#b47e1e]">
                 {article.categorie}
               </span>
-              <span className="text-[10px] font-semibold text-slate-400">{article.date}</span>
+              <span className="shrink-0 text-[10px] font-semibold text-slate-400">{article.date}</span>
             </div>
 
             {article.verset ? (
@@ -92,12 +92,12 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
               </p>
             ) : null}
 
-            <h3 className="mt-4 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+            <h3 className="mt-4 min-w-0 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
               {article.titre}
             </h3>
-            <p className="mt-1.5 line-clamp-3 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{article.extrait}</p>
+            <p className="mt-1.5 line-clamp-3 min-w-0 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{article.extrait}</p>
 
-            <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/5">
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-white/5">
               <div className="min-w-0">
                 <p className="truncate text-[10px] font-bold text-[#16233a] dark:text-slate-200">{article.auteur}</p>
                 <p className="mt-0.5 flex items-center gap-1 text-[10px] text-slate-400">
@@ -147,7 +147,7 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
             <motion.div
               aria-label="Article Mode2Vie"
               aria-modal="true"
-              className="pointer-events-auto max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/20 bg-white p-6 shadow-2xl sm:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
+              className="pointer-events-auto max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/20 bg-white p-4 shadow-2xl sm:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
               initial={reduce ? undefined : { opacity: 0, y: 28, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}

@@ -104,7 +104,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4 text-[11px] font-semibold text-slate-300">
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-white/10 pt-4 text-[11px] font-semibold text-slate-300">
               <span className="inline-flex items-center gap-1.5">
                 <Icon name="check" size={13} className="text-emerald-400" />
                 Preuve photo avant / après
@@ -207,7 +207,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   </p>
                 </div>
               </div>
-              <div className="mt-4 space-y-6">
+            <div className="mt-4 space-y-6">
                 {dayGroups.map((group, gi) => (
                   <motion.div
                     className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#101c36]"
@@ -217,11 +217,11 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                     transition={{ duration: 0.4, delay: gi * 0.06, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-3 dark:border-white/5 sm:gap-2">
-                      <Icon name="calendar" size={14} className="text-[#17294b]" />
-                      <p className="text-[12px] font-bold text-[#16233a] dark:text-slate-100 sm:text-[13px]">
+                      <Icon name="calendar" size={14} className="shrink-0 text-[#17294b]" />
+                      <p className="min-w-0 truncate text-[12px] font-bold text-[#16233a] dark:text-slate-100 sm:text-[13px]">
                         {group.jour} {group.dateComplete}
                       </p>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-white/[0.06]">
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-white/[0.06]">
                         {group.services.length} toilette{group.services.length > 1 ? "s" : ""}
                       </span>
                     </div>
@@ -235,7 +235,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                               <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#17294b] text-[11px] font-bold text-white">
                                 {service.toiletteNumero}
                               </span>
-                              <div className="min-w-0 flex-1">
+                              <div className="min-w-0 flex-1 overflow-hidden">
                                 <div className="flex flex-wrap items-center gap-1.5">
                                   <p className="text-[12px] font-bold text-[#16233a] dark:text-slate-100">
                                     Toilette #{service.toiletteNumero}
@@ -244,13 +244,13 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                                     {meta.label}
                                   </span>
                                 </div>
-                                <p className="mt-0.5 text-[10px] text-slate-400">{service.heure} · {service.cleaner}</p>
+                                <p className="mt-0.5 truncate text-[10px] text-slate-400">{service.heure} · {service.cleaner}</p>
                               </div>
                             </div>
                             {service.photoAvant && service.photoApres ? (
-                              <div className="flex items-center gap-2 pl-11">
+                              <div className="flex items-center gap-2 sm:pl-11">
                                 <button
-                                  className="group/photo relative h-16 w-20 shrink-0 overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 sm:h-10 sm:w-12"
+                                  className="group/photo relative size-14 shrink-0 overflow-hidden rounded-xl sm:h-10 sm:w-12"
                                   onClick={() => setProof(service)}
                                   type="button"
                                 >
@@ -260,7 +260,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                                   </span>
                                 </button>
                                 <button
-                                  className="group/photo relative h-16 w-20 shrink-0 overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 sm:h-10 sm:w-12"
+                                  className="group/photo relative size-14 shrink-0 overflow-hidden rounded-xl sm:h-10 sm:w-12"
                                   onClick={() => setProof(service)}
                                   type="button"
                                 >

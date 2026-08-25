@@ -132,7 +132,7 @@ export function ClientBoutique({ sectionId = "portail-boutique", embedded = fals
   }
 
   const boutiqueContent = (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+    <div className="grid gap-5 grid-cols-1 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
       {/* Catalogue */}
       <div>
         <div className="mb-3 flex flex-wrap gap-1.5">

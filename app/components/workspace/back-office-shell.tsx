@@ -221,7 +221,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
         </Link>
       </aside>
 
-      <div className="min-h-screen lg:pl-[272px]">
+      <div className="min-h-screen overflow-x-hidden lg:pl-[272px]">
         <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-slate-200/80 bg-[#f5f7fb]/90 px-4 backdrop-blur xl:px-8">
           <div className="flex items-center gap-3">
             <button
