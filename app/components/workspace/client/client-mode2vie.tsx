@@ -70,7 +70,7 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
                   {article.diasporama.slice(0, 7).map((img, i) => (
                     <img
                       alt={`${article.titre} — image ${i + 1}`}
-                      className="h-28 w-28 shrink-0 rounded-xl object-cover"
+                      className="h-24 w-24 shrink-0 rounded-xl object-cover sm:h-28 sm:w-28"
                       key={i}
                       src={img}
                     />
@@ -231,11 +231,11 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
                 ))}
               </div>
 
-              <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.04]">
-                <div className="flex items-center gap-2">
-                  <Icon name="sparkles" size={15} className="text-[#b47e1e]" />
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.04]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Icon name="sparkles" size={15} className="shrink-0 text-[#b47e1e]" />
                   <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                    Partagé avec la communauté WUGAMS — Mode2Vie [Lifestyle]
+                    Partagé avec la communauté WUGAMS
                   </p>
                 </div>
                 {reading.blogUrl ? (

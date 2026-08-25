@@ -106,7 +106,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
 
   return (
     <div className="space-y-10 lg:space-y-12">
-      <div className="sticky top-[76px] z-20 -mx-4 bg-[#f5f7fb]/90 px-4 py-2.5 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-16 z-20 -mx-4 bg-[#f5f7fb]/90 px-4 py-2.5 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:top-[76px] lg:-mx-8 lg:px-8 dark:bg-[#0f1a2e]/90">
         <nav
           aria-label="Sections du portail"
           className="scrollbar-none -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1"
@@ -134,7 +134,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
         </nav>
       </div>
 
-      <div id="std-apercu" className="scroll-mt-44 space-y-10 lg:space-y-12">
+      <div id="std-apercu" className="scroll-mt-32 lg:scroll-mt-44 space-y-10 lg:space-y-12">
         <ClientStdHero
           missionActive={missionsActives > 0}
           missionsActives={missionsActives}

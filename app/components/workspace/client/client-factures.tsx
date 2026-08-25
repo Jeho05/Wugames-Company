@@ -61,44 +61,133 @@ export function ClientFactures({ factures }: ClientFacturesProps) {
           </p>
         </div>
       ) : (
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-white/5 dark:bg-white/[0.03]">
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Numéro</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Émise le</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Échéance</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Statut</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {factures.map((facture, index) => {
-                const isOpen = expanded === facture.id;
-                const montantTtc = Number(facture.montant_ttc);
-                const montantHt = Number(facture.montant_ht);
-                return (
-                  <FragmentRow
-                    facture={facture}
-                    index={index}
-                    isOpen={isOpen}
-                    key={facture.id}
-                    montantHt={montantHt}
-                    montantTtc={montantTtc}
-                    onToggle={() => setExpanded(isOpen ? null : facture.id)}
-                    onExportCsv={exportCsv}
-                  />
-                );
-              })}
-            </tbody>
-          </table>
+      <>
+        {/* Mobile: card layout */}
+        <div className="space-y-3 md:hidden">
+          {factures.map((facture, index) => {
+            const isOpen = expanded === facture.id;
+            const montantTtc = Number(facture.montant_ttc);
+            const montantHt = Number(facture.montant_ht);
+            return (
+              <motion.div
+                className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-white/10 dark:bg-[#101c36]"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: index * 0.04 }}
+                key={facture.id}
+              >
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-[#16233a] dark:text-slate-100">{facture.numero}</p>
+                      <p className="mt-0.5 text-[11px] text-slate-400">
+                        Émise le {formatDateFr(facture.date_emission)}
+                      </p>
+                    </div>
+                    <FactureBadge statut={facture.statut} />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-[15px] font-bold tabular-nums text-[#16233a] dark:text-slate-100">
+                      {formatFcfa(montantTtc)}
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        aria-label={`Télécharger ${facture.numero}`}
+                        className="grid size-8 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-[#17294b]"
+                        title="Télécharger le CSV"
+                        type="button"
+                        onClick={() => exportCsv(facture.numero)}
+                      >
+                        <Icon name="download" size={15} />
+                      </button>
+                      <button
+                        aria-expanded={isOpen}
+                        className={
+                          "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-bold transition " +
+                          (isOpen
+                            ? "border-[#17294b] bg-[#17294b] text-white"
+                            : "border-slate-200 text-slate-600")
+                        }
+                        onClick={() => setExpanded(isOpen ? null : facture.id)}
+                        type="button"
+                      >
+                        {isOpen ? "Masquer" : "Voir"}
+                        <Icon name="chevron-down" className={isOpen ? "rotate-180" : ""} size={13} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <AnimatePresence initial={false}>
+                  {isOpen ? (
+                    <motion.div
+                      className="border-t border-slate-100 bg-[#fafbfd] px-4 py-3 dark:border-white/5 dark:bg-white/[0.02]"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-xl border border-slate-200/70 bg-white p-3 dark:border-white/10 dark:bg-[#101c36]">
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">HT</p>
+                          <p className="mt-1 text-xs font-bold tabular-nums text-[#16233a] dark:text-slate-100">{formatFcfa(montantHt)}</p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200/70 bg-white p-3 dark:border-white/10 dark:bg-[#101c36]">
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">TTC</p>
+                          <p className="mt-1 text-xs font-bold tabular-nums text-[#16233a] dark:text-slate-100">{formatFcfa(montantTtc)}</p>
+                        </div>
+                        <div className="col-span-2 rounded-xl border border-slate-200/70 bg-white p-3 dark:border-white/10 dark:bg-[#101c36]">
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Échéance</p>
+                          <p className="mt-1 text-xs font-bold text-[#16233a] dark:text-slate-100">{formatDateFr(facture.date_echeance)}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
-        <p className="border-t border-slate-100 px-5 py-3.5 text-[11px] font-medium text-slate-400 dark:border-white/5">
-          Téléchargement PDF disponible pour chaque facture. Les règlements sont confirmés sous 24 h.
-        </p>
-      </div>
+
+        {/* Desktop: table layout */}
+        <div className="hidden overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36] md:block">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-white/5 dark:bg-white/[0.03]">
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Numéro</th>
+                  <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</th>
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Émise le</th>
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Échéance</th>
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Statut</th>
+                  <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {factures.map((facture, index) => {
+                  const isOpen = expanded === facture.id;
+                  const montantTtc = Number(facture.montant_ttc);
+                  const montantHt = Number(facture.montant_ht);
+                  return (
+                    <FragmentRow
+                      facture={facture}
+                      index={index}
+                      isOpen={isOpen}
+                      key={facture.id}
+                      montantHt={montantHt}
+                      montantTtc={montantTtc}
+                      onToggle={() => setExpanded(isOpen ? null : facture.id)}
+                      onExportCsv={exportCsv}
+                    />
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="border-t border-slate-100 px-5 py-3.5 text-[11px] font-medium text-slate-400 dark:border-white/5">
+            Téléchargement PDF disponible pour chaque facture. Les règlements sont confirmés sous 24 h.
+          </p>
+        </div>
+      </>
       )}
     </ClientSection>
   );

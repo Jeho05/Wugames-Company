@@ -74,7 +74,7 @@ export function ClientDevis({ devis }: ClientDevisProps) {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{quote.numero}</p>
-                    <h3 className="mt-1.5 text-[15px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+                    <h3 className="mt-1.5 min-w-0 text-[15px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100 line-clamp-2">
                       {quote.objet}
                     </h3>
                   </div>

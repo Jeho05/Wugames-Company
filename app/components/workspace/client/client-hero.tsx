@@ -52,7 +52,7 @@ export function ClientHero({ user, missionsActives, facturesEnAttente, notificat
   const stats = [
     { label: "Travail Total", value: String(missionsActives), icon: "hardhat" as IconName },
     { label: "Notifications", value: String(notificationsNonLues), icon: "bell" as IconName },
-    { label: "État abonnement", value: state === "ok" ? "Actif" : state === "action" ? "Expiré" : "Aucun", icon: "shield" as IconName },
+    { label: "Abonnement", value: state === "ok" ? "Actif" : state === "action" ? "Expiré" : "Aucun", icon: "shield" as IconName },
   ];
 
   return (
@@ -74,7 +74,7 @@ export function ClientHero({ user, missionsActives, facturesEnAttente, notificat
                 Portail client · WUGAMS
               </p>
               <h1
-                className="mt-3 text-[34px] font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px]"
+                className="mt-3 text-3xl font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px]"
                 id="portail-hero-title"
               >
                 {today ? today.greeting : "Bonjour"}, {firstName}.
@@ -117,7 +117,7 @@ export function ClientHero({ user, missionsActives, facturesEnAttente, notificat
               </div>
             </div>
 
-            <div className="grid shrink-0 grid-cols-3 gap-2.5 lg:w-[420px]">
+            <div className="grid w-full grid-cols-3 gap-2 sm:gap-2.5 lg:w-[420px]">
               {stats.map((stat, index) => (
                 <motion.div
                   className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3.5 text-center backdrop-blur"

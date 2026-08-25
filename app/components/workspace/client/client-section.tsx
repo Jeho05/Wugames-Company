@@ -18,7 +18,7 @@ type ClientSectionProps = {
 
 export function ClientSection({ id, title, subtitle, icon, action, children, className = "" }: ClientSectionProps) {
   return (
-    <section aria-labelledby={`${id}-title`} className={"scroll-mt-28 " + className} id={id}>
+    <section aria-labelledby={`${id}-title`} className={"scroll-mt-24 lg:scroll-mt-28 " + className} id={id}>
       <Reveal>
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex items-center gap-3">

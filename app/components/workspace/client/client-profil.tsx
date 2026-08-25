@@ -147,17 +147,17 @@ export function ClientProfil({ user, fidelite }: ClientProfilProps) {
             </div>
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-[#fafbfd] px-4 py-3.5 dark:border-white/5 dark:bg-white/[0.03]">
-            <div className="flex items-center gap-3">
+          <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-[#fafbfd] px-4 py-3.5 dark:border-white/5 dark:bg-white/[0.03]">
+            <div className="flex items-center gap-3 min-w-0">
               <span
                 className={
-                  "grid size-9 place-items-center rounded-xl " +
+                  "grid size-9 shrink-0 place-items-center rounded-xl " +
                   (twoFa ? "bg-emerald-500/[0.12] text-emerald-600" : "bg-slate-200/70 text-slate-500")
                 }
               >
                 <Icon name="shield" size={16} />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Double authentification</p>
                 <p className="mt-0.5 text-[11px] text-slate-400">
                   {twoFa ? "Activée — votre compte est protégé" : "Recommandée pour sécuriser vos accès"}

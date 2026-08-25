@@ -87,7 +87,7 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
                 Portail client · WUGAMS
               </p>
               <h1
-                className="mt-3 text-[34px] font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px]"
+                className="mt-3 text-3xl font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px]"
                 id="std-hero-title"
               >
                 {today ? today.greeting : "Bonjour"}, {firstName}.
@@ -130,7 +130,7 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
               </div>
             </div>
 
-            <div className="grid shrink-0 grid-cols-3 gap-2.5 lg:w-[420px]">
+            <div className="grid w-full grid-cols-3 gap-2 sm:gap-2.5 lg:w-[420px]">
               {stats.map((stat, index) => (
                 <motion.div
                   className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3.5 text-center backdrop-blur"

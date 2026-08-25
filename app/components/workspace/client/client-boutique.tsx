@@ -203,10 +203,10 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
                   key={produit.id}
                   transition={{ duration: 0.35, delay: index * 0.03 }}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-[13px] font-extrabold leading-5 text-[#16233a] dark:text-slate-100">{produit.nom}</h3>
-                      <p className="mt-1 text-[10px] leading-4 text-slate-400">{produit.description}</p>
+                  <div className="flex items-start justify-between gap-2 min-w-0">
+                    <div className="min-w-0">
+                      <h3 className="text-[13px] font-extrabold leading-5 text-[#16233a] dark:text-slate-100 truncate">{produit.nom}</h3>
+                      <p className="mt-1 text-[10px] leading-4 text-slate-400 line-clamp-2">{produit.description}</p>
                       <p className="mt-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-300">{meta.label}</p>
                     </div>
                     <span
@@ -308,7 +308,7 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
                       className="flex items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-slate-50/60 px-3 py-2.5 dark:border-white/5 dark:bg-white/[0.03]"
                       key={ligne.produit.id}
                     >
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-bold text-[#16233a] dark:text-slate-200">{ligne.produit.nom}</p>
                         <p className="mt-0.5 text-[9px] tabular-nums text-slate-400">
                           {ligne.quantite} × {formatMontantFcfa(ligne.produit.prix)}
@@ -382,7 +382,7 @@ export function ClientBoutique({ sectionId = "portail-boutique" }: ClientBoutiqu
                 return (
                   <li className="py-3 first:pt-0 last:pb-0" key={commande.id}>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-[11px] font-bold text-[#16233a] dark:text-slate-200">
                           {commande.items.map((item) => `${item.quantite}× ${item.nom}`).join(" · ")}
                         </p>

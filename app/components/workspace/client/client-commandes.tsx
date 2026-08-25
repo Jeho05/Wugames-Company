@@ -37,30 +37,111 @@ export function ClientCommandes({ commandes }: ClientCommandesProps) {
           </p>
         </div>
       ) : (
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-white/5 dark:bg-white/[0.03]">
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Commande</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Date</th>
-                <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">État</th>
-                <th className="px-5 py-3.5 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Articles</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</th>
-                <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Voir</th>
-              </tr>
-            </thead>
-            <tbody>
-              {commandes.map((commande, index) => {
-                const isOpen = expanded === commande.id;
-                return (
-                  <FragmentRow commande={commande} index={index} isOpen={isOpen} key={commande.id} onToggle={() => setExpanded(isOpen ? null : commande.id)} />
-                );
-              })}
-            </tbody>
-          </table>
+      <>
+        {/* Mobile: card layout */}
+        <div className="space-y-3 md:hidden">
+          {commandes.map((commande, index) => {
+            const isOpen = expanded === commande.id;
+            return (
+              <motion.div
+                className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-white/10 dark:bg-[#101c36]"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: index * 0.04 }}
+                key={commande.id}
+              >
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#17294b]/[0.06] text-[#17294b] dark:bg-white/[0.06] dark:text-slate-300">
+                        <Icon name="shopping-bag" size={15} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-[#16233a] dark:text-slate-100">{commande.numero}</p>
+                        <p className="mt-0.5 text-[11px] text-slate-400">{commande.date}</p>
+                      </div>
+                    </div>
+                    <CommandeBadge statut={commande.statut} />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] text-slate-400">{commande.nbArticles} article{commande.nbArticles > 1 ? "s" : ""}</span>
+                      <span className="text-[15px] font-bold tabular-nums text-[#16233a] dark:text-slate-100">{formatFcfa(commande.montant)}</span>
+                    </div>
+                    <button
+                      aria-expanded={isOpen}
+                      className={
+                        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-bold transition " +
+                        (isOpen
+                          ? "border-[#17294b] bg-[#17294b] text-white"
+                          : "border-slate-200 text-slate-600")
+                      }
+                      onClick={() => setExpanded(isOpen ? null : commande.id)}
+                      type="button"
+                    >
+                      {isOpen ? "Masquer" : "Voir"}
+                      <Icon name="chevron-down" className={isOpen ? "rotate-180" : ""} size={13} />
+                    </button>
+                  </div>
+                </div>
+                <AnimatePresence initial={false}>
+                  {isOpen ? (
+                    <motion.div
+                      className="border-t border-slate-100 bg-[#fafbfd] px-4 py-3 dark:border-white/5 dark:bg-white/[0.02]"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {commande.articles.length > 0 ? (
+                        <ul className="space-y-1.5">
+                          {commande.articles.map((article) => (
+                            <li
+                              className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 dark:border-white/10 dark:bg-[#101c36] dark:text-slate-300"
+                              key={article}
+                            >
+                              <Icon name="package" size={12} className="shrink-0 text-slate-400" />
+                              <span className="truncate">{article}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-[11px] text-slate-400">Détail disponible sous peu.</p>
+                      )}
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
-      </div>
+
+        {/* Desktop: table layout */}
+        <div className="hidden overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-950/[0.03] dark:border-white/10 dark:bg-[#101c36] md:block">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-white/5 dark:bg-white/[0.03]">
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Commande</th>
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Date</th>
+                  <th className="px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">État</th>
+                  <th className="px-5 py-3.5 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Articles</th>
+                  <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Montant</th>
+                  <th className="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Voir</th>
+                </tr>
+              </thead>
+              <tbody>
+                {commandes.map((commande, index) => {
+                  const isOpen = expanded === commande.id;
+                  return (
+                    <FragmentRow commande={commande} index={index} isOpen={isOpen} key={commande.id} onToggle={() => setExpanded(isOpen ? null : commande.id)} />
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
       )}
     </ClientSection>
   );
