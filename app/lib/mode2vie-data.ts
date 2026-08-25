@@ -13,6 +13,8 @@ export type Mode2VieArticle = {
   verset: string | null;
   extrait: string;
   contenu: string[];
+  diasporama: string[];
+  blogUrl?: string;
 };
 
 export type Mode2VieCategorie = {
@@ -46,6 +48,16 @@ export const mode2vieArticles: Mode2VieArticle[] = [
       "Dans nos filiales, nous encourageons chaque collaborateur à considérer sa mission quotidienne comme une offrande. Le meilleur témoignage n'est pas un discours : c'est une maison livrée propre, un délai tenu, un client rassuré.",
       "Que votre lumière brille par vos œuvres. Chaque coup de pinceau, chaque passage d'entretien, chaque table montée peut devenir une prière silencieuse qui parle plus fort que les mots.",
     ],
+    diasporama: [
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+      "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80",
+      "https://images.unsplash.com/photo-1429497419816-9ca5cfb4571a?w=800&q=80",
+      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&q=80",
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    ],
+    blogUrl: "https://mode2vie.wugams.com/articles/travailler-comme-pour-le-seigneur",
   },
   {
     id: "m2v2",
@@ -63,6 +75,16 @@ export const mode2vieArticles: Mode2VieArticle[] = [
       "Aujourd'hui, demandons-nous : sur quoi bâtissons-nous notre maison ? Nos projets immobiliers, nos entreprises, nos familles — reposent-ils sur le roc de la Parole, ou sur le sable des circonstances favorables ?",
       "Bâtir sur le roc commence par une décision simple : pratiquer ce que l'on entend. Pas demain, pas quand ce sera facile — aujourd'hui.",
     ],
+    diasporama: [
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
+      "https://images.unsplash.com/photo-1513828583688-c52646db42da?w=800&q=80",
+      "https://images.unsplash.com/photo-1448630360428-65456885c650?w=800&q=80",
+      "https://images.unsplash.com/photo-1494526585095-c41746248156?w=800&q=80",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+    ],
+    blogUrl: "https://mode2vie.wugams.com/articles/la-sagesse-du-batisseur",
   },
   {
     id: "m2v3",
@@ -81,6 +103,15 @@ export const mode2vieArticles: Mode2VieArticle[] = [
       "La maison est aujourd'hui livrée, bénie et habitée. Ma femme y prie chaque matin. Et j'ai compris que l'Éternel ne bâtit pas seulement les maisons : il bâtit aussi les hommes.",
       "C'est pourquoi je témoigne : une entreprise qui craint Dieu et respecte sa parole est possible. WUGAMS en est un exemple vivant.",
     ],
+    diasporama: [
+      "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=80",
+      "https://images.unsplash.com/photo-1600607687644-c7f38ed2e0e3?w=800&q=80",
+      "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=80",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80",
+    ],
+    blogUrl: "https://mode2vie.wugams.com/articles/premiere-maison-livree-wugams",
   },
   {
     id: "m2v4",
@@ -99,6 +130,16 @@ export const mode2vieArticles: Mode2VieArticle[] = [
       "Prière des clients : « Seigneur, conduis-nous vers des artisans de confiance. Donne-nous la patience de bien faire les choses et la gratitude de reconnaître les bons collaborateurs. »",
       "Bénir son travail, c'est placer son projet sous une autorité plus grande. Et c'est se rappeler que nous sommes des serviteurs avant d'être des maîtres.",
     ],
+    diasporama: [
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+      "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80",
+      "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80",
+      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80",
+      "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80",
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80",
+    ],
+    blogUrl: "https://mode2vie.wugams.com/articles/priere-de-chantier",
   },
   {
     id: "m2v5",
@@ -117,6 +158,15 @@ export const mode2vieArticles: Mode2VieArticle[] = [
       "Aujourd'hui, ma fille de 9 ans dit qu'elle veut être architecte « pour construire des maisons où les gens sont heureux ». Et je sais que ce vœu est né sur notre chantier, entre les sacs de ciment et les prières du soir.",
       "Bâtir sa maison est peut-être l'une des plus belles occasions d'éduquer. Saisissons-la.",
     ],
+    diasporama: [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
+      "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=80",
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80",
+      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80",
+    ],
+    blogUrl: "https://mode2vie.wugams.com/articles/enfants-maison-construction",
   },
   {
     id: "m2v6",
@@ -134,6 +184,15 @@ export const mode2vieArticles: Mode2VieArticle[] = [
       "Aujourd'hui, dans votre travail — qu'il s'agisse d'un chantier, d'un bureau, d'une cuisine — servez d'abord Dieu. La fidélité dans le petit prépare la promotion dans le grand.",
       "Ce que vous faites entre les mains de Dieu prospère. Même ce qui semble invisible n'échappe pas à Celui qui voit tout.",
     ],
+    diasporama: [
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+      "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
+      "https://images.unsplash.com/photo-1497215842964-222b430dc094?w=800&q=80",
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
+    ],
+    blogUrl: "https://mode2vie.wugams.com/articles/diligence-de-joseph",
   },
 ];
 

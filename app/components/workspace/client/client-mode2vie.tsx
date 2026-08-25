@@ -16,6 +16,7 @@ type ClientMode2VieProps = {
 export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie" }: ClientMode2VieProps) {
   const [categorie, setCategorie] = useState("Tous");
   const [reading, setReading] = useState<Mode2VieArticle | null>(null);
+  const [diasporaIndex, setDiasporaIndex] = useState(0);
   const reduce = useReducedMotion();
 
   const articles = categorie === "Tous"
@@ -33,7 +34,7 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
       icon="newspaper"
       id={sectionId}
       subtitle="Foi & Travail, versets du jour, témoignages — notre vie chrétienne au quotidien"
-      title="Mode2Vie [Lifestyle]™"
+      title="Mode2Vie [Lifestyle]"
     >
       <div className="scrollbar-none -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1">
         {mode2vieCategories.map((cat) => (
@@ -62,6 +63,22 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
             key={article.id}
             transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
           >
+            {/* Diasporama images */}
+            {article.diasporama.length > 0 ? (
+              <div className="relative mb-3 overflow-hidden rounded-2xl">
+                <div className="flex gap-1.5 overflow-x-auto scrollbar-none">
+                  {article.diasporama.slice(0, 7).map((img, i) => (
+                    <img
+                      alt={`${article.titre} — image ${i + 1}`}
+                      className="h-28 w-28 shrink-0 rounded-xl object-cover"
+                      key={i}
+                      src={img}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <div className="flex items-center justify-between gap-3">
               <span className="rounded-full border border-[#f2c56d]/40 bg-[#f2c56d]/10 px-2.5 py-1 text-[10px] font-bold text-[#b47e1e]">
                 {article.categorie}
@@ -88,20 +105,32 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
                   {article.lecture} de lecture
                 </p>
               </div>
-              <button
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[#17294b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
-                onClick={() => setReading(article)}
-                type="button"
-              >
-                Lire <Icon name="arrow-right" size={12} />
-              </button>
+              <div className="flex items-center gap-2">
+                {article.blogUrl ? (
+                  <a
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#17294b]/20 bg-white px-3 py-2 text-[11px] font-bold text-[#17294b] transition hover:bg-slate-50"
+                    href={article.blogUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Blog <Icon name="arrow-right" size={12} />
+                  </a>
+                ) : null}
+                <button
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[#17294b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
+                  onClick={() => { setReading(article); setDiasporaIndex(0); }}
+                  type="button"
+                >
+                  Lire <Icon name="arrow-right" size={12} />
+                </button>
+              </div>
             </div>
           </motion.article>
         ))}
       </div>
 
       <p className="mt-5 rounded-2xl border border-[#f2c56d]/40 bg-[#f2c56d]/[0.06] px-4 py-3 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-        Mode2Vie [Lifestyle]™ est notre blog de vie chrétienne : la foi, le travail et la famille, vécus au quotidien.
+        Mode2Vie [Lifestyle] est notre blog de vie chrétienne : la foi, le travail et la famille, vécus au quotidien.
       </p>
 
       <AnimatePresence>
@@ -128,7 +157,7 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">
-                    Mode2Vie [Lifestyle]™ · {reading.categorie}
+                    Mode2Vie [Lifestyle] · {reading.categorie}
                   </p>
                   <h3 className="mt-1.5 pr-6 text-lg font-bold leading-7 tracking-[-0.03em] text-[#16233a] dark:text-white">
                     {reading.titre}
@@ -147,6 +176,47 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
                 </button>
               </div>
 
+              {/* Diasporama en lecture */}
+              {reading.diasporama.length > 0 ? (
+                <div className="mt-5">
+                  <div className="relative overflow-hidden rounded-2xl">
+                    <img
+                      alt={`${reading.titre} — image ${diasporaIndex + 1}`}
+                      className="h-56 w-full object-cover sm:h-72"
+                      src={reading.diasporama[diasporaIndex]}
+                    />
+                    {reading.diasporama.length > 1 ? (
+                      <>
+                        <button
+                          className="absolute left-2 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
+                          onClick={() => setDiasporaIndex((prev) => (prev === 0 ? reading.diasporama.length - 1 : prev - 1))}
+                          type="button"
+                        >
+                          <Icon name="arrow-right" size={16} className="rotate-180" />
+                        </button>
+                        <button
+                          className="absolute right-2 top-1/2 -translate-y-1/2 grid size-8 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60"
+                          onClick={() => setDiasporaIndex((prev) => (prev === reading.diasporama.length - 1 ? 0 : prev + 1))}
+                          type="button"
+                        >
+                          <Icon name="arrow-right" size={16} />
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                  <div className="mt-2 flex items-center justify-center gap-1.5">
+                    {reading.diasporama.map((_, i) => (
+                      <button
+                        className={"size-1.5 rounded-full transition " + (i === diasporaIndex ? "bg-[#17294b]" : "bg-slate-300")}
+                        key={i}
+                        onClick={() => setDiasporaIndex(i)}
+                        type="button"
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {reading.verset ? (
                 <p className="mt-5 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[13px] font-semibold italic leading-6 text-[#f2c56d]">
                   « {reading.verset} »
@@ -161,11 +231,23 @@ export function ClientMode2Vie({ compact = false, sectionId = "portail-mode2vie"
                 ))}
               </div>
 
-              <div className="mt-6 flex items-center gap-2 rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.04]">
-                <Icon name="sparkles" size={15} className="text-[#b47e1e]" />
-                <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                  Partagé avec la communauté WUGAMS — Mode2Vie [Lifestyle]™
-                </p>
+              <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-white/[0.04]">
+                <div className="flex items-center gap-2">
+                  <Icon name="sparkles" size={15} className="text-[#b47e1e]" />
+                  <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                    Partagé avec la communauté WUGAMS — Mode2Vie [Lifestyle]
+                  </p>
+                </div>
+                {reading.blogUrl ? (
+                  <a
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#243a61]"
+                    href={reading.blogUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Lire sur le blog <Icon name="arrow-right" size={12} />
+                  </a>
+                ) : null}
               </div>
             </motion.div>
           </div>

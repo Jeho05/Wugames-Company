@@ -185,7 +185,10 @@ export const demandeStatutMeta: Record<DemandeStatut, { label: string; tone: Sta
   REFUSEE: { label: "Refusée", tone: "danger" },
 };
 
-export function globalStateFrom(missions: ClientMissionView[], factures: Facture[], devis: ClientDevisView[]): ClientGlobalState {
+export function globalStateFrom(missions: ClientMissionView[], factures: Facture[], devis: ClientDevisView[], abonnementStatut?: "ACTIF" | "EXPIRE" | "AUCUN"): ClientGlobalState {
+  if (abonnementStatut === "AUCUN") return "critical";
+  if (abonnementStatut === "EXPIRE") return "action";
+  if (abonnementStatut === "ACTIF") return "ok";
   const hasCritical =
     factures.some((f) => f.statut === "EN_RETARD") ||
     missions.some((m) => m.statut === "POINTAGE_A_VERIFIER");
@@ -199,9 +202,9 @@ export function globalStateFrom(missions: ClientMissionView[], factures: Facture
 }
 
 export const globalStateMeta: Record<ClientGlobalState, { label: string; detail: string; tone: StatusTone }> = {
-  ok: { label: "Tout est sous contrôle", detail: "Aucune action requise de votre part", tone: "success" },
-  action: { label: "Action requise", detail: "Quelques éléments méritent votre attention", tone: "warning" },
-  critical: { label: "Intervention nécessaire", detail: "Un élément demande votre intervention", tone: "danger" },
+  ok: { label: "Abonnement Wugam Clean actif", detail: "Votre abonnement est actif et à jour", tone: "success" },
+  action: { label: "Abonnement expiré", detail: "Votre abonnement a expiré — renouvelez pour continuer", tone: "warning" },
+  critical: { label: "Aucun abonnement", detail: "Activez un abonnement Wugam Clean pour accéder à vos services", tone: "danger" },
 };
 
 /* ------------------------------------------------------------------ */

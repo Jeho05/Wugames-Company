@@ -8,6 +8,8 @@ import type { IconName } from "@/app/components/ui/app-icon";
 import { useToday } from "@/app/hooks/use-today";
 import { clientStdStateMeta } from "@/app/lib/client-std-data";
 import type { ClientStdGlobalState } from "@/app/lib/client-std-data";
+import { getDailyInspiration, formatInspirationDate } from "@/app/lib/daily-inspiration";
+import { formatFcfa } from "@/app/lib/cleans-data";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 
 type ClientStdHeroProps = {
@@ -17,13 +19,8 @@ type ClientStdHeroProps = {
   notificationsNonLues: number;
   state: ClientStdGlobalState;
   onNavigate: (sectionId: string) => void;
+  abonnementMontant?: number;
 };
-
-const quickActions: { label: string; icon: IconName; section: string }[] = [
-  { label: "Voir mes missions", icon: "hardhat", section: "std-missions" },
-  { label: "Voir mes commandes", icon: "shopping-bag", section: "std-commandes" },
-  { label: "Voir mes devis", icon: "sparkles", section: "std-devis" },
-];
 
 const stateDot: Record<ClientStdGlobalState, string> = {
   ok: "bg-emerald-400",
@@ -37,12 +34,13 @@ const stateGlow: Record<ClientStdGlobalState, string> = {
   critical: "bg-red-400/20 ring-red-400/30",
 };
 
-export function ClientStdHero({ user, missionActive, missionsActives, notificationsNonLues, state, onNavigate }: ClientStdHeroProps) {
+export function ClientStdHero({ user, missionActive, missionsActives, notificationsNonLues, state, onNavigate, abonnementMontant }: ClientStdHeroProps) {
   const today = useToday();
   const [now, setNow] = useState<string | null>(null);
   const reduce = useReducedMotion();
   const firstName = user.name.split(" ")[0];
   const stateMeta = clientStdStateMeta[state];
+  const inspiration = getDailyInspiration();
 
   useEffect(() => {
     const update = () =>
@@ -54,22 +52,19 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
 
   const stats = [
     {
-      label: "Mission active",
+      label: "Travail Total",
       value: missionActive ? String(missionsActives) : "—",
       icon: "hardhat" as IconName,
-      detail: missionActive ? "En cours d'exécution" : "Aucune en ce moment",
     },
     {
       label: "Notifications",
       value: String(notificationsNonLues),
       icon: "bell" as IconName,
-      detail: notificationsNonLues > 0 ? "À consulter" : "Tout est à jour",
     },
     {
-      label: "État global",
-      value: "OK",
+      label: "Abonnement",
+      value: abonnementMontant ? formatFcfa(abonnementMontant) : "Aucun",
       icon: "shield" as IconName,
-      detail: stateMeta.label,
     },
   ];
 
@@ -97,9 +92,25 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
               >
                 {today ? today.greeting : "Bonjour"}, {firstName}.
               </h1>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300 sm:text-[15px]">
-                Suivez vos prestations en toute simplicité : missions, commandes et devis, au même endroit.
-              </p>
+
+              {/* Citation du jour */}
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur">
+                <div className="flex items-start gap-3">
+                  <Icon name="sparkles" size={16} className="mt-0.5 shrink-0 text-[#f2c56d]" />
+                  <div>
+                    <p className="text-[13px] font-semibold italic leading-6 text-white/90">
+                      &ldquo;{inspiration.citation}&rdquo;
+                    </p>
+                    <p className="mt-1.5 text-[10px] font-bold text-[#f2c56d]">
+                      — {inspiration.reference}
+                    </p>
+                    <p className="mt-0.5 text-[9px] text-slate-400">
+                      {formatInspirationDate()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-3.5 py-1.5 text-xs font-semibold text-slate-200 backdrop-blur">
                   <Icon name="calendar" size={14} className="text-[#f2c56d]" />
@@ -133,28 +144,9 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
                   </span>
                   <p className="mt-2.5 text-2xl font-bold tracking-[-0.04em]">{stat.value}</p>
                   <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{stat.label}</p>
-                  <p className="mt-1 truncate text-[9px] font-medium text-slate-500">{stat.detail}</p>
                 </motion.div>
               ))}
             </div>
-          </div>
-
-          <div className="mt-8 flex flex-wrap gap-2.5 border-t border-white/10 pt-6">
-            {quickActions.map((action, index) => (
-              <motion.button
-                className="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/[0.07] px-4 py-2.5 text-xs font-bold text-white backdrop-blur transition hover:border-[#f2c56d]/40 hover:bg-white/[0.12] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f2c56d]"
-                initial={reduce ? undefined : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                key={action.label}
-                onClick={() => onNavigate(action.section)}
-                transition={{ duration: 0.45, delay: 0.5 + index * 0.06 }}
-                type="button"
-              >
-                <Icon name={action.icon} size={15} className="text-[#f2c56d]" />
-                {action.label}
-                <Icon name="arrow-right" size={14} className="text-slate-400" />
-              </motion.button>
-            ))}
           </div>
         </div>
       </motion.div>

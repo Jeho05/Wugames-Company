@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import { Sparkline } from "@/app/components/workspace/executive/sparkline";
+import { formatFcfa } from "@/app/lib/cleans-data";
 
 type ClientStdKpi = {
   id: string;
@@ -52,12 +53,12 @@ export function ClientStdKpiGrid({
   const reduce = useReducedMotion();
 
   const kpis: ClientStdKpi[] = [
-    { id: "missions", label: "Mes missions", value: String(missions), detail: missions > 0 ? "1 en cours d'exécution" : "Aucune mission en cours", icon: "hardhat", tone: "navy", spark: [10, 12, 14, 13, 16, 15, 18, 20] },
-    { id: "commandes", label: "Mes commandes", value: String(commandes), detail: commandes > 0 ? "2 en préparation" : "Aucune commande active", icon: "shopping-bag", tone: "sky", spark: [6, 7, 9, 8, 10, 11, 12, 13] },
-    { id: "devis", label: "Mes devis", value: String(devis), detail: devis > 0 ? "1 en attente de réponse" : "Aucun devis en attente", icon: "sparkles", tone: "gold", spark: [5, 6, 6, 7, 8, 8, 9, 10] },
+    { id: "missions", label: "Travail Total", value: String(missions), detail: missions > 0 ? "En cours d'exécution" : "Aucun travail en cours", icon: "hardhat", tone: "navy", spark: [10, 12, 14, 13, 16, 15, 18, 20] },
+    { id: "commandes", label: "Mes commandes", value: String(commandes), detail: commandes > 0 ? "En préparation" : "Aucune commande active", icon: "shopping-bag", tone: "sky", spark: [6, 7, 9, 8, 10, 11, 12, 13] },
+    { id: "devis", label: "Mes devis", value: String(devis), detail: devis > 0 ? "En attente de réponse" : "Aucun devis en attente", icon: "sparkles", tone: "gold", spark: [5, 6, 6, 7, 8, 8, 9, 10] },
+    { id: "abonnement", label: "Abonnement Wugam Clean", value: "Actif", detail: "Plan B Premium · 50 000 FCFA/mois", icon: "sparkles", tone: "emerald", spark: [3, 4, 5, 5, 6, 7, 8, 9] },
     { id: "notifications", label: "Notifications", value: String(notificationsNonLues), detail: notificationsNonLues > 0 ? "À consulter" : "Tout est à jour", icon: "bell", tone: "amber", spark: [8, 7, 6, 6, 5, 4, 4, 3] },
     { id: "activite", label: "Dernière activité", value: derniereActivite, detail: "Mise à jour en continu", icon: "history", tone: "sky", spark: [2, 3, 4, 4, 5, 6, 7, 8] },
-    { id: "progression", label: "Progression globale", value: `${progressionGlobale}%`, detail: missions > 0 ? "Sur l'ensemble de vos missions" : "Aucune mission démarrée", icon: "activity", tone: "emerald", spark: [20, 28, 32, 40, 44, 52, 58, progressionGlobale] },
   ];
 
   return (
@@ -74,11 +75,7 @@ export function ClientStdKpiGrid({
               <span className={"grid size-10 place-items-center rounded-2xl transition-transform duration-300 group-hover:scale-110 " + iconTone[kpi.tone]}>
                 <Icon name={kpi.icon} size={18} />
               </span>
-              {kpi.id === "progression" ? (
-                <ProgressRing value={progressionGlobale} />
-              ) : (
-                <Sparkline color={sparkColor[kpi.tone]} data={kpi.spark} height={26} width={72} />
-              )}
+              <Sparkline color={sparkColor[kpi.tone]} data={kpi.spark} height={26} width={72} />
             </div>
             <p className="mt-4 truncate text-2xl font-bold tracking-[-0.04em] text-[#16233a] dark:text-white sm:text-[26px]">
               {kpi.value}
@@ -89,29 +86,5 @@ export function ClientStdKpiGrid({
         </li>
       ))}
     </ul>
-  );
-}
-
-function ProgressRing({ value }: { value: number }) {
-  const radius = 15;
-  const circumference = 2 * Math.PI * radius;
-  return (
-    <svg aria-hidden="true" className="overflow-visible" height={32} viewBox="0 0 36 36" width={32}>
-      <circle cx="18" cy="18" fill="none" r={radius} stroke="currentColor" strokeWidth="3.5" className="text-slate-100 dark:text-white/10" />
-      <motion.circle
-        cx="18"
-        cy="18"
-        fill="none"
-        r={radius}
-        stroke="#10b981"
-        strokeDasharray={circumference}
-        strokeLinecap="round"
-        strokeWidth="3.5"
-        transform="rotate(-90 18 18)"
-        initial={{ strokeDashoffset: circumference }}
-        animate={{ strokeDashoffset: circumference * (1 - value / 100) }}
-        transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      />
-    </svg>
   );
 }

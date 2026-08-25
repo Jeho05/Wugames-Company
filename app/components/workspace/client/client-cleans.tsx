@@ -5,8 +5,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
-import { cleansPlans, cleansServiceStatutMeta, formatFcfa } from "@/app/lib/cleans-data";
-import type { CleansOverview, CleansService } from "@/app/lib/cleans-data";
+import { cleansPlans, cleansServiceStatutMeta, formatFcfa, groupServicesByDay } from "@/app/lib/cleans-data";
+import type { CleansOverview, CleansService, CleansDayGroup } from "@/app/lib/cleans-data";
 
 type ClientCleansProps = {
   cleans: CleansOverview;
@@ -24,6 +24,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
   const actif = abonnement.statut === "ACTIF";
   const planActif = cleansPlans.find((plan) => plan.id === abonnement.planId) ?? null;
   const valides = services.filter((s) => s.statut === "VALIDE").length;
+  const dayGroups = groupServicesByDay(services);
 
   function activer(planId: string) {
     const plan = cleansPlans.find((candidate) => candidate.id === planId);
@@ -34,13 +35,17 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
       planNom: plan.nom,
       nbToilettes: plan.nbToilettes,
       prixMensuel: plan.prixMensuel,
-      dateDebut: "Aujourd'hui",
+      dateDebut: "Vendredi 1er août 2026",
       prochainPaiement: "1er mois suivant activation",
       prochainPassage: "Demain · 08:00",
       localisation: abonnement.localisation,
     });
     setChoosing(false);
     setMessage(`Abonnement ${plan.nom} confirmé. Nos Cleaners vous rendent visite dès demain à 08:00.`);
+  }
+
+  function handleContactWugams() {
+    setMessage("Veuillez contacter WUGAMS au +229 97 00 00 00 pour changer de plan.");
   }
 
   return (
@@ -67,203 +72,248 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
       subtitle="Entretien de vos toilettes, preuve à l'appui à chaque passage"
       title="Mon Wugams Cleans"
     >
-      {/* Carte abonnement */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#17294b] to-[#243a61] p-6 text-white shadow-lg shadow-[#17294b]/15 dark:border-white/10">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#f2c56d]">
-              {actif ? "Abonnement en cours" : "Aucun abonnement actif"}
-            </p>
-            <h3 className="mt-2 text-lg font-bold tracking-[-0.02em]">
-              {actif ? `${planActif?.nom ?? abonnement.planNom}` : "Choisissez votre plan"}
-            </h3>
-            <p className="mt-1 text-xs text-slate-300">
-              {abonnement.nbToilettes} toilettes · {formatFcfa(abonnement.prixMensuel)} / mois
-            </p>
-            <p className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
-              <Icon name="map" size={13} className="text-[#f2c56d]" />
-              {abonnement.localisation}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-300">Prochain passage</p>
-            <p className="mt-1 text-sm font-bold">{abonnement.prochainPassage ?? "—"}</p>
-            <p className="mt-1 text-[10px] text-slate-300">Prochain paiement : {abonnement.prochainPaiement ?? "—"}</p>
-          </div>
+      {/* Message bloquant si pas d'abonnement */}
+      {!actif && !message ? (
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-600">
+            <Icon name="sparkles" size={22} />
+          </span>
+          <h3 className="mt-3 text-[15px] font-bold text-[#16233a] dark:text-slate-100">
+            Activez un abonnement WUGAMS Clean
+          </h3>
+          <p className="mt-1.5 text-[12px] leading-5 text-slate-500 dark:text-slate-400">
+            Veuillez activer un abonnement WUGAMS Clean pour accéder à votre espace de suivi.
+          </p>
+          <button
+            className="mt-4 rounded-2xl bg-[#17294b] px-5 py-2.5 text-[12px] font-bold text-white transition hover:bg-[#243a61]"
+            onClick={() => setChoosing(true)}
+            type="button"
+          >
+            Voir les plans
+          </button>
         </div>
-
-        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4 text-[11px] font-semibold text-slate-300">
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="check" size={13} className="text-emerald-400" />
-            Preuve photo avant / après
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="calendar" size={13} className="text-emerald-400" />
-            Calendrier des passages
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="bell" size={13} className="text-emerald-400" />
-            Notifications actives
-          </span>
-        </div>
-      </div>
-
-      {/* Plans */}
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {cleansPlans.map((plan, index) => {
-          const estPlanActif = actif && abonnement.planId === plan.id;
-          return (
-            <motion.div
-              className={
-                "relative flex flex-col rounded-3xl border bg-white p-5 shadow-sm transition " +
-                (plan.premium
-                  ? "border-[#f2c56d]/60 shadow-[#b47e1e]/10 dark:border-[#f2c56d]/30"
-                  : "border-slate-200/80 dark:border-white/10") +
-                " dark:bg-[#101c36]"
-              }
-              initial={reduce ? undefined : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={plan.id}
-              transition={{ duration: 0.45, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {plan.premium ? (
-                <span className="absolute -top-2.5 right-4 rounded-full bg-[#e3a641] px-3 py-1 text-[9px] font-extrabold uppercase tracking-wide text-white">
-                  Recommandé
-                </span>
-              ) : null}
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h4 className="text-[15px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">{plan.nom}</h4>
-                  <p className="mt-0.5 text-[11px] text-slate-400">{plan.tagline}</p>
-                </div>
-                {estPlanActif ? (
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
-                    Votre plan
-                  </span>
+      ) : (
+        <>
+          {/* Carte abonnement */}
+          <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#17294b] to-[#243a61] p-6 text-white shadow-lg shadow-[#17294b]/15 dark:border-white/10">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#f2c56d]">
+                  {actif ? "Abonnement en cours" : "Aucun abonnement actif"}
+                </p>
+                <h3 className="mt-2 text-lg font-bold tracking-[-0.02em]">
+                  {actif ? `${planActif?.nom ?? abonnement.planNom}` : "Choisissez votre plan"}
+                </h3>
+                <p className="mt-1 text-xs text-slate-300">
+                  {abonnement.nbToilettes} toilettes · {formatFcfa(abonnement.prixMensuel)} / mois
+                </p>
+                {actif && abonnement.dateDebut ? (
+                  <p className="mt-2 text-[11px] font-semibold text-slate-300">
+                    <Icon name="calendar" size={13} className="mr-1 inline text-[#f2c56d]" />
+                    Activé le {abonnement.dateDebut}
+                  </p>
                 ) : null}
+                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-slate-300">
+                  <Icon name="map" size={13} className="text-[#f2c56d]" />
+                  {abonnement.localisation}
+                </p>
               </div>
-              <p className="mt-4 text-2xl font-extrabold tabular-nums text-[#16233a] dark:text-white">
-                {plan.prixMensuel.toLocaleString("fr-FR")}
-                <span className="text-xs font-semibold text-slate-400"> FCFA / mois</span>
-              </p>
-              <ul className="mt-4 space-y-1.5">
-                {plan.avantages.map((avantage) => (
-                  <li className="flex items-start gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400" key={avantage}>
-                    <Icon name="check" size={13} className="mt-0.5 shrink-0 text-emerald-500" />
-                    {avantage}
-                  </li>
-                ))}
-              </ul>
-              {estPlanActif ? (
-                <button
-                  className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[12px] font-bold text-emerald-700"
-                  onClick={() => setChoosing(true)}
-                  type="button"
-                >
-                  Changer de plan
-                </button>
-              ) : (
-                <button
-                  className="mt-5 rounded-2xl border border-[#17294b]/20 bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2"
-                  onClick={() => activer(plan.id)}
-                  type="button"
-                >
-                  {actif ? "Passer à ce plan" : "Activer ce plan"}
-                </button>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
+              <div className="text-right">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-300">Prochain passage</p>
+                <p className="mt-1 text-sm font-bold">{abonnement.prochainPassage ?? "—"}</p>
+                <p className="mt-1 text-[10px] text-slate-300">Prochain paiement : {abonnement.prochainPaiement ?? "—"}</p>
+              </div>
+            </div>
 
-      {message ? (
-        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] font-semibold text-emerald-700">
-          {message}
-        </div>
-      ) : null}
-
-      {/* Calendrier des services rendus */}
-      <div className="mt-8">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h4 className="text-[13px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
-              Calendrier des services rendus
-            </h4>
-            <p className="mt-0.5 text-[11px] text-slate-400">
-              {valides} passage{valides > 1 ? "s" : ""} validé{valides > 1 ? "s" : ""} avec preuve photo
-            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4 text-[11px] font-semibold text-slate-300">
+              <span className="inline-flex items-center gap-1.5">
+                <Icon name="check" size={13} className="text-emerald-400" />
+                Preuve photo avant / après
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Icon name="calendar" size={13} className="text-emerald-400" />
+                Calendrier des passages
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Icon name="bell" size={13} className="text-emerald-400" />
+                Notifications actives
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="mt-4 space-y-3">
-          {services.map((service, index) => {
-            const meta = cleansServiceStatutMeta[service.statut];
-            const validé = service.statut === "VALIDE" || service.statut === "REALISE";
-            return (
-              <motion.div
-                className="flex flex-col gap-4 rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center dark:border-white/10 dark:bg-[#101c36]"
-                initial={reduce ? undefined : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                key={service.id}
-                transition={{ duration: 0.4, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <div className="flex min-w-0 flex-1 items-start gap-3">
-                  <span
-                    className={
-                      "grid size-10 shrink-0 place-items-center rounded-2xl " +
-                      (validé ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400")
-                    }
-                  >
-                    <Icon name={validé ? "check" : "calendar"} size={17} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-[#16233a] dark:text-slate-100">
-                      {service.date} · {service.heure}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-slate-400">{service.adresse}</p>
-                    <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">{service.cleaner}</p>
-                  </div>
-                </div>
 
-                {service.statut === "PLANIFIE" ? (
-                  <span className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${meta.tone}`}>
-                    {meta.label}
-                  </span>
-                ) : (
-                  <div className="flex items-center gap-2.5">
-                    {service.photoAvant && service.photoApres ? (
-                      <>
-                        <button
-                          className="group/photo relative h-14 w-16 shrink-0 overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2"
-                          onClick={() => setProof(service)}
-                          type="button"
-                        >
-                          <img alt="Avant le service" className="h-full w-full object-cover" src={service.photoAvant} />
-                          <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[8px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
-                            AVANT
-                          </span>
-                        </button>
-                        <button
-                          className="group/photo relative h-14 w-16 shrink-0 overflow-hidden rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2"
-                          onClick={() => setProof(service)}
-                          type="button"
-                        >
-                          <img alt="Après le service" className="h-full w-full object-cover" src={service.photoApres} />
-                          <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[8px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
-                            APRÈS
-                          </span>
-                        </button>
-                      </>
-                    ) : null}
-                    <span className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold ${meta.tone}`}>
-                      {meta.label}
+          {/* Plans */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {cleansPlans.map((plan, index) => {
+              const estPlanActif = actif && abonnement.planId === plan.id;
+              return (
+                <motion.div
+                  className={
+                    "relative flex flex-col rounded-3xl border bg-white p-5 shadow-sm transition " +
+                    (plan.premium
+                      ? "border-[#f2c56d]/60 shadow-[#b47e1e]/10 dark:border-[#f2c56d]/30"
+                      : "border-slate-200/80 dark:border-white/10") +
+                    " dark:bg-[#101c36]"
+                  }
+                  initial={reduce ? undefined : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={plan.id}
+                  transition={{ duration: 0.45, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {plan.premium ? (
+                    <span className="absolute -top-2.5 right-4 rounded-full bg-[#e3a641] px-3 py-1 text-[9px] font-extrabold uppercase tracking-wide text-white">
+                      Recommandé
                     </span>
+                  ) : null}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h4 className="text-[15px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">{plan.nom}</h4>
+                      <p className="mt-0.5 text-[11px] text-slate-400">{plan.tagline}</p>
+                    </div>
+                    {estPlanActif ? (
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
+                        Votre plan
+                      </span>
+                    ) : null}
                   </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
+                  <p className="mt-4 text-2xl font-extrabold tabular-nums text-[#16233a] dark:text-white">
+                    {plan.prixMensuel.toLocaleString("fr-FR")}
+                    <span className="text-xs font-semibold text-slate-400"> FCFA / mois</span>
+                  </p>
+                  <ul className="mt-4 space-y-1.5">
+                    {plan.avantages.map((avantage) => (
+                      <li className="flex items-start gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400" key={avantage}>
+                        <Icon name="check" size={13} className="mt-0.5 shrink-0 text-emerald-500" />
+                        {avantage}
+                      </li>
+                    ))}
+                  </ul>
+                  {estPlanActif ? (
+                    <button
+                      className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[12px] font-bold text-amber-700"
+                      onClick={handleContactWugams}
+                      type="button"
+                    >
+                      Contacter WUGAMS pour changer
+                    </button>
+                  ) : (
+                    <button
+                      className="mt-5 rounded-2xl border border-[#17294b]/20 bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2"
+                      onClick={() => activer(plan.id)}
+                      type="button"
+                    >
+                      {actif ? "Passer à ce plan" : "Activer ce plan"}
+                    </button>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {message ? (
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] font-semibold text-emerald-700">
+              {message}
+            </div>
+          ) : null}
+
+          {/* Calendrier des services rendus — organisés par jour */}
+          {actif ? (
+            <div className="mt-8">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <h4 className="text-[13px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+                    Calendrier des services rendus
+                  </h4>
+                  <p className="mt-0.5 text-[11px] text-slate-400">
+                    {valides} passage{valides > 1 ? "s" : ""} validé{valides > 1 ? "s" : ""} avec preuve photo
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 space-y-6">
+                {dayGroups.map((group, gi) => (
+                  <motion.div
+                    className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#101c36]"
+                    initial={reduce ? undefined : { opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={group.dateComplete}
+                    transition={{ duration: 0.4, delay: gi * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="mb-3 flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-white/5">
+                      <Icon name="calendar" size={14} className="text-[#17294b]" />
+                      <p className="text-[13px] font-bold text-[#16233a] dark:text-slate-100">
+                        {group.jour} {group.dateComplete}
+                      </p>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-white/[0.06]">
+                        {group.services.length} toilette{group.services.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {group.services.map((service) => {
+                        const meta = cleansServiceStatutMeta[service.statut];
+                        const validé = service.statut === "VALIDE" || service.statut === "REALISE";
+                        return (
+                          <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3 dark:border-white/5 dark:bg-white/[0.02]" key={service.id}>
+                            <div className="flex items-start gap-3">
+                              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#17294b] text-[11px] font-bold text-white">
+                                {service.toiletteNumero}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-[12px] font-bold text-[#16233a] dark:text-slate-100">
+                                    Toilette #{service.toiletteNumero}
+                                  </p>
+                                  <span className={`inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold ${meta.tone}`}>
+                                    {meta.label}
+                                  </span>
+                                </div>
+                                <p className="mt-0.5 text-[10px] text-slate-400">{service.heure} · {service.cleaner}</p>
+                              </div>
+                              {service.photoAvant && service.photoApres ? (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    className="group/photo relative h-10 w-12 shrink-0 overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2"
+                                    onClick={() => setProof(service)}
+                                    type="button"
+                                  >
+                                    <img alt="Avant" className="h-full w-full object-cover" src={service.photoAvant} />
+                                    <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[7px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
+                                      AVANT
+                                    </span>
+                                  </button>
+                                  <button
+                                    className="group/photo relative h-10 w-12 shrink-0 overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2"
+                                    onClick={() => setProof(service)}
+                                    type="button"
+                                  >
+                                    <img alt="Après" className="h-full w-full object-cover" src={service.photoApres} />
+                                    <span className="absolute inset-0 grid place-items-center bg-slate-950/0 text-[7px] font-extrabold text-white opacity-0 transition group-hover/photo:bg-slate-950/40 group-hover/photo:opacity-100">
+                                      APRÈS
+                                    </span>
+                                  </button>
+                                </div>
+                              ) : null}
+                            </div>
+                            {/* Notes du travailleur */}
+                            {service.notesTravailleur ? (
+                              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-400/20 dark:bg-amber-400/10">
+                                <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                                  Note du travailleur
+                                </p>
+                                <p className="mt-1 text-[11px] leading-5 text-slate-600 dark:text-slate-300">
+                                  {service.notesTravailleur}
+                                </p>
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
 
       {/* Sélecteur de plan */}
       <AnimatePresence>
@@ -291,10 +341,12 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">Wugams Cleans</p>
                   <h3 className="mt-1.5 text-lg font-bold tracking-[-0.03em] text-[#16233a] dark:text-white">
-                    {actif ? "Changer de plan" : "Activer mon abonnement"}
+                    {actif ? "Votre abonnement est actif" : "Activer mon abonnement"}
                   </h3>
                   <p className="mt-1 text-xs text-slate-400">
-                    Confirmez votre choix : nos Cleaners commencent dès demain matin.
+                    {actif
+                      ? "Pour changer de plan, contactez WUGAMS."
+                      : "Confirmez votre choix : nos Cleaners commencent dès demain matin."}
                   </p>
                 </div>
                 <button
@@ -319,7 +371,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
                           : "border-slate-200 bg-white hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.03]")
                       }
                       key={plan.id}
-                      onClick={() => activer(plan.id)}
+                      onClick={() => estPlanActif ? handleContactWugams() : activer(plan.id)}
                       type="button"
                     >
                       <span>
@@ -340,9 +392,15 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
                 })}
               </div>
 
-              <p className="mt-4 text-[11px] leading-5 text-slate-400">
-                Paiement par carte ou Mobile Money (MTN MoMo, Moov Money). Résiliable à tout moment.
-              </p>
+              {actif ? (
+                <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] leading-5 text-amber-700">
+                  Vous avez déjà un abonnement actif. Pour changer de plan, veuillez contacter WUGAMS.
+                </div>
+              ) : (
+                <p className="mt-4 text-[11px] leading-5 text-slate-400">
+                  Paiement par carte ou Mobile Money (MTN MoMo, Moov Money). Résiliable à tout moment.
+                </p>
+              )}
             </motion.div>
           </div>
         ) : null}
@@ -363,7 +421,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
                 <figure className="overflow-hidden rounded-3xl shadow-2xl">
                   <img alt="Avant le service" className="max-h-[45vh] w-full object-cover" src={proof.photoAvant} />
                   <figcaption className="bg-white px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:bg-[#0f1a2e] dark:text-slate-300">
-                    Avant · {proof.date}
+                    Avant · Toilette #{proof.toiletteNumero}
                   </figcaption>
                 </figure>
               ) : null}
@@ -380,6 +438,11 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
               <p className="pointer-events-auto max-w-2xl rounded-2xl bg-white/10 px-4 py-3 text-center text-[12px] leading-5 text-slate-200">
                 {proof.note}
               </p>
+            ) : null}
+            {proof.notesTravailleur ? (
+              <div className="pointer-events-auto max-w-2xl rounded-2xl bg-amber-500/20 px-4 py-3 text-center text-[11px] leading-5 text-amber-200">
+                <span className="font-bold">Note du travailleur :</span> {proof.notesTravailleur}
+              </div>
             ) : null}
             <p className="pointer-events-auto text-[11px] font-semibold text-slate-400">
               {proof.cleaner} · {proof.date} · {proof.heure}
