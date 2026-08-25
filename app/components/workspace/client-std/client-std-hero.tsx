@@ -87,18 +87,18 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
                 Portail client · WUGAMS
               </p>
               <h1
-                className="mt-3 text-3xl font-bold leading-[1.05] tracking-[-0.05em] sm:text-[44px]"
+                className="mt-3 text-2xl font-bold leading-[1.05] tracking-[-0.05em] sm:text-3xl md:text-[40px] lg:text-[44px]"
                 id="std-hero-title"
               >
                 {today ? today.greeting : "Bonjour"}, {firstName}.
               </h1>
 
               {/* Citation du jour */}
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 backdrop-blur">
-                <div className="flex items-start gap-3">
-                  <Icon name="sparkles" size={16} className="mt-0.5 shrink-0 text-[#f2c56d]" />
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.05] px-3.5 py-3 backdrop-blur sm:mt-5 sm:px-5 sm:py-4">
+                <div className="flex items-start gap-2.5 sm:gap-3">
+                  <Icon name="sparkles" size={15} className="mt-0.5 shrink-0 text-[#f2c56d]" />
                   <div>
-                    <p className="text-[13px] font-semibold italic leading-6 text-white/90">
+                    <p className="text-[12px] font-semibold italic leading-5 text-white/90 sm:text-[13px] sm:leading-6">
                       &ldquo;{inspiration.citation}&rdquo;
                     </p>
                     <p className="mt-2 text-[10px] font-bold text-[#f2c56d]">
@@ -111,21 +111,21 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-2 sm:gap-2.5">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-[10px] font-semibold text-slate-200 backdrop-blur sm:gap-2 sm:px-3.5 sm:text-[11px]">
-                  <Icon name="calendar" size={12} className="text-[#f2c56d]" />
+              <div className="mt-5 flex flex-wrap items-center gap-1.5 sm:gap-2.5">
+                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.07] px-2 py-1 text-[9px] font-semibold text-slate-200 backdrop-blur sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-[10px] md:text-[11px]">
+                  <Icon name="calendar" size={11} className="text-[#f2c56d]" />
                   {today ? today.dateLabel : "Chargement…"}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 text-[10px] font-semibold text-slate-200 backdrop-blur sm:gap-2 sm:px-3.5 sm:text-[11px]">
-                  <Icon name="clock" size={12} className="text-[#f2c56d]" />
+                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.07] px-2 py-1 text-[9px] font-semibold text-slate-200 backdrop-blur sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-[10px] md:text-[11px]">
+                  <Icon name="clock" size={11} className="text-[#f2c56d]" />
                   {now ?? "…"}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.07] px-2.5 py-1.5 backdrop-blur sm:gap-2 sm:px-3.5">
-                  <span className={"relative flex size-2.5 " + stateGlow[state]}>
+                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.07] px-2 py-1 backdrop-blur sm:gap-1.5 sm:px-3 sm:py-1.5">
+                  <span className={"relative flex size-2 " + stateGlow[state]}>
                     <span className={"absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 " + stateDot[state]} />
-                    <span className={"relative inline-flex size-2.5 rounded-full ring-2 " + stateDot[state]} />
+                    <span className={"relative inline-flex size-2 rounded-full ring-1.5 sm:ring-2 " + stateDot[state]} />
                   </span>
-                  <span className="text-[10px] font-bold text-white sm:text-[11px]">{stateMeta.label}</span>
+                  <span className="text-[9px] font-bold text-white sm:text-[10px] md:text-[11px]">{stateMeta.label}</span>
                 </span>
               </div>
             </div>
@@ -139,11 +139,11 @@ export function ClientStdHero({ user, missionActive, missionsActives, notificati
                   key={stat.label}
                   transition={{ duration: 0.5, delay: 0.25 + index * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <span className="mx-auto grid size-7 place-items-center rounded-lg bg-[#e3a641]/15 text-[#f2c56d] sm:size-8 md:size-9 md:rounded-xl">
+                  <span className="mx-auto grid size-7 place-items-center rounded-lg bg-[#e3a641]/15 text-[#f2c56d] sm:size-8 md:rounded-xl">
                     <Icon name={stat.icon} size={14} />
                   </span>
-                  <p className="mt-2 text-base font-bold tracking-[-0.04em] sm:mt-2.5 sm:text-lg md:text-xl lg:text-2xl">{stat.value}</p>
-                  <p className="mt-0.5 truncate text-[8px] font-semibold uppercase tracking-wide text-slate-400 sm:text-[9px] md:text-[10px]">{stat.label}</p>
+                  <p className="mt-2 text-sm font-bold tracking-[-0.04em] sm:text-base md:text-lg lg:text-xl">{stat.value}</p>
+                  <p className="mt-0.5 text-[8px] font-semibold uppercase leading-tight tracking-wide text-slate-400 sm:text-[9px] md:text-[10px]">{stat.label}</p>
                 </motion.div>
               ))}
             </div>
