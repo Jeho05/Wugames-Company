@@ -12,10 +12,8 @@ import { ClientStdCommandes } from "@/app/components/workspace/client-std/client
 import { ClientStdDevis } from "@/app/components/workspace/client-std/client-std-devis";
 import { ClientStdNotifications } from "@/app/components/workspace/client-std/client-std-notifications";
 import { ClientStdProfil } from "@/app/components/workspace/client-std/client-std-profil";
-import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
-import { ClientBoutique } from "@/app/components/workspace/client/client-boutique";
-import { ClientIndex } from "@/app/components/workspace/client/client-index";
+import { ClientEspaceWugams } from "@/app/components/workspace/client/client-espace-wugams";
 import {
   clientStdProgress,
   clientStdStateFrom,
@@ -33,10 +31,8 @@ type ClientStdScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "std-apercu", label: "Vue d'ensemble", icon: "dashboard" },
-  { id: "std-index", label: "Index", icon: "grid" },
-  { id: "std-cleans", label: "Mon Wugams Cleans", icon: "sparkles" },
+  { id: "std-espace-wugams", label: "Mon Espace Wugams", icon: "building" },
   { id: "std-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
-  { id: "std-boutique", label: "Espace Wu", icon: "shopping-bag" },
   { id: "std-missions", label: "Missions", icon: "hardhat" },
   { id: "std-commandes", label: "Commandes", icon: "shopping-bag" },
   { id: "std-devis", label: "Devis", icon: "sparkles" },
@@ -157,10 +153,8 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
         </div>
       </div>
 
-      <ClientCleans cleans={cleans} sectionId="std-cleans" />
-      <ClientIndex sectionId="std-index" onNavigate={navigateTo} />
+      <ClientEspaceWugams cleans={cleans} sectionId="std-espace-wugams" />
       <ClientMode2Vie sectionId="std-mode2vie" />
-      <ClientBoutique sectionId="std-boutique" />
 
       <ClientStdMissions missions={data.missions} />
       <ClientStdCommandes commandes={data.commandes} />

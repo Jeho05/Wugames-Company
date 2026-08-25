@@ -13,10 +13,8 @@ import { ClientDevis } from "@/app/components/workspace/client/client-devis";
 import { ClientCommandes } from "@/app/components/workspace/client/client-commandes";
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
 import { ClientProfil } from "@/app/components/workspace/client/client-profil";
-import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
-import { ClientBoutique } from "@/app/components/workspace/client/client-boutique";
-import { ClientIndex } from "@/app/components/workspace/client/client-index";
+import { ClientEspaceWugams } from "@/app/components/workspace/client/client-espace-wugams";
 import {
   demoClientPortalData,
   globalStateFrom,
@@ -33,10 +31,8 @@ type ClientPortalScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "portail-apercu", label: "Vue d'ensemble", icon: "dashboard" },
-  { id: "portail-index", label: "Index", icon: "grid" },
-  { id: "portail-cleans", label: "Mon Wugams Cleans", icon: "sparkles" },
+  { id: "portail-espace-wugams", label: "Mon Espace Wugams", icon: "building" },
   { id: "portail-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
-  { id: "portail-boutique", label: "Espace Wu", icon: "shopping-bag" },
   { id: "portail-missions", label: "Missions", icon: "hardhat" },
   { id: "portail-factures", label: "Factures", icon: "file-text" },
   { id: "portail-devis", label: "Devis", icon: "sparkles" },
@@ -163,10 +159,8 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
         </div>
       </div>
 
-      <ClientCleans cleans={cleans} />
-      <ClientIndex onNavigate={navigateTo} />
+      <ClientEspaceWugams cleans={cleans} />
       <ClientMode2Vie />
-      <ClientBoutique />
 
       <ClientMissions missions={data.missions} />
       <ClientFactures factures={data.factures} />

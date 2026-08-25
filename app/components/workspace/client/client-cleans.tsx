@@ -11,9 +11,10 @@ import type { CleansOverview, CleansService, CleansDayGroup } from "@/app/lib/cl
 type ClientCleansProps = {
   cleans: CleansOverview;
   sectionId?: string;
+  embedded?: boolean;
 };
 
-export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCleansProps) {
+export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = false }: ClientCleansProps) {
   const [abonnement, setAbonnement] = useState(cleans.abonnement);
   const [services, setServices] = useState(cleans.services);
   const [choosing, setChoosing] = useState(false);
@@ -48,34 +49,12 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
     setMessage("Veuillez contacter WUGAMS au +229 97 00 00 00 pour changer de plan.");
   }
 
-  return (
-    <ClientSection
-      action={
-        actif ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-            <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-            Abonnement actif
-          </span>
-        ) : (
-          <button
-            className="inline-flex items-center gap-1.5 rounded-2xl bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
-            onClick={() => setChoosing(true)}
-            type="button"
-          >
-            <Icon name="plus" size={14} />
-            Activer mon abonnement
-          </button>
-        )
-      }
-      icon="sparkles"
-      id={sectionId}
-      subtitle="Entretien de vos toilettes, preuve à l'appui à chaque passage"
-      title="Mon Wugams Cleans"
-    >
+  const cleansContent = (
+    <>
       {/* Message bloquant si pas d'abonnement */}
       {!actif && !message ? (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center">
-          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-600">
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-400/20 dark:bg-amber-400/10">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300">
             <Icon name="sparkles" size={22} />
           </span>
           <h3 className="mt-3 text-[15px] font-bold text-[#16233a] dark:text-slate-100">
@@ -450,6 +429,36 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans" }: ClientCle
           </div>
         ) : null}
       </AnimatePresence>
+    </>
+  );
+
+  if (embedded) return cleansContent;
+
+  return (
+    <ClientSection
+      action={
+        actif ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+            <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
+            Abonnement actif
+          </span>
+        ) : (
+          <button
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
+            onClick={() => setChoosing(true)}
+            type="button"
+          >
+            <Icon name="plus" size={14} />
+            Activer mon abonnement
+          </button>
+        )
+      }
+      icon="sparkles"
+      id={sectionId}
+      subtitle="Entretien de vos toilettes, preuve à l'appui à chaque passage"
+      title="Mon Wugams Cleans"
+    >
+      {cleansContent}
     </ClientSection>
   );
 }
