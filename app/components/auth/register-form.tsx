@@ -28,6 +28,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +39,16 @@ export function RegisterForm() {
 
     if (!email.trim()) {
       setError("Veuillez renseigner votre adresse e-mail.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Les mots de passe ne correspondent pas.");
       return;
     }
 
@@ -156,6 +167,36 @@ export function RegisterForm() {
             <Icon name={showPassword ? "close" : "shield"} size={16} />
           </button>
         </div>
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="register-confirm-password">
+          Confirmer le mot de passe
+        </label>
+        <div className="relative">
+          <input
+            autoComplete="new-password"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 pr-10 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
+            id="register-confirm-password"
+            minLength={8}
+            name="confirmPassword"
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            placeholder="Retapez votre mot de passe"
+            required
+            type={showPassword ? "text" : "password"}
+            value={confirmPassword}
+          />
+          <button
+            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            onClick={() => setShowPassword(!showPassword)}
+            type="button"
+          >
+            <Icon name={showPassword ? "close" : "shield"} size={16} />
+          </button>
+        </div>
+        {password && confirmPassword && password !== confirmPassword ? (
+          <p className="mt-1 text-[10px] font-semibold text-rose-600">Les mots de passe ne correspondent pas.</p>
+        ) : null}
       </div>
 
       {error ? (
