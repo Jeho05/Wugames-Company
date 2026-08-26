@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
 import { formatFcfa, productCategories, productFiliales, products } from "@/app/lib/store-data";
 import type { CartItem, Product } from "@/app/lib/store-data";
+import { useAuth } from "@/app/lib/auth-context";
 
 const CART_KEY = "wugams-cart";
 
@@ -38,6 +40,9 @@ export default function BoutiquePage() {
   const [payment, setPayment] = useState("mtn");
   const [phone, setPhone] = useState("");
   const [toast, setToast] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const id = window.setTimeout(() => setCart(loadCart()), 0);
@@ -91,6 +96,12 @@ export default function BoutiquePage() {
   }
 
   function submitOrder() {
+    if (!user) {
+      setCheckoutOpen(false);
+      setCartOpen(false);
+      router.push("/connexion?redirect=/boutique");
+      return;
+    }
     setCheckoutOpen(false);
     setCartOpen(false);
     setOrderDone(true);
@@ -215,50 +226,59 @@ export default function BoutiquePage() {
               className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
               key={product.id}
             >
-              <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt={product.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  src={product.image}
-                />
-                <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
-                  {product.category}
-                </span>
-                <span
-                  className={
-                    "absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " +
-                    (product.stock === "En stock"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : product.stock === "Stock faible"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-slate-100 text-slate-600")
-                  }
-                >
-                  {product.stock}
-                </span>
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-[#233856]">{product.name}</h3>
-                  <span className="shrink-0 text-[11px] font-semibold text-slate-400">
-                    ★ {product.note}
+              <button
+                className="block w-full text-left"
+                onClick={() => setSelectedProduct(product)}
+                type="button"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={product.name}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    src={product.image}
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                    {product.category}
+                  </span>
+                  <span
+                    className={
+                      "absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " +
+                      (product.stock === "En stock"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : product.stock === "Stock faible"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-slate-100 text-slate-600")
+                    }
+                  >
+                    {product.stock}
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] font-medium text-slate-400">
-                  {product.filiale} · au {product.unit}
-                </p>
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <p className="text-[15px] font-bold text-[#17294b]">{formatFcfa(product.price)}</p>
-                  <button
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#14223b] transition hover:bg-[#efb653]"
-                    onClick={() => addToCart(product)}
-                    type="button"
-                  >
-                    <Icon name="plus" size={14} />
-                    Ajouter
-                  </button>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-bold text-[#233856]">{product.name}</h3>
+                    <span className="shrink-0 text-[11px] font-semibold text-slate-400">
+                      ★ {product.note}
+                    </span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-400">
+                    {product.description}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium text-slate-400">
+                    {product.filiale} · au {product.unit}
+                  </p>
                 </div>
+              </button>
+              <div className="flex items-center justify-between gap-2 border-t border-slate-100 p-4 pt-3">
+                <p className="text-[15px] font-bold text-[#17294b]">{formatFcfa(product.price)}</p>
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#14223b] transition hover:bg-[#efb653]"
+                  onClick={() => addToCart(product)}
+                  type="button"
+                >
+                  <Icon name="plus" size={14} />
+                  Ajouter
+                </button>
               </div>
             </article>
           ))}
@@ -548,6 +568,94 @@ export default function BoutiquePage() {
             >
               Continuer mes achats
             </button>
+          </div>
+        </div>
+      ) : null}
+
+      {selectedProduct ? (
+        <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/45 p-4">
+          <div
+            aria-labelledby="product-detail-title"
+            aria-modal="true"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl"
+            role="dialog"
+          >
+            <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={selectedProduct.name}
+                className="h-full w-full object-cover"
+                src={selectedProduct.image}
+              />
+              <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                {selectedProduct.category}
+              </span>
+              <span
+                className={
+                  "absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " +
+                  (selectedProduct.stock === "En stock"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : selectedProduct.stock === "Stock faible"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-slate-100 text-slate-600")
+                }
+              >
+                {selectedProduct.stock}
+              </span>
+              <button
+                aria-label="Fermer"
+                className="absolute right-3 top-14 grid size-8 place-items-center rounded-full bg-white/90 text-slate-600 shadow-sm backdrop-blur transition hover:bg-white hover:text-slate-900"
+                onClick={() => setSelectedProduct(null)}
+                type="button"
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">
+                    {selectedProduct.filiale}
+                  </p>
+                  <h2 className="mt-1 text-xl font-bold tracking-[-0.035em] text-[#17294b]" id="product-detail-title">
+                    {selectedProduct.name}
+                  </h2>
+                </div>
+                <span className="shrink-0 text-sm font-semibold text-slate-400">
+                  ★ {selectedProduct.note}
+                </span>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">
+                {selectedProduct.description}
+              </p>
+              <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div>
+                  <p className="text-xs text-slate-500">Prix unitaire</p>
+                  <p className="text-lg font-bold text-[#17294b]">{formatFcfa(selectedProduct.price)}</p>
+                </div>
+                <p className="text-xs text-slate-500">par {selectedProduct.unit}</p>
+              </div>
+              <div className="mt-5 flex gap-2.5">
+                <button
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:border-slate-300"
+                  onClick={() => setSelectedProduct(null)}
+                  type="button"
+                >
+                  Fermer
+                </button>
+                <button
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] transition hover:bg-[#efb653]"
+                  onClick={() => {
+                    addToCart(selectedProduct);
+                    setSelectedProduct(null);
+                  }}
+                  type="button"
+                >
+                  <Icon name="plus" size={16} />
+                  Ajouter au panier
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}

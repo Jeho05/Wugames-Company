@@ -70,6 +70,12 @@ export const navigationGroups: {
       { href: "/espace/notifications", icon: "bell", label: "Notifications" },
     ],
   },
+  {
+    label: "Boutique",
+    items: [
+      { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+    ],
+  },
 ];
 
 export const adminNavigationGroup: {
@@ -81,7 +87,10 @@ export const adminNavigationGroup: {
   }[];
 } = {
   label: "Administration",
-  items: [{ href: "/espace/administration", icon: "shield", label: "Administration" }],
+  items: [
+    { href: "/espace/administration", icon: "shield", label: "Administration" },
+    { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+  ],
 };
 
 export const clientNavigationGroups: {
@@ -109,6 +118,12 @@ export const clientNavigationGroups: {
       { href: "/espace/notifications", icon: "bell", label: "Notifications" },
     ],
   },
+  {
+    label: "Boutique",
+    items: [
+      { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+    ],
+  },
 ];
 
 export const supplierNavigationGroup: {
@@ -127,6 +142,12 @@ export const supplierNavigationGroup: {
       { href: "/espace/commandes", icon: "file-text", label: "Bons de commande" },
       { href: "/espace/messages", icon: "message", label: "Messages" },
       { href: "/espace/notifications", icon: "bell", label: "Notifications" },
+    ],
+  },
+  {
+    label: "Boutique",
+    items: [
+      { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
     ],
   },
 ];
