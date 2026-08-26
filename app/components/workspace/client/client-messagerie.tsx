@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
@@ -466,82 +466,67 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
       </div>
 
       {/* ===== MODALE NOUVELLE CONVERSATION ===== */}
-      <AnimatePresence>
-        {newConvOpen ? (
-          <div className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
-            <motion.div
-              aria-hidden="true"
-              className="pointer-events-auto absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setNewConvOpen(false)}
-            />
-            <motion.div
-              aria-label="Nouvelle conversation"
-              aria-modal="true"
-              className="pointer-events-auto w-full max-w-md rounded-t-3xl border border-white/20 bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-[#0f1a2e]"
-              initial={reduce ? undefined : { opacity: 0, y: 24, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
-              role="dialog"
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">Messagerie</p>
-                  <h3 className="mt-1.5 text-lg font-bold tracking-[-0.03em] text-[#16233a]">Nouvelle conversation</h3>
-                  <p className="mt-1 text-xs text-slate-400">Un membre de l&apos;équipe WUGAMS vous répondra.</p>
-                </div>
-                <button
-                  aria-label="Fermer"
-                  className="grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
-                  onClick={() => setNewConvOpen(false)}
-                  type="button"
-                >
-                  <Icon name="close" size={16} />
-                </button>
+      {newConvOpen ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Nouvelle conversation">
+          <div
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+            onClick={() => setNewConvOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-t-3xl border border-white/20 bg-white p-5 shadow-2xl animate-[slideUp_0.3s_ease-out] sm:rounded-3xl sm:p-6 dark:border-white/10 dark:bg-[#0f1a2e]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">Messagerie</p>
+                <h3 className="mt-1.5 text-lg font-bold tracking-[-0.03em] text-[#16233a]">Nouvelle conversation</h3>
+                <p className="mt-1 text-xs text-slate-400">Un membre de l&apos;équipe WUGAMS vous répondra.</p>
               </div>
+              <button
+                aria-label="Fermer"
+                className="grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+                onClick={() => setNewConvOpen(false)}
+                type="button"
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </div>
 
-              <div className="mt-5 space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500" htmlFor="conv-sujet">
-                    Sujet
-                  </label>
-                  <input
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20"
-                    id="conv-sujet"
-                    onChange={(e) => setNewSujet(e.target.value)}
-                    placeholder="Ex. : Question sur mon chantier"
-                    value={newSujet}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-500" htmlFor="conv-message">
-                    Premier message
-                  </label>
-                  <textarea
-                    className="min-h-24 w-full resize-y rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20"
-                    id="conv-message"
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Décrivez votre demande…"
-                    value={newMessage}
-                  />
-                </div>
-                <button
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!newSujet.trim() || !newMessage.trim()}
-                  onClick={handleNewConversation}
-                  type="button"
-                >
-                  <Icon name="arrow-up-right" size={15} />
-                  Envoyer
-                </button>
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-slate-500" htmlFor="conv-sujet">
+                  Sujet
+                </label>
+                <input
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20"
+                  id="conv-sujet"
+                  onChange={(e) => setNewSujet(e.target.value)}
+                  placeholder="Ex. : Question sur mon chantier"
+                  value={newSujet}
+                />
               </div>
-            </motion.div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-slate-500" htmlFor="conv-message">
+                  Premier message
+                </label>
+                <textarea
+                  className="min-h-24 w-full resize-y rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20"
+                  id="conv-message"
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Décrivez votre demande…"
+                  value={newMessage}
+                />
+              </div>
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!newSujet.trim() || !newMessage.trim()}
+                onClick={handleNewConversation}
+                type="button"
+              >
+                <Icon name="arrow-up-right" size={15} />
+                Envoyer
+              </button>
+            </div>
           </div>
-        ) : null}
-      </AnimatePresence>
+        </div>
+      ) : null}
     </ClientSection>
   );
 }
