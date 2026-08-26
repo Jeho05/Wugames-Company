@@ -22,16 +22,30 @@ type ClientEspacesWugamsProps = {
   sectionId?: string;
 };
 
-const subTabs: { id: TabId; label: string; icon: IconName }[] = [
-  { id: "demandes", label: "Mes demandes", icon: "clipboard" },
-  { id: "clean", label: "Wugams Clean", icon: "sparkles" },
-  { id: "boutique", label: "Espace Wu", icon: "shopping-bag" },
+const subTabs: { id: TabId; label: string; icon: IconName; accent: string }[] = [
+  { id: "demandes", label: "Mes demandes", icon: "clipboard", accent: "from-[#17294b] to-[#2a4a7f]" },
+  { id: "clean", label: "Wugams Clean", icon: "sparkles", accent: "from-emerald-500 to-teal-600" },
+  { id: "boutique", label: "Espace Wu", icon: "shopping-bag", accent: "from-[#b47e1e] to-[#d4a029]" },
 ];
 
 const typeIcon: Record<DemandeType, "sparkles" | "clipboard" | "warning"> = {
   DEVIS: "sparkles",
   SERVICE: "clipboard",
   RECLAMATION: "warning",
+};
+
+const typeColors: Record<DemandeType, { bg: string; text: string; ring: string }> = {
+  DEVIS: { bg: "bg-amber-50", text: "text-amber-600", ring: "ring-amber-200" },
+  SERVICE: { bg: "bg-blue-50", text: "text-blue-600", ring: "ring-blue-200" },
+  RECLAMATION: { bg: "bg-rose-50", text: "text-rose-600", ring: "ring-rose-200" },
+};
+
+const statutAccent: Record<DemandeStatut, { dot: string; label: string }> = {
+  ENVOYEE: { dot: "bg-blue-400", label: "text-blue-600" },
+  ETUDIEE: { dot: "bg-amber-400", label: "text-amber-600" },
+  DEVIS_PROPOSE: { dot: "bg-orange-400", label: "text-orange-600" },
+  ACCEPTEE: { dot: "bg-emerald-400", label: "text-emerald-600" },
+  REFUSEE: { dot: "bg-rose-400", label: "text-rose-600" },
 };
 
 const demandeSteps: { label: string; from: DemandeStatut[] }[] = [
@@ -99,6 +113,8 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
 
   const all = [...created, ...demandes];
   const enAttente = all.filter((d) => d.statut === "ENVOYEE" || d.statut === "ETUDIEE").length;
+  const enCours = all.filter((d) => d.statut === "DEVIS_PROPOSE").length;
+  const terminees = all.filter((d) => d.statut === "ACCEPTEE" || d.statut === "REFUSEE").length;
 
   async function submit() {
     if (!objet.trim() || envoi) return;
@@ -136,42 +152,62 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
       title="Espaces Wugams"
     >
       {/* Sous-onglets */}
-      <div className="scrollbar-none -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1">
+      <div className="scrollbar-none -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
         {subTabs.map((t) => {
           const active = tab === t.id;
           return (
             <button
               aria-current={active ? "true" : undefined}
               className={
-                "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 " +
+                "group relative inline-flex shrink-0 items-center gap-2.5 overflow-hidden rounded-2xl border px-5 py-2.5 text-[11px] font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 " +
                 (active
-                  ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/20"
-                  : "border-slate-200/90 bg-white text-slate-500 hover:border-slate-300 hover:text-[#17294b] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-white")
+                  ? "border-transparent bg-gradient-to-br " + t.accent + " text-white shadow-lg shadow-[#17294b]/20"
+                  : "border-slate-200/80 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-[#17294b] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-white")
               }
               key={t.id}
               onClick={() => setTab(t.id)}
               type="button"
             >
-              <Icon name={t.icon} size={13} className={active ? "text-[#f2c56d]" : undefined} />
+              <span className={"grid size-6 place-items-center rounded-lg " + (active ? "bg-white/20" : "bg-[#17294b]/[0.06] dark:bg-white/[0.06]")}>
+                <Icon name={t.icon} size={13} className={active ? "text-white" : "text-[#17294b] dark:text-slate-300"} />
+              </span>
               {t.label}
             </button>
           );
         })}
-        <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#17294b]/20 bg-[#17294b]/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#17294b]">
-          <Icon name="building" size={12} />
+        <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#17294b]/15 bg-gradient-to-r from-[#17294b]/5 to-[#b47e1e]/5 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#17294b]">
+          <Icon name="building" size={11} />
           Espace WUGAMS
         </span>
       </div>
 
       {/* Contenu Demandes */}
       {tab === "demandes" && (
-        <div className="mt-2">
+        <div className="mt-3">
+          {/* Stats résumé */}
+          {all.length > 0 ? (
+            <div className="mb-5 grid grid-cols-3 gap-2.5">
+              <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white p-3.5 text-center dark:border-blue-900/30 dark:from-blue-950/30 dark:to-transparent">
+                <p className="text-xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">{enAttente}</p>
+                <p className="mt-0.5 text-[10px] font-semibold text-blue-500/70 dark:text-blue-400/60">En attente</p>
+              </div>
+              <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/80 to-white p-3.5 text-center dark:border-amber-900/30 dark:from-amber-950/30 dark:to-transparent">
+                <p className="text-xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">{enCours}</p>
+                <p className="mt-0.5 text-[10px] font-semibold text-amber-500/70 dark:text-amber-400/60">Devis en cours</p>
+              </div>
+              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white p-3.5 text-center dark:border-emerald-900/30 dark:from-emerald-950/30 dark:to-transparent">
+                <p className="text-xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">{terminees}</p>
+                <p className="mt-0.5 text-[10px] font-semibold text-emerald-500/70 dark:text-emerald-400/60">Terminées</p>
+              </div>
+            </div>
+          ) : null}
+
           <div className="mb-4 flex items-center justify-between">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Devis, services et réclamations — chaque demande suit son cycle jusqu&apos;à la décision
+              Devis, services et réclamations — chaque demande suit son cycle
             </p>
             <button
-              className="inline-flex items-center gap-1.5 rounded-2xl bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
+              className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#17294b] to-[#243a61] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/20 transition hover:shadow-xl hover:shadow-[#17294b]/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
               onClick={() => setCompose(true)}
               type="button"
             >
@@ -182,36 +218,56 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
 
           <div className="grid gap-3 md:grid-cols-2">
             {all.length === 0 ? (
-              <div className="grid place-items-center gap-2 rounded-3xl border border-dashed border-slate-300 bg-white/60 px-6 py-10 text-center dark:border-white/15 dark:bg-white/[0.03]">
-                <Icon name="clipboard" size={22} className="text-slate-300" />
-                <p className="text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune demande pour le moment</p>
-                <p className="max-w-64 text-xs leading-5 text-slate-400">
+              <div className="col-span-full rounded-3xl border border-dashed border-slate-200 bg-gradient-to-br from-slate-50/80 to-white px-6 py-12 text-center dark:border-white/10 dark:from-white/[0.02] dark:to-transparent">
+                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#17294b]/10 to-[#b47e1e]/10 text-[#17294b]">
+                  <Icon name="clipboard" size={24} />
+                </span>
+                <p className="mt-4 text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune demande pour le moment</p>
+                <p className="mt-1.5 max-w-72 text-xs leading-5 text-slate-400">
                   Décrivez votre besoin : devis, service ou réclamation. Réponse sous 24 h ouvrées.
                 </p>
+                <button
+                  className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-[#17294b] px-4 py-2.5 text-[11px] font-bold text-white transition hover:bg-[#243a61]"
+                  onClick={() => setCompose(true)}
+                  type="button"
+                >
+                  <Icon name="plus" size={13} />
+                  Créer ma première demande
+                </button>
               </div>
             ) : (
               all.map((demande, index) => {
                 const typeMeta = demandeTypeMeta[demande.type];
-                const statutMeta = demandeStatutMeta[demande.statut];
+                const colors = typeColors[demande.type];
+                const accent = statutAccent[demande.statut];
                 return (
                   <motion.article
-                    className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-950/[0.03] transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-white/10 dark:bg-[#101c36]"
+                    className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-xl hover:shadow-slate-950/[0.06] dark:border-white/10 dark:bg-[#101c36] dark:hover:border-white/20"
                     initial={reduce ? undefined : { opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
                     key={demande.id}
                     transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
                   >
+                    {/* Accent gradient top */}
+                    <div className={"absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r " + (type === "DEVIS" ? "from-amber-400 to-orange-400" : type === "SERVICE" ? "from-blue-400 to-indigo-400" : "from-rose-400 to-pink-400")} />
+
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#17294b]/[0.06] text-[#17294b] dark:bg-white/[0.06] dark:text-slate-300">
+                        <span className={"grid size-9 shrink-0 place-items-center rounded-xl " + colors.bg + " " + colors.text}>
                           <Icon name={typeIcon[demande.type]} size={16} />
                         </span>
-                        <StatusBadge tone={typeMeta.tone}>{typeMeta.label}</StatusBadge>
+                        <div>
+                          <StatusBadge tone={typeMeta.tone}>{typeMeta.label}</StatusBadge>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <span className={"size-1.5 rounded-full " + accent.dot} />
+                            <span className={"text-[10px] font-semibold " + accent.label}>{demandeStatutMeta[demande.statut].label}</span>
+                          </div>
+                        </div>
                       </div>
                       <span className="text-[11px] font-semibold text-slate-400">{demande.date}</span>
                     </div>
 
-                    <h3 className="mt-4 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
+                    <h3 className="mt-3.5 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] group-hover:text-[#17294b] dark:text-slate-100 dark:group-hover:text-white">
                       {demande.objet}
                     </h3>
                     <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{demande.detail}</p>
@@ -222,7 +278,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                         {demande.piecesJointes} pièce{demande.piecesJointes > 1 ? "s" : ""} jointe{demande.piecesJointes > 1 ? "s" : ""}
                       </span>
                       <button
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-2 text-[11px] font-bold text-[#16233a] transition hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b]/[0.06] px-3 py-2 text-[11px] font-bold text-[#17294b] transition group-hover:bg-[#17294b] group-hover:text-white dark:bg-white/10 dark:text-slate-300 dark:group-hover:bg-white/20"
                         onClick={() => setSelected(demande)}
                         type="button"
                       >
@@ -235,14 +291,19 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
             )}
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-semibold text-slate-400">
-              {enAttente} demande{enAttente > 1 ? "s" : ""} en cours de traitement
-            </span>
-            {all.some((d) => d.statut === "DEVIS_PROPOSE") ? (
-              <StatusBadge tone="warning">Un devis vous attend</StatusBadge>
-            ) : null}
-          </div>
+          {all.length > 0 ? (
+            <div className="mt-5 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-semibold text-slate-400">
+                {all.length} demande{all.length > 1 ? "s" : ""} au total
+              </span>
+              {enAttente > 0 ? (
+                <StatusBadge tone="info">{enAttente} en attente</StatusBadge>
+              ) : null}
+              {enCours > 0 ? (
+                <StatusBadge tone="warning">Un devis vous attend</StatusBadge>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -356,21 +417,28 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                 <div>
                   <p className="mb-2 text-xs font-bold text-slate-500 dark:text-slate-400">Type de demande</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {(["DEVIS", "SERVICE", "RECLAMATION"] as DemandeType[]).map((option) => (
-                      <button
-                        className={
-                          "rounded-2xl border px-3 py-2.5 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 " +
-                          (type === option
-                            ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/15"
-                            : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400")
-                        }
-                        key={option}
-                        onClick={() => setType(option)}
-                        type="button"
-                      >
-                        {demandeTypeMeta[option].label}
-                      </button>
-                    ))}
+                    {(["DEVIS", "SERVICE", "RECLAMATION"] as DemandeType[]).map((option) => {
+                      const c = typeColors[option];
+                      const isActive = type === option;
+                      return (
+                        <button
+                          className={
+                            "rounded-2xl border px-3 py-3 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 " +
+                            (isActive
+                              ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/15"
+                              : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400")
+                          }
+                          key={option}
+                          onClick={() => setType(option)}
+                          type="button"
+                        >
+                          <span className={"mx-auto grid size-7 place-items-center rounded-lg " + (isActive ? "bg-white/20" : c.bg)}>
+                            <Icon name={typeIcon[option]} size={14} className={isActive ? "text-white" : c.text} />
+                          </span>
+                          <span className="mt-1.5 block">{demandeTypeMeta[option].label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div>
@@ -398,7 +466,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                   />
                 </div>
                 <button
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#17294b] to-[#243a61] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={!objet.trim() || envoi}
                   onClick={submit}
                   type="button"
