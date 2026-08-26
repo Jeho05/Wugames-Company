@@ -191,7 +191,7 @@ export function ClientStdMissions({ missions }: ClientStdMissionsProps) {
             <motion.div
               aria-label="Détail de la mission"
               aria-modal="true"
-              className="pointer-events-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/20 bg-white p-6 shadow-2xl sm:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
+              className="pointer-events-auto relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/20 bg-white p-6 shadow-2xl sm:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
               initial={reduce ? undefined : { opacity: 0, y: 28, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
