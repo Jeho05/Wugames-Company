@@ -272,11 +272,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                     </h3>
                     <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{demande.detail}</p>
 
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3.5 dark:border-white/5">
-                      <span className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-400">
-                        <Icon name="folder" size={12} />
-                        {demande.piecesJointes} pièce{demande.piecesJointes > 1 ? "s" : ""} jointe{demande.piecesJointes > 1 ? "s" : ""}
-                      </span>
+                    <div className="mt-4 flex items-center justify-end border-t border-slate-100 pt-3.5 dark:border-white/5">
                       <button
                         className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b]/[0.06] px-3 py-2 text-[11px] font-bold text-[#17294b] transition group-hover:bg-[#17294b] group-hover:text-white dark:bg-white/10 dark:text-slate-300 dark:group-hover:bg-white/20"
                         onClick={() => setSelected(demande)}
@@ -327,20 +323,20 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
             <motion.div
               aria-label="Détail de la demande"
               aria-modal="true"
-              className="pointer-events-auto relative max-h-[85vh] w-full max-w-md overflow-y-auto rounded-3xl border border-white/20 bg-white p-6 shadow-2xl sm:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
+              className="pointer-events-auto relative max-h-[85vh] w-full max-w-md overflow-y-auto rounded-3xl border border-white/20 bg-white p-4 shadow-2xl sm:max-w-lg sm:p-6 md:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
               initial={reduce ? undefined : { opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
               role="dialog"
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">Suivi de la demande</p>
-                  <h3 className="mt-1.5 pr-6 text-lg font-bold leading-7 tracking-[-0.03em] text-[#16233a] dark:text-white">
+                  <h3 className="mt-1.5 break-words pr-4 text-base font-bold leading-6 tracking-[-0.03em] text-[#16233a] sm:text-lg sm:leading-7 dark:text-white">
                     {selected.objet}
                   </h3>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
                     <StatusBadge tone={demandeTypeMeta[selected.type].tone}>
                       {demandeTypeMeta[selected.type].label}
                     </StatusBadge>
@@ -351,21 +347,21 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                 </div>
                 <button
                   aria-label="Fermer"
-                  className="grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="grid size-8 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 sm:size-9"
                   onClick={() => setSelected(null)}
                   type="button"
                 >
-                  <Icon name="close" size={16} />
+                  <Icon name="close" size={14} />
                 </button>
               </div>
 
-              <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-[12px] leading-6 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
+              <p className="mt-3 break-words rounded-2xl bg-slate-50 p-3 text-[12px] leading-5 text-slate-600 sm:mt-4 sm:p-4 sm:leading-6 dark:bg-white/[0.04] dark:text-slate-300">
                 {selected.detail}
               </p>
 
-              <div className="mt-6">
+              <div className="mt-4 sm:mt-6">
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">Cycle de traitement</p>
-                <div className="mt-4">
+                <div className="mt-3 sm:mt-4">
                   <DemandeTimeline statut={selected.statut} />
                 </div>
               </div>
@@ -386,44 +382,44 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
             <motion.div
               aria-label="Nouvelle demande"
               aria-modal="true"
-              className="pointer-events-auto relative max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/20 bg-white p-6 shadow-2xl sm:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
+              className="pointer-events-auto relative max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/20 bg-white p-4 shadow-2xl sm:max-w-xl sm:p-6 md:p-8 dark:border-white/10 dark:bg-[#0f1a2e]"
               initial={reduce ? undefined : { opacity: 0, y: 24, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
               role="dialog"
               transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="flex items-start justify-between gap-4">
-                <div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">Espace client</p>
-                  <h3 className="mt-1.5 text-lg font-bold tracking-[-0.03em] text-[#16233a] dark:text-white">
+                  <h3 className="mt-1.5 break-words text-base font-bold tracking-[-0.03em] text-[#16233a] sm:text-lg dark:text-white">
                     Nouvelle demande
                   </h3>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-[11px] text-slate-400 sm:text-xs">
                     Un chargé de projet vous répond sous 24 h ouvrées — sans engagement.
                   </p>
                 </div>
                 <button
                   aria-label="Fermer"
-                  className="grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  className="grid size-8 shrink-0 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 sm:size-9"
                   onClick={() => setCompose(false)}
                   type="button"
                 >
-                  <Icon name="close" size={16} />
+                  <Icon name="close" size={14} />
                 </button>
               </div>
 
-              <div className="mt-5 space-y-4">
+              <div className="mt-4 space-y-3.5 sm:mt-5 sm:space-y-4">
                 <div>
                   <p className="mb-2 text-xs font-bold text-slate-500 dark:text-slate-400">Type de demande</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                     {(["DEVIS", "SERVICE", "RECLAMATION"] as DemandeType[]).map((option) => {
                       const c = typeColors[option];
                       const isActive = type === option;
                       return (
                         <button
                           className={
-                            "rounded-2xl border px-3 py-3 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 " +
+                            "rounded-xl border px-2 py-2.5 text-[10px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:rounded-2xl sm:px-3 sm:py-3 sm:text-[11px] " +
                             (isActive
                               ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/15"
                               : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400")
@@ -432,8 +428,8 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                           onClick={() => setType(option)}
                           type="button"
                         >
-                          <span className={"mx-auto grid size-7 place-items-center rounded-lg " + (isActive ? "bg-white/20" : c.bg)}>
-                            <Icon name={typeIcon[option]} size={14} className={isActive ? "text-white" : c.text} />
+                          <span className={"mx-auto grid size-6 place-items-center rounded-lg sm:size-7 " + (isActive ? "bg-white/20" : c.bg)}>
+                            <Icon name={typeIcon[option]} size={12} className={isActive ? "text-white" : c.text} />
                           </span>
                           <span className="mt-1.5 block">{demandeTypeMeta[option].label}</span>
                         </button>
@@ -446,7 +442,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                     Objet
                   </label>
                   <input
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[12px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-[13px] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
                     id="demande-objet"
                     onChange={(event) => setObjet(event.target.value)}
                     placeholder="Ex. : Rénovation d'une chambre"
@@ -458,7 +454,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                     Détails
                   </label>
                   <textarea
-                    className="min-h-28 w-full resize-y rounded-2xl border border-slate-200 bg-white px-4 py-3 text-[13px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+                    className="min-h-24 w-full resize-y rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[12px] font-semibold text-[#16233a] outline-none transition placeholder:text-slate-300 focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20 sm:min-h-28 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-[13px] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
                     id="demande-detail"
                     onChange={(event) => setDetail(event.target.value)}
                     placeholder="Décrivez votre besoin, vos contraintes et vos attentes…"
@@ -466,7 +462,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                   />
                 </div>
                 <button
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#17294b] to-[#243a61] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17294b] to-[#243a61] px-4 py-3 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:py-3.5 sm:text-[13px]"
                   disabled={!objet.trim() || envoi}
                   onClick={submit}
                   type="button"
