@@ -130,12 +130,6 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
 
   return (
     <ClientSection
-      action={
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#17294b]/20 bg-[#17294b]/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#17294b]">
-          <Icon name="building" size={12} />
-          Espace WUGAMS
-        </span>
-      }
       icon="building"
       id={sectionId}
       subtitle="Demandes, Wugams Clean et Espace Wu — tous vos services au même endroit"
@@ -163,6 +157,10 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
             </button>
           );
         })}
+        <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#17294b]/20 bg-[#17294b]/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#17294b]">
+          <Icon name="building" size={12} />
+          Espace WUGAMS
+        </span>
       </div>
 
       {/* Contenu Demandes */}
