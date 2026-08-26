@@ -144,6 +144,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
   const [newConvOpen, setNewConvOpen] = useState(false);
   const [newSujet, setNewSujet] = useState("");
   const [newMessage, setNewMessage] = useState("");
+  const [sendingNew, setSendingNew] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const scrollRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
@@ -217,7 +218,8 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
   }, [active, draft, sending]);
 
   const handleNewConversation = useCallback(async () => {
-    if (!newSujet.trim() || !newMessage.trim()) return;
+    if (!newSujet.trim() || !newMessage.trim() || sendingNew) return;
+    setSendingNew(true);
     try {
       const conv = await createConversation({ sujet: newSujet.trim(), premier_message: newMessage.trim() });
       setConversations((prev) => [conv, ...prev]);
@@ -261,11 +263,12 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
         }],
       }));
     } finally {
+      setSendingNew(false);
       setNewConvOpen(false);
       setNewSujet("");
       setNewMessage("");
     }
-  }, [newSujet, newMessage]);
+  }, [newSujet, newMessage, sendingNew]);
 
   const wugamsMember = active?.participants[0];
 
@@ -516,12 +519,21 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
               </div>
               <button
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#17294b] px-4 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={!newSujet.trim() || !newMessage.trim()}
+                disabled={!newSujet.trim() || !newMessage.trim() || sendingNew}
                 onClick={handleNewConversation}
                 type="button"
               >
-                <Icon name="arrow-up-right" size={15} />
-                Envoyer
+                {sendingNew ? (
+                  <>
+                    <span className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Envoi…
+                  </>
+                ) : (
+                  <>
+                    <Icon name="arrow-up-right" size={15} />
+                    Envoyer
+                  </>
+                )}
               </button>
             </div>
           </div>
