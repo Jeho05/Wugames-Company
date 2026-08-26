@@ -40,6 +40,12 @@ const typeColors: Record<DemandeType, { bg: string; text: string; ring: string }
   RECLAMATION: { bg: "bg-rose-50", text: "text-rose-600", ring: "ring-rose-200" },
 };
 
+const typeShortLabel: Record<DemandeType, string> = {
+  DEVIS: "Devis",
+  SERVICE: "Service",
+  RECLAMATION: "Réclam.",
+};
+
 const statutAccent: Record<DemandeStatut, { dot: string; label: string }> = {
   ENVOYEE: { dot: "bg-blue-400", label: "text-blue-600" },
   ETUDIEE: { dot: "bg-amber-400", label: "text-amber-600" },
@@ -419,7 +425,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                       return (
                         <button
                           className={
-                            "flex flex-col items-center overflow-hidden rounded-xl border px-1 py-2 text-[8px] font-bold leading-tight transition focus-visible:outline-2 focus-visible:outline-offset-2 min-w-0 sm:rounded-2xl sm:px-3 sm:py-3 sm:text-[11px] " +
+                            "group flex flex-col items-center gap-1 rounded-2xl border px-2 py-3 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:gap-1.5 sm:px-3 sm:py-3.5 sm:text-[12px] " +
                             (isActive
                               ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/15"
                               : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400")
@@ -428,10 +434,11 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                           onClick={() => setType(option)}
                           type="button"
                         >
-                          <span className={"mx-auto grid size-5 shrink-0 place-items-center rounded-md sm:size-7 sm:rounded-lg " + (isActive ? "bg-white/20" : c.bg)}>
-                            <Icon name={typeIcon[option]} size={10} className={isActive ? "text-white" : c.text} />
+                          <span className={"grid size-8 shrink-0 place-items-center rounded-xl transition sm:size-9 " + (isActive ? "bg-white/20" : c.bg)}>
+                            <Icon name={typeIcon[option]} size={15} className={isActive ? "text-white" : c.text} />
                           </span>
-                          <span className="mt-1 block w-full text-center leading-tight sm:mt-1.5">{demandeTypeMeta[option].label}</span>
+                          <span className="hidden leading-tight sm:block">{demandeTypeMeta[option].label}</span>
+                          <span className="block leading-tight sm:hidden">{typeShortLabel[option]}</span>
                         </button>
                       );
                     })}
