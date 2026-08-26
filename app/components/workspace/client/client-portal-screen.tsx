@@ -14,7 +14,6 @@ import { ClientCommandes } from "@/app/components/workspace/client/client-comman
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
 import { ClientProfil } from "@/app/components/workspace/client/client-profil";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
-import { ClientEspacesWugams } from "@/app/components/workspace/client/client-demandes";
 import {
   demoClientPortalData,
   globalStateFrom,
@@ -159,7 +158,6 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
         </div>
       </div>
 
-      <ClientEspacesWugams demandes={data.demandes} cleans={cleans} />
       <ClientMode2Vie />
 
       <ClientMissions missions={data.missions} />
