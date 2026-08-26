@@ -412,14 +412,14 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
               <div className="mt-4 space-y-3.5 sm:mt-5 sm:space-y-4">
                 <div>
                   <p className="mb-2 text-xs font-bold text-slate-500 dark:text-slate-400">Type de demande</p>
-                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                     {(["DEVIS", "SERVICE", "RECLAMATION"] as DemandeType[]).map((option) => {
                       const c = typeColors[option];
                       const isActive = type === option;
                       return (
                         <button
                           className={
-                            "rounded-xl border px-2 py-2.5 text-[10px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:rounded-2xl sm:px-3 sm:py-3 sm:text-[11px] " +
+                            "flex flex-col items-center overflow-hidden rounded-xl border px-1 py-2 text-[8px] font-bold leading-tight transition focus-visible:outline-2 focus-visible:outline-offset-2 min-w-0 sm:rounded-2xl sm:px-3 sm:py-3 sm:text-[11px] " +
                             (isActive
                               ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/15"
                               : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400")
@@ -428,10 +428,10 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                           onClick={() => setType(option)}
                           type="button"
                         >
-                          <span className={"mx-auto grid size-6 place-items-center rounded-lg sm:size-7 " + (isActive ? "bg-white/20" : c.bg)}>
-                            <Icon name={typeIcon[option]} size={12} className={isActive ? "text-white" : c.text} />
+                          <span className={"mx-auto grid size-5 shrink-0 place-items-center rounded-md sm:size-7 sm:rounded-lg " + (isActive ? "bg-white/20" : c.bg)}>
+                            <Icon name={typeIcon[option]} size={10} className={isActive ? "text-white" : c.text} />
                           </span>
-                          <span className="mt-1.5 block">{demandeTypeMeta[option].label}</span>
+                          <span className="mt-1 block w-full text-center leading-tight sm:mt-1.5">{demandeTypeMeta[option].label}</span>
                         </button>
                       );
                     })}
