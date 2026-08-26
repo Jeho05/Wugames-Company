@@ -87,6 +87,54 @@ function getInitials(first?: string, last?: string): string {
   return ((first?.[0] ?? "") + (last?.[0] ?? "")).toUpperCase() || "?";
 }
 
+function ConversationItem({
+  conv,
+  isActive,
+  onSelect,
+}: {
+  conv: Conversation;
+  isActive: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const participant = conv.participants[0];
+  const hasUnread = conv.non_lus > 0;
+  return (
+    <button
+      aria-current={isActive ? "true" : undefined}
+      className={
+        "flex w-full items-start gap-2.5 rounded-xl p-2.5 text-left transition sm:gap-3 sm:rounded-2xl " +
+        (isActive ? "bg-[#17294b]/[0.05]" : "hover:bg-slate-50")
+      }
+      onClick={() => onSelect(conv.id)}
+      type="button"
+    >
+      <span className="relative shrink-0">
+        <span className="grid size-10 place-items-center rounded-full bg-[#17294b] text-[11px] font-bold text-[#f2c56d]">
+          {participant ? getInitials(participant.first_name, participant.last_name) : "?"}
+        </span>
+        <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-emerald-400" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className={"truncate text-[12px] " + (hasUnread ? "font-extrabold text-[#16233a]" : "font-bold text-slate-700")}>
+            {participant ? `${participant.first_name} ${participant.last_name}` : conv.sujet}
+          </span>
+          {hasUnread ? (
+            <span className="grid min-w-5 shrink-0 place-items-center rounded-full bg-[#17294b] px-1.5 text-[9px] font-bold text-white">
+              {conv.non_lus}
+            </span>
+          ) : null}
+        </span>
+        <span className="mt-0.5 block truncate text-[10px] font-semibold text-[#b47e1e]">{conv.sujet}</span>
+        <span className="mt-0.5 flex items-center justify-between gap-2">
+          <span className="min-w-0 flex-1 truncate text-[10px] text-slate-400">{conv.dernier_message}</span>
+          <span className="shrink-0 text-[9px] text-slate-400">{conv.derniere_activite}</span>
+        </span>
+      </span>
+    </button>
+  );
+}
+
 export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessagerieProps) {
   const [conversations, setConversations] = useState<Conversation[]>(demoConversations);
   const [activeId, setActiveId] = useState<string>("conv-1");
@@ -96,7 +144,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
   const [newConvOpen, setNewConvOpen] = useState(false);
   const [newSujet, setNewSujet] = useState("");
   const [newMessage, setNewMessage] = useState("");
-  const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
   const scrollRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
 
@@ -108,9 +156,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
         setConversations(result);
         setActiveId(result[0].id);
       })
-      .catch(() => {
-        /* API injoignable : on garde les données démo */
-      });
+      .catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
@@ -138,7 +184,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
   const openConversation = useCallback((id: string) => {
     setActiveId(id);
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, non_lus: 0 } : c)));
-    setMobileShowChat(true);
+    setMobileView("chat");
   }, []);
 
   const handleSend = useCallback(async () => {
@@ -164,7 +210,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
         [active.id]: [...(prev[active.id] ?? []).filter((m) => m.id !== optimistic.id), sent],
       }));
     } catch {
-      /* API injoignable : le message optimiste reste affiché */
+      /* API injoignable */
     } finally {
       setSending(false);
     }
@@ -176,7 +222,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
       const conv = await createConversation({ sujet: newSujet.trim(), premier_message: newMessage.trim() });
       setConversations((prev) => [conv, ...prev]);
       setActiveId(conv.id);
-      setMobileShowChat(true);
+      setMobileView("chat");
       setMessages((prev) => ({
         ...prev,
         [conv.id]: [{
@@ -202,7 +248,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
       };
       setConversations((prev) => [conv, ...prev]);
       setActiveId(conv.id);
-      setMobileShowChat(true);
+      setMobileView("chat");
       setMessages((prev) => ({
         ...prev,
         [conv.id]: [{
@@ -231,11 +277,14 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
       title="Messagerie"
     >
       <div className="mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {/* Layout desktop : 2 colonnes / mobile : une seule colonne */}
         <div className="flex h-[500px] sm:h-[540px]">
-          {/* Liste des conversations */}
-          <div className={"w-full shrink-0 space-y-0 border-r border-slate-100 sm:w-[340px] lg:w-[380px] " + (mobileShowChat ? "hidden sm:flex sm:flex-col" : "flex flex-col")}>
-            {/* Header liste */}
+          {/* ===== LISTE DES CONVERSATIONS ===== */}
+          <div
+            className={
+              "w-full shrink-0 flex-col border-r border-slate-100 sm:w-[340px] lg:w-[380px] sm:flex " +
+              (mobileView === "chat" ? "hidden" : "flex")
+            }
+          >
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5">
               <span className="flex items-center gap-2 text-[12px] font-bold text-[#16233a]">
                 Conversations
@@ -251,57 +300,17 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
                 type="button"
               >
                 <Icon name="plus" size={12} />
-                <span className="hidden xs:inline">Nouveau</span>
+                Nouveau
               </button>
             </div>
 
-            {/* Items */}
             <div className="flex-1 overflow-y-auto">
               <ul className="space-y-0.5 p-2">
-                {conversations.map((conv) => {
-                  const participant = conv.participants[0];
-                  const isActive = conv.id === activeId;
-                  const hasUnread = conv.non_lus > 0;
-                  return (
-                    <li key={conv.id}>
-                      <button
-                        aria-current={isActive ? "true" : undefined}
-                        className={
-                          "flex w-full items-start gap-3 rounded-xl p-2.5 text-left transition sm:rounded-2xl " +
-                          (isActive
-                            ? "bg-[#17294b]/[0.05]"
-                            : "hover:bg-slate-50")
-                        }
-                        onClick={() => openConversation(conv.id)}
-                        type="button"
-                      >
-                        <span className="relative shrink-0">
-                          <span className="grid size-10 place-items-center rounded-full bg-[#17294b] text-[11px] font-bold text-[#f2c56d]">
-                            {participant ? getInitials(participant.first_name, participant.last_name) : "?"}
-                          </span>
-                          <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-emerald-400" />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-center justify-between gap-2">
-                            <span className={"truncate text-[12px] " + (hasUnread ? "font-extrabold text-[#16233a]" : "font-bold text-slate-700")}>
-                              {participant ? `${participant.first_name} ${participant.last_name}` : conv.sujet}
-                            </span>
-                            {hasUnread ? (
-                              <span className="grid min-w-5 shrink-0 place-items-center rounded-full bg-[#17294b] px-1.5 text-[9px] font-bold text-white">
-                                {conv.non_lus}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="mt-0.5 block truncate text-[10px] font-semibold text-[#b47e1e]">{conv.sujet}</span>
-                          <span className="mt-0.5 flex items-center justify-between gap-2">
-                            <span className="min-w-0 flex-1 truncate text-[10px] text-slate-400">{conv.dernier_message}</span>
-                            <span className="shrink-0 text-[9px] text-slate-400">{conv.derniere_activite}</span>
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
+                {conversations.map((conv) => (
+                  <li key={conv.id}>
+                    <ConversationItem conv={conv} isActive={conv.id === activeId} onSelect={openConversation} />
+                  </li>
+                ))}
                 {conversations.length === 0 ? (
                   <div className="grid place-items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-10 text-center">
                     <Icon name="message" size={20} className="text-slate-300" />
@@ -312,20 +321,36 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
             </div>
           </div>
 
-          {/* Zone de chat */}
-          <div className={"flex min-w-0 flex-1 flex-col " + (mobileShowChat ? "flex" : "hidden sm:flex")}>
+          {/* ===== ZONE DE CHAT ===== */}
+          <div
+            className={
+              "min-w-0 flex-1 flex-col sm:flex " +
+              (mobileView === "list" ? "hidden" : "flex")
+            }
+          >
             {active ? (
               <>
-                {/* Header chat — mobile: avec bouton retour */}
-                <div className="flex items-center gap-2.5 border-b border-slate-100 px-3 py-3 sm:gap-3 sm:px-5 sm:py-3.5">
+                {/* Header chat */}
+                <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3.5">
                   <button
                     aria-label="Retour aux conversations"
                     className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 sm:hidden"
-                    onClick={() => setMobileShowChat(false)}
+                    onClick={() => setMobileView("list")}
                     type="button"
                   >
                     <Icon name="arrow-right" size={16} className="rotate-180" />
                   </button>
+
+                  {/* Bouton Nouveau — toujours visible sur mobile dans le header chat */}
+                  <button
+                    className="inline-flex items-center gap-1 rounded-xl bg-[#17294b] px-2.5 py-1.5 text-[10px] font-bold text-white transition hover:bg-[#243a61] sm:hidden"
+                    onClick={() => setNewConvOpen(true)}
+                    type="button"
+                  >
+                    <Icon name="plus" size={12} />
+                    Nouveau
+                  </button>
+
                   <span className="relative shrink-0">
                     <span className="grid size-9 place-items-center rounded-full bg-[#17294b] text-[10px] font-bold text-[#f2c56d] sm:size-10 sm:text-[11px]">
                       {wugamsMember ? getInitials(wugamsMember.first_name, wugamsMember.last_name) : "?"}
@@ -420,7 +445,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
                       onClick={handleSend}
                       type="button"
                     >
-                      <Icon name="arrow-up-right" size={14} className="-rotate-45 sm:size-15" />
+                      <Icon name="arrow-up-right" size={14} className="-rotate-45 sm:size-[15px]" />
                     </button>
                   </div>
                 </div>
@@ -432,7 +457,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
                     <Icon name="message" size={24} />
                   </span>
                   <p className="mt-4 text-sm font-bold text-slate-600">Sélectionnez une conversation</p>
-                  <p className="mt-1 text-xs text-slate-400">Ou commencez-en une nouvelle avec votre équipe WUGAMS.</p>
+                  <p className="mt-1 text-xs text-slate-400">Ou commencez-en une nouvelle.</p>
                 </div>
               </div>
             )}
@@ -440,7 +465,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
         </div>
       </div>
 
-      {/* Modal nouvelle conversation */}
+      {/* ===== MODALE NOUVELLE CONVERSATION ===== */}
       <AnimatePresence>
         {newConvOpen ? (
           <div className="pointer-events-none fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
