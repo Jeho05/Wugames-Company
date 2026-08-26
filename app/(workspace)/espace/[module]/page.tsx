@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ClientEspacesWugamsScreen } from "@/app/components/workspace/client/client-espaces-wugams-screen";
+import { ClientMessagerieScreen } from "@/app/components/workspace/client/client-messagerie-screen";
 import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
 import { getModuleDefinition } from "@/app/lib/demo-data";
 
@@ -16,6 +17,10 @@ export default async function WorkspaceModulePage({
 
   if (module === "demandes") {
     return <ClientEspacesWugamsScreen />;
+  }
+
+  if (module === "messages") {
+    return <ClientMessagerieScreen />;
   }
 
   const definition = getModuleDefinition(module);
