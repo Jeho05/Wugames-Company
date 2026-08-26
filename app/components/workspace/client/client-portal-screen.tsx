@@ -8,7 +8,6 @@ import type { IconName } from "@/app/components/ui/app-icon";
 import { ClientHero } from "@/app/components/workspace/client/client-hero";
 import { ClientKpiGrid } from "@/app/components/workspace/client/client-kpi-grid";
 import { ClientMissions } from "@/app/components/workspace/client/client-missions";
-import { ClientFactures } from "@/app/components/workspace/client/client-factures";
 import { ClientDevis } from "@/app/components/workspace/client/client-devis";
 import { ClientCommandes } from "@/app/components/workspace/client/client-commandes";
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
@@ -33,7 +32,6 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "portail-espaces-wugams", label: "Espaces Wugams", icon: "building" },
   { id: "portail-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
   { id: "portail-missions", label: "Missions", icon: "hardhat" },
-  { id: "portail-factures", label: "Factures", icon: "file-text" },
   { id: "portail-devis", label: "Devis", icon: "sparkles" },
   { id: "portail-commandes", label: "Commandes", icon: "box" },
   { id: "portail-notifications", label: "Notifications", icon: "bell" },
@@ -161,7 +159,6 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
       <ClientMode2Vie />
 
       <ClientMissions missions={data.missions} />
-      <ClientFactures factures={data.factures} />
       <ClientDevis devis={data.devis} />
       <ClientCommandes commandes={data.commandes} />
 

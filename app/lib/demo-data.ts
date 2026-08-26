@@ -104,7 +104,6 @@ export const clientNavigationGroups: {
     label: "Suivi",
     items: [
       { href: "/espace/documents", icon: "file-text", label: "Documents" },
-      { href: "/espace/factures", icon: "chart", label: "Factures & paiements" },
       { href: "/espace/commandes", icon: "boxes", label: "Mes commandes" },
       { href: "/espace/messages", icon: "message", label: "Messages" },
       { href: "/espace/notifications", icon: "bell", label: "Notifications" },
