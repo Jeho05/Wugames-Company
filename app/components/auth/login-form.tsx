@@ -2,7 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { ApiError } from "@/app/lib/api-client";
 import { useAuth } from "@/app/lib/auth-context";
@@ -14,6 +14,8 @@ type ResetView = "reset-request" | "reset-confirm";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/espace";
   const { login, pending2fa, verify2fa } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +51,7 @@ export function LoginForm() {
     try {
       const outcome = await login(email, password);
       if (outcome === "authenticated") {
-        router.push("/espace");
+        router.push(redirectTo);
       }
     } catch (caught) {
       setError(messageFrom(caught));
@@ -68,7 +70,7 @@ export function LoginForm() {
     setSubmitting(true);
     try {
       await verify2fa(twoFactorToken);
-      router.push("/espace");
+      router.push(redirectTo);
     } catch (caught) {
       setError(messageFrom(caught));
     } finally {

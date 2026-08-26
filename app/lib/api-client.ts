@@ -57,6 +57,14 @@ export function subscribeAuth(listener: () => void): () => void {
   return () => authListeners.delete(listener);
 }
 
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (event.key !== STORAGE_KEY) return;
+    cachedSession = undefined;
+    notifyAuthChange();
+  });
+}
+
 export function getSession(): SessionTokens | null {
   if (cachedSession !== undefined) return cachedSession;
   if (typeof window === "undefined") {
