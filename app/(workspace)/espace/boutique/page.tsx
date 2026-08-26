@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
 import { formatFcfa, productCategories, productFiliales, products } from "@/app/lib/store-data";
 import type { CartItem, Product } from "@/app/lib/store-data";
 import { useAuth } from "@/app/lib/auth-context";
+import { passerCommandeApi, type BoutiqueProduit } from "@/app/lib/client-shop-data";
 
 const CART_KEY = "wugams-cart";
 
@@ -30,7 +28,8 @@ function loadCart(): CartItem[] {
   }
 }
 
-export default function BoutiquePage() {
+export default function WorkspaceBoutiquePage() {
+  const { user } = useAuth();
   const [category, setCategory] = useState("Tous");
   const [filiale, setFiliale] = useState("Toutes");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -41,14 +40,8 @@ export default function BoutiquePage() {
   const [phone, setPhone] = useState("");
   const [toast, setToast] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const { user, ready } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (ready && user) {
-      router.replace("/espace/boutique");
-    }
-  }, [ready, user, router]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     const id = window.setTimeout(() => setCart(loadCart()), 0);
@@ -83,6 +76,7 @@ export default function BoutiquePage() {
       return [...prev, { product, quantity: 1 }];
     });
     setToast(product.name + " ajouté au panier.");
+    setTimeout(() => setToast(""), 3000);
   }
 
   function updateQuantity(productId: string, delta: number) {
@@ -101,85 +95,64 @@ export default function BoutiquePage() {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   }
 
-  function submitOrder() {
-    if (!user) {
+  async function submitOrder() {
+    if (!user) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const lignes = cart.map((item) => ({
+        produit: {
+          id: item.product.id,
+          nom: item.product.name,
+          categorie: "materiaux" as const,
+          prix: item.product.price,
+          stock: 999,
+          unite: item.product.unit,
+          description: item.product.description,
+        } as BoutiqueProduit,
+        quantite: item.quantity,
+      }));
+      await passerCommandeApi(user.filialeId ?? "", lignes, phone);
       setCheckoutOpen(false);
       setCartOpen(false);
-      router.push("/connexion?redirect=/boutique");
-      return;
+      setOrderDone(true);
+      setCart([]);
+      window.localStorage.removeItem(CART_KEY);
+    } catch (err) {
+      setSubmitError("Erreur lors de la commande. Veuillez réessayer.");
+    } finally {
+      setSubmitting(false);
     }
-    setCheckoutOpen(false);
-    setCartOpen(false);
-    setOrderDone(true);
-    setCart([]);
-    window.localStorage.removeItem(CART_KEY);
   }
 
   return (
-    <main className="min-h-screen bg-[#fbfcfe] text-[#17294b]">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#101a2d]">
-        <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
-          <BrandMark href="/" inverse />
-          <nav aria-label="Navigation boutique" className="hidden items-center gap-7 text-sm font-semibold md:flex">
-            <Link className="text-white" href="/">
-              Accueil
-            </Link>
-            <Link className="text-slate-300 transition hover:text-white" href="/realisations">
-              Réalisations
-            </Link>
-            <Link className="text-slate-300 transition hover:text-white" href="/blog">
-              Blog
-            </Link>
-          </nav>
-          <div className="flex items-center gap-2.5">
-            <button
-              aria-label={"Panier, " + cartCount + " article(s)"}
-              className="relative grid size-10 place-items-center rounded-xl bg-white/10 text-white transition hover:bg-white/20"
-              onClick={() => setCartOpen(true)}
-              type="button"
-            >
-              <Icon name="shopping-bag" size={19} />
-              {cartCount > 0 ? (
-                <span className="absolute -right-1.5 -top-1.5 grid min-w-5 place-items-center rounded-full bg-[#e3a641] px-1 py-0.5 text-[10px] font-extrabold text-[#14223b]">
-                  {cartCount}
-                </span>
-              ) : null}
-            </button>
-            <Link
-              className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-3.5 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] sm:px-4 sm:text-sm"
-              href="/connexion"
-            >
-              Mon espace <Icon name="arrow-right" size={16} />
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <section className="bg-[#101a2d] pb-10 pt-32 text-white">
-        <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300">
-            Espace Wu · Livraison 7 j/7
+    <>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">
+            Boutique WUGAMS
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-[-0.05em] sm:text-5xl">
-            Entretien, matériaux, mobilier &amp; outillage
+          <h1 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-[#17294b]">
+            Matériaux & fournitures
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
-            Commandez en ligne et faites-vous livrer sur votre chantier, même en urgence.
-            Paiement par carte ou Mobile Money.
+          <p className="mt-1 text-sm text-slate-500">
+            Parcourez le catalogue et commandez directement depuis votre espace.
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-6 text-xs font-semibold text-slate-300">
-            <span className="inline-flex items-center gap-2">
-              <Icon className="text-emerald-400" name="check" size={15} /> Urgence Porto-Novo · Express
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Icon className="text-emerald-400" name="check" size={15} /> Retrait à l&apos;Espace Wu
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Icon className="text-emerald-400" name="check" size={15} /> Tarif membres &amp; chantiers
-            </span>
-          </div>
         </div>
-      </section>
+        <button
+          className="relative grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-[#17294b]"
+          onClick={() => setCartOpen(true)}
+          type="button"
+          aria-label={"Panier, " + cartCount + " article(s)"}
+        >
+          <Icon name="shopping-bag" size={18} />
+          {cartCount > 0 ? (
+            <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full bg-[#e3a641] px-1 text-[9px] font-black text-[#14223b] ring-2 ring-white">
+              {cartCount}
+            </span>
+          ) : null}
+        </button>
+      </div>
 
       {toast ? (
         <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2">
@@ -190,154 +163,108 @@ export default function BoutiquePage() {
         </div>
       ) : null}
 
-      <section className="mx-auto w-full max-w-[1240px] px-5 py-10 sm:px-8">
-        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
-            {productCategories.map((cat) => (
-              <button
-                aria-pressed={category === cat}
-                className={
-                  "whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition " +
-                  (category === cat
-                    ? "bg-[#17294b] text-white shadow-sm"
-                    : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300")
-                }
-                key={cat}
-                onClick={() => setCategory(cat)}
-                type="button"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-          <label className="relative block lg:w-[210px]">
-            <span className="sr-only">Filtrer par filiale</span>
-            <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" name="building" size={15} />
-            <select
-              className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-8 text-xs font-bold text-slate-600 outline-none transition focus:border-[#7ea5ca] focus:ring-4 focus:ring-[#dceaf6]"
-              onChange={(event) => setFiliale(event.target.value)}
-              value={filiale}
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {productCategories.map((cat) => (
+            <button
+              aria-pressed={category === cat}
+              className={
+                "whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition " +
+                (category === cat
+                  ? "bg-[#17294b] text-white shadow-sm"
+                  : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300")
+              }
+              key={cat}
+              onClick={() => setCategory(cat)}
+              type="button"
             >
-              {productFiliales.map((f) => (
-                <option key={f}>{f}</option>
-              ))}
-            </select>
-            <Icon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" name="chevron-down" size={14} />
-          </label>
-        </div>
-
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visibleProducts.map((product) => (
-            <article
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-              key={product.id}
-            >
-              <button
-                className="block w-full text-left"
-                onClick={() => setSelectedProduct(product)}
-                type="button"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt={product.name}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    src={product.image}
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
-                    {product.category}
-                  </span>
-                  <span
-                    className={
-                      "absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " +
-                      (product.stock === "En stock"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : product.stock === "Stock faible"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-100 text-slate-600")
-                    }
-                  >
-                    {product.stock}
-                  </span>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-bold text-[#233856]">{product.name}</h3>
-                    <span className="shrink-0 text-[11px] font-semibold text-slate-400">
-                      ★ {product.note}
-                    </span>
-                  </div>
-                  <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-400">
-                    {product.description}
-                  </p>
-                  <p className="mt-1 text-[11px] font-medium text-slate-400">
-                    {product.filiale} · au {product.unit}
-                  </p>
-                </div>
-              </button>
-              <div className="flex items-center justify-between gap-2 border-t border-slate-100 p-4 pt-3">
-                <p className="text-[15px] font-bold text-[#17294b]">{formatFcfa(product.price)}</p>
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#14223b] transition hover:bg-[#efb653]"
-                  onClick={() => addToCart(product)}
-                  type="button"
-                >
-                  <Icon name="plus" size={14} />
-                  Ajouter
-                </button>
-              </div>
-            </article>
+              {cat}
+            </button>
           ))}
         </div>
-
-        <p className="mt-8 text-center text-xs text-slate-400">
-          Les prix affichés incluent la TVA. Livraison offerte dès 100 000 FCFA sur Abidjan.
-        </p>
-      </section>
-
-      <section className="border-t border-slate-200 bg-[#f7f9fc]">
-        <div className="mx-auto w-full max-w-[1240px] px-5 py-12 sm:px-8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">
-                Avis produits · clients vérifiés
-              </p>
-              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-[#17294b]">
-                Ce que disent nos clients
-              </h2>
-            </div>
-            <p className="hidden text-sm font-bold text-slate-500 sm:block">
-              ★ 4,7 / 5 · 128 avis
-            </p>
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { product: "Ciment 50 kg", name: "Koffi A.", text: "Livraison en 3 h sur mon chantier de Bingerville. Qualité constante, prix affiché = prix payé.", stars: 5 },
-              { product: "Carrelage grès 60×60", name: "Aminata T.", text: "Le dépôt de Cocody avait tout en stock. Le carrelage est magnifique, pose comprise sans casse.", stars: 5 },
-              { product: "Câble électrique 2,5 mm", name: "David K.", text: "Bon rapport qualité/prix, section conforme aux normes. Je recommande pour les chantiers neufs.", stars: 4 },
-            ].map((review) => (
-              <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" key={review.name}>
-                <div className="flex items-center gap-1 text-amber-500">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      className={"size-3.5 " + (star <= review.stars ? "fill-current" : "fill-slate-200")}
-                      key={star}
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="mt-3 text-xs leading-6 text-slate-600">&ldquo;{review.text}&rdquo;</p>
-                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                  <p className="text-xs font-bold text-[#233856]">{review.name}</p>
-                  <p className="text-[11px] font-semibold text-slate-400">{review.product}</p>
-                </div>
-              </article>
+        <label className="relative block lg:w-[210px]">
+          <span className="sr-only">Filtrer par filiale</span>
+          <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" name="building" size={15} />
+          <select
+            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-8 text-xs font-bold text-slate-600 outline-none transition focus:border-[#7ea5ca] focus:ring-4 focus:ring-[#dceaf6]"
+            onChange={(event) => setFiliale(event.target.value)}
+            value={filiale}
+          >
+            {productFiliales.map((f) => (
+              <option key={f}>{f}</option>
             ))}
-          </div>
-        </div>
-      </section>
+          </select>
+          <Icon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" name="chevron-down" size={14} />
+        </label>
+      </div>
+
+      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {visibleProducts.map((product) => (
+          <article
+            className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+            key={product.id}
+          >
+            <button
+              className="block w-full text-left"
+              onClick={() => setSelectedProduct(product)}
+              type="button"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt={product.name}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  src={product.image}
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                  {product.category}
+                </span>
+                <span
+                  className={
+                    "absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " +
+                    (product.stock === "En stock"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : product.stock === "Stock faible"
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-slate-100 text-slate-600")
+                  }
+                >
+                  {product.stock}
+                </span>
+              </div>
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-bold text-[#233856]">{product.name}</h3>
+                  <span className="shrink-0 text-[11px] font-semibold text-slate-400">
+                    ★ {product.note}
+                  </span>
+                </div>
+                <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-400">
+                  {product.description}
+                </p>
+                <p className="mt-1 text-[11px] font-medium text-slate-400">
+                  {product.filiale} · au {product.unit}
+                </p>
+              </div>
+            </button>
+            <div className="flex items-center justify-between gap-2 border-t border-slate-100 p-4 pt-3">
+              <p className="text-[15px] font-bold text-[#17294b]">{formatFcfa(product.price)}</p>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#14223b] transition hover:bg-[#efb653]"
+                onClick={() => addToCart(product)}
+                type="button"
+              >
+                <Icon name="plus" size={14} />
+                Ajouter
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <p className="mt-8 text-center text-xs text-slate-400">
+        Les prix affichés incluent la TVA. Livraison offerte dès 100 000 FCFA sur Abidjan.
+      </p>
 
       {cartOpen ? (
         <div className="fixed inset-0 z-[60]">
@@ -525,21 +452,30 @@ export default function BoutiquePage() {
               </div>
             </div>
 
+            {submitError ? (
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-semibold text-red-700">
+                <Icon name="warning" size={16} />
+                {submitError}
+              </div>
+            ) : null}
+
             <div className="mt-6 flex justify-end gap-2.5">
               <button
                 className="rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold text-slate-600 transition hover:border-slate-300"
                 onClick={() => setCheckoutOpen(false)}
                 type="button"
+                disabled={submitting}
               >
                 Annuler
               </button>
               <button
-                className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#243a61]"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={submitOrder}
                 type="button"
+                disabled={submitting || cart.length === 0}
               >
-                {payment === "carte" ? "Payer " + formatFcfa(cartTotal) : "Payer par Mobile Money"}
-                <Icon name="arrow-right" size={15} />
+                {submitting ? "Envoi en cours…" : payment === "carte" ? "Payer " + formatFcfa(cartTotal) : "Payer par Mobile Money"}
+                {!submitting && <Icon name="arrow-right" size={15} />}
               </button>
             </div>
           </div>
@@ -665,6 +601,6 @@ export default function BoutiquePage() {
           </div>
         </div>
       ) : null}
-    </main>
+    </>
   );
 }

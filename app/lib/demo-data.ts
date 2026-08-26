@@ -73,7 +73,7 @@ export const navigationGroups: {
   {
     label: "Boutique",
     items: [
-      { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+      { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
     ],
   },
 ];
@@ -89,7 +89,7 @@ export const adminNavigationGroup: {
   label: "Administration",
   items: [
     { href: "/espace/administration", icon: "shield", label: "Administration" },
-    { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+    { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
   ],
 };
 
@@ -121,7 +121,7 @@ export const clientNavigationGroups: {
   {
     label: "Boutique",
     items: [
-      { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+      { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
     ],
   },
 ];
@@ -147,7 +147,7 @@ export const supplierNavigationGroup: {
   {
     label: "Boutique",
     items: [
-      { href: "/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
+      { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
     ],
   },
 ];

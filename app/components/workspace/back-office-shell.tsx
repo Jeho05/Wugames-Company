@@ -54,7 +54,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const [liveUnread, setLiveUnread] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
-  const { logout, user } = useAuth();
+  const { logout, user, sessionExpired, clearSessionExpired } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -332,6 +332,36 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1680px] px-4 py-5 pb-10 sm:px-6 lg:px-8 lg:py-8">
+          {sessionExpired ? (
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <Icon className="text-amber-600" name="warning" size={18} />
+                <p className="text-sm font-semibold text-amber-800">
+                  Votre session a expiré. Veuillez vous reconnecter.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="rounded-lg px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
+                  onClick={() => {
+                    clearSessionExpired();
+                    router.push("/connexion?redirect=" + encodeURIComponent(pathname));
+                  }}
+                  type="button"
+                >
+                  Se reconnecter
+                </button>
+                <button
+                  className="rounded-lg p-1.5 text-amber-400 transition hover:text-amber-600"
+                  onClick={clearSessionExpired}
+                  type="button"
+                  aria-label="Fermer"
+                >
+                  <Icon name="close" size={16} />
+                </button>
+              </div>
+            </div>
+          ) : null}
           {children}
         </main>
       </div>

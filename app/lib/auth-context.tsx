@@ -30,9 +30,12 @@ type AuthContextValue = {
   /** true une fois la restauration de session terminée (au chargement). */
   ready: boolean;
   pending2fa: Pending2fa;
+  /** Message d'erreur si la session a expiré. */
+  sessionExpired: boolean;
   login: (email: string, password: string) => Promise<LoginOutcome>;
   verify2fa: (token: string) => Promise<void>;
   logout: () => Promise<void>;
+  clearSessionExpired: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -133,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readCachedUser());
   const [ready, setReady] = useState(false);
   const [pending2fa, setPending2fa] = useState<Pending2fa>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const pending2faRef = useRef<Pending2fa>(null);
   const restoreStarted = useRef(false);
 
@@ -150,9 +154,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const authUser = await buildAuthUser(tokens.user);
       cacheAuthUser(authUser);
       setUser(authUser);
+      setSessionExpired(false);
     },
     [persistTokens],
   );
+
+  const clearSessionExpired = useCallback(() => setSessionExpired(false), []);
 
   /* Restauration silencieuse de la session persistée. */
   useEffect(() => {
@@ -181,6 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         if (error instanceof ApiError && error.statusCode === 401) {
           clearCachedUser();
+          setSessionExpired(true);
         }
         clearSession();
       }
@@ -191,7 +199,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const unsubscribe = subscribeAuth(() => {
-      if (getSession() === null) {
+      const session = getSession();
+      if (session === null) {
+        if (user) setSessionExpired(true);
         clearCachedUser();
         setUser(null);
       }
@@ -212,6 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return "2fa-required";
       }
       pending2faRef.current = null;
+      setSessionExpired(false);
       await hydrate(result);
       return "authenticated";
     },
@@ -226,6 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const tokens = await authApi.verify2fa(pending.userId, token);
       pending2faRef.current = null;
+      setSessionExpired(false);
       await hydrate(tokens);
       setPending2fa(null);
     },
@@ -242,11 +254,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearSession();
     setUser(null);
     setPending2fa(null);
+    setSessionExpired(false);
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, pending2fa, login, verify2fa, logout }),
-    [user, ready, pending2fa, login, verify2fa, logout],
+    () => ({ user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired }),
+    [user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
