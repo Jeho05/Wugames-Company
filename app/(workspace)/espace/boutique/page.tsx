@@ -267,7 +267,7 @@ export default function WorkspaceBoutiquePage() {
                     <p className="text-[10px] text-slate-400">par {product.unit}</p>
                   </div>
                   <div className="flex items-center gap-1 text-[11px]">
-                    <Icon name="star" size={12} className="text-amber-500" />
+                    <span className="text-amber-500">★</span>
                     <span className="font-bold text-slate-700">{product.note}</span>
                   </div>
                 </div>
