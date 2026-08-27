@@ -127,81 +127,101 @@ export default function WorkspaceBoutiquePage() {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">
-            Boutique WUGAMS
-          </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-[#17294b]">
-            Matériaux & fournitures
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Parcourez le catalogue et commandez directement depuis votre espace.
-          </p>
+      {/* Hero Section */}
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-gradient-to-br from-[#17294b] to-[#1e3557] p-6 text-white shadow-lg sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
+              <Icon name="shopping-bag" size={12} />
+              <span>Boutique WUGAMS</span>
+            </div>
+            <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
+              Matériaux & fournitures
+            </h1>
+            <p className="mt-2 text-sm text-white/80 sm:text-base">
+              Parcourez le catalogue et commandez directement depuis votre espace.
+            </p>
+          </div>
+          <button
+            className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+            onClick={() => setCartOpen(true)}
+            type="button"
+            aria-label={"Panier, " + cartCount + " article(s)"}
+          >
+            <Icon name="shopping-bag" size={22} />
+            {cartCount > 0 ? (
+              <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-[#e3a641] text-[11px] font-black text-[#14223b] shadow-lg">
+                {cartCount}
+              </span>
+            ) : null}
+          </button>
         </div>
-        <button
-          className="relative grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-[#17294b]"
-          onClick={() => setCartOpen(true)}
-          type="button"
-          aria-label={"Panier, " + cartCount + " article(s)"}
-        >
-          <Icon name="shopping-bag" size={18} />
-          {cartCount > 0 ? (
-            <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full bg-[#e3a641] px-1 text-[9px] font-black text-[#14223b] ring-2 ring-white">
-              {cartCount}
-            </span>
-          ) : null}
-        </button>
       </div>
 
       {toast ? (
-        <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2">
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-800 shadow-xl">
-            <Icon name="check" size={17} />
-            {toast}
+        <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-800 shadow-2xl">
+            <span className="grid size-8 place-items-center rounded-full bg-emerald-100">
+              <Icon name="check" size={16} />
+            </span>
+            <span>{toast}</span>
           </div>
         </div>
       ) : null}
 
-      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {productCategories.map((cat) => (
-            <button
-              aria-pressed={category === cat}
-              className={
-                "whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition " +
-                (category === cat
-                  ? "bg-[#17294b] text-white shadow-sm"
-                  : "border border-slate-200 bg-white text-slate-500 hover:border-slate-300")
-              }
-              key={cat}
-              onClick={() => setCategory(cat)}
-              type="button"
-            >
-              {cat}
-            </button>
-          ))}
+      {/* Filters Section */}
+      <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+              Catégories
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {productCategories.map((cat) => (
+                <button
+                  aria-pressed={category === cat}
+                  className={
+                    "rounded-lg px-4 py-2 text-xs font-bold transition " +
+                    (category === cat
+                      ? "bg-gradient-to-br from-[#17294b] to-[#1e3557] text-white shadow-md"
+                      : "border border-slate-200 bg-slate-50 text-slate-600 hover:border-[#17294b]/20 hover:bg-slate-100")
+                  }
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  type="button"
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="w-full sm:w-auto sm:min-w-[220px]">
+            <p className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+              Filiale
+            </p>
+            <label className="relative block">
+              <span className="sr-only">Filtrer par filiale</span>
+              <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" name="building" size={16} />
+              <select
+                className="w-full appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-9 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#17294b] focus:ring-2 focus:ring-[#17294b]/20"
+                onChange={(event) => setFiliale(event.target.value)}
+                value={filiale}
+              >
+                {productFiliales.map((f) => (
+                  <option key={f}>{f}</option>
+                ))}
+              </select>
+              <Icon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" name="chevron-down" size={16} />
+            </label>
+          </div>
         </div>
-        <label className="relative block lg:w-[210px]">
-          <span className="sr-only">Filtrer par filiale</span>
-          <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" name="building" size={15} />
-          <select
-            className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-8 text-xs font-bold text-slate-600 outline-none transition focus:border-[#7ea5ca] focus:ring-4 focus:ring-[#dceaf6]"
-            onChange={(event) => setFiliale(event.target.value)}
-            value={filiale}
-          >
-            {productFiliales.map((f) => (
-              <option key={f}>{f}</option>
-            ))}
-          </select>
-          <Icon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" name="chevron-down" size={14} />
-        </label>
       </div>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Products Grid */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {visibleProducts.map((product) => (
           <article
-            className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+            className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
             key={product.id}
           >
             <button
@@ -209,53 +229,56 @@ export default function WorkspaceBoutiquePage() {
               onClick={() => setSelectedProduct(product)}
               type="button"
             >
-              <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+              <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   alt={product.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
                   src={product.image}
                 />
-                <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="absolute left-3 top-3 rounded-lg bg-[#101a2d]/90 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
                   {product.category}
                 </span>
                 <span
                   className={
-                    "absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " +
+                    "absolute right-3 top-3 rounded-lg px-2.5 py-1 text-[10px] font-bold shadow-sm " +
                     (product.stock === "En stock"
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-emerald-500 text-white"
                       : product.stock === "Stock faible"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-slate-100 text-slate-600")
+                        ? "bg-amber-500 text-white"
+                        : "bg-slate-500 text-white")
                   }
                 >
                   {product.stock}
                 </span>
               </div>
               <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-[#233856]">{product.name}</h3>
-                  <span className="shrink-0 text-[11px] font-semibold text-slate-400">
-                    ★ {product.note}
-                  </span>
-                </div>
-                <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-slate-400">
+                <h3 className="font-bold text-[#17294b]">{product.name}</h3>
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
                   {product.description}
                 </p>
-                <p className="mt-1 text-[11px] font-medium text-slate-400">
-                  {product.filiale} · au {product.unit}
-                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-slate-400">{product.filiale}</p>
+                    <p className="text-lg font-bold text-[#17294b]">{formatFcfa(product.price)}</p>
+                    <p className="text-[10px] text-slate-400">par {product.unit}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px]">
+                    <Icon name="star" size={12} className="text-amber-500" />
+                    <span className="font-bold text-slate-700">{product.note}</span>
+                  </div>
+                </div>
               </div>
             </button>
-            <div className="flex items-center justify-between gap-2 border-t border-slate-100 p-4 pt-3">
-              <p className="text-[15px] font-bold text-[#17294b]">{formatFcfa(product.price)}</p>
+            <div className="border-t border-slate-100 p-3">
               <button
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#14223b] transition hover:bg-[#efb653]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#e3a641] to-[#f2c56d] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-md transition hover:shadow-lg active:scale-[0.98]"
                 onClick={() => addToCart(product)}
                 type="button"
               >
-                <Icon name="plus" size={14} />
-                Ajouter
+                <Icon name="plus" size={16} />
+                Ajouter au panier
               </button>
             </div>
           </article>
