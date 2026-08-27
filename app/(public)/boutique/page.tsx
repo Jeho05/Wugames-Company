@@ -9,6 +9,7 @@ import { Icon } from "@/app/components/ui/app-icon";
 import { formatFcfa, productCategories, productFiliales, products } from "@/app/lib/store-data";
 import type { CartItem, Product } from "@/app/lib/store-data";
 import { useAuth } from "@/app/lib/auth-context";
+import { LoginModal } from "@/app/components/auth/login-modal";
 
 const CART_KEY = "wugams-cart";
 
@@ -41,6 +42,7 @@ export default function BoutiquePage() {
   const [phone, setPhone] = useState("");
   const [toast, setToast] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const { user, ready } = useAuth();
   const router = useRouter();
 
@@ -105,7 +107,7 @@ export default function BoutiquePage() {
     if (!user) {
       setCheckoutOpen(false);
       setCartOpen(false);
-      router.push("/connexion?redirect=/boutique");
+      setLoginModalOpen(true);
       return;
     }
     setCheckoutOpen(false);
@@ -673,6 +675,12 @@ export default function BoutiquePage() {
           </div>
         </div>
       ) : null}
+
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+        onSuccess={() => setLoginModalOpen(false)}
+      />
     </main>
   );
 }
