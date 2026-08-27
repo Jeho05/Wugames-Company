@@ -16,6 +16,7 @@ import { MobileNav } from "@/app/components/ui/mobile-nav";
 import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
 import { ScrollChoreography } from "@/app/components/ui/scroll-choreography";
 import { ContactForm } from "@/app/components/branding/contact-form";
+import { useAuth } from "@/app/lib/auth-context";
 
 const navLinks = [
   { label: "Le problème", href: "#probleme" },
@@ -102,6 +103,8 @@ const guarantees = [
 const mobileNavLinks = [...navLinks, ...siteLinks];
 
 export default function ClientBrandingPage() {
+  const { user } = useAuth();
+
   return (
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
@@ -121,15 +124,21 @@ export default function ClientBrandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-2.5">
-            <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
-              Se connecter
-            </Link>
+            {user ? (
+              <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/espace">
+                Mon espace
+              </Link>
+            ) : (
+              <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
+                Se connecter
+              </Link>
+            )}
             <div className="hidden sm:block">
               <PulseButton href="#rencontre">
                 Parlons de votre projet
               </PulseButton>
             </div>
-            <MobileNav inverse links={mobileNavLinks} />
+            <MobileNav inverse links={mobileNavLinks} ctaHref={user ? "/espace" : "/connexion"} ctaText={user ? "Mon espace" : "Se connecter"} />
           </div>
         </div>
       </header>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ApiError } from "@/app/lib/api-client";
@@ -16,7 +16,10 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/espace";
-  const { login, pending2fa, verify2fa } = useAuth();
+  const { user, ready, login, pending2fa, verify2fa } = useAuth();
+  useEffect(() => {
+    if (ready && user) router.replace(redirectTo);
+  }, [ready, user, router, redirectTo]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorToken, setTwoFactorToken] = useState("");
