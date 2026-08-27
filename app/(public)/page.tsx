@@ -112,74 +112,47 @@ export default function ClientBrandingPage() {
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.08] bg-gradient-to-b from-[#0a1420]/98 via-[#0d1829]/96 to-[#0b1526]/95 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl">
         <div className="absolute inset-0 bg-gradient-to-r from-[#e3a641]/[0.03] via-transparent to-sky-500/[0.02]" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e3a641]/30 to-transparent" />
-        <div className="relative mx-auto flex h-[80px] w-full max-w-[1240px] items-center justify-between gap-3 px-5 sm:px-8">
-          <div className="flex items-center gap-3">
-            <BrandMark inverse />
-            <span className="hidden h-6 w-px bg-white/10 lg:block" />
-            <span className="hidden text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 lg:block">
-              Holding Inc.
-            </span>
-          </div>
-          <nav aria-label="Navigation principale" className="hidden items-center gap-1 text-[13px] font-semibold lg:flex">
-            <a className="group relative rounded-lg px-4 py-2.5 text-white/75 transition hover:text-white" href="#probleme">
-              <span className="relative z-10">Le problème</span>
+        <div className="relative mx-auto flex h-[72px] w-full max-w-[1280px] items-center justify-between gap-4 px-5 xl:px-8">
+          <BrandMark inverse />
+          
+          <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 text-[13px] font-semibold xl:flex">
+            <a className="group relative rounded-lg px-3 py-2 text-white/75 transition hover:text-white" href="#solution">
+              <span className="relative z-10">Solution</span>
               <span className="absolute inset-0 scale-90 rounded-lg bg-white/[0.06] opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-              <span className="absolute inset-0 scale-90 rounded-lg bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
             </a>
-            <a className="group relative rounded-lg px-4 py-2.5 text-white/75 transition hover:text-white" href="#solution">
-              <span className="relative z-10">Notre solution</span>
+            <a className="group relative rounded-lg px-3 py-2 text-white/75 transition hover:text-white" href="#temoignages">
+              <span className="relative z-10">Témoignages</span>
               <span className="absolute inset-0 scale-90 rounded-lg bg-white/[0.06] opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-              <span className="absolute inset-0 scale-90 rounded-lg bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
             </a>
-            <a className="group relative rounded-lg px-4 py-2.5 text-white/75 transition hover:text-white" href="#temoignages">
-              <span className="relative z-10">Ils nous font confiance</span>
-              <span className="absolute inset-0 scale-90 rounded-lg bg-white/[0.06] opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-              <span className="absolute inset-0 scale-90 rounded-lg bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-            </a>
-            <a className="group relative rounded-lg px-4 py-2.5 text-white/75 transition hover:text-white" href="#rencontre">
-              <span className="relative z-10">Rencontrez-nous</span>
-              <span className="absolute inset-0 scale-90 rounded-lg bg-white/[0.06] opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-              <span className="absolute inset-0 scale-90 rounded-lg bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-            </a>
-            <span className="mx-2 h-6 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
             {siteLinks.map((link) => (
-              <Link className="group relative rounded-lg px-4 py-2.5 text-white/75 transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
+              <Link className="group relative rounded-lg px-3 py-2 text-white/75 transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
                 <span className="relative z-10">{link.label}</span>
                 <span className="absolute inset-0 scale-90 rounded-lg bg-[#e3a641]/[0.08] opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
-                <span className="absolute inset-0 scale-90 rounded-lg bg-gradient-to-br from-[#f2c56d]/[0.12] to-transparent opacity-0 transition-all duration-200 group-hover:scale-100 group-hover:opacity-100" />
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-2.5">
             {user ? (
               <>
-                <span className="hidden items-center gap-2.5 rounded-xl border border-white/[0.12] bg-white/[0.06] px-3.5 py-2 text-white backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.08] sm:flex">
-                  <span className="relative grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#e3a641] via-[#f2c56d] to-[#e3a641] text-[10px] font-black text-[#14223b] shadow-lg shadow-amber-500/30">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-[#e3a641] opacity-20" />
+                <Link className="group relative hidden items-center gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white backdrop-blur-md transition hover:border-white/30 lg:inline-flex" href="/espace">
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/[0.08] to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                  <span className="relative grid size-6 place-items-center rounded-full bg-gradient-to-br from-[#e3a641] to-[#f2c56d] text-[9px] font-black text-[#14223b]">
                     {user.initials}
                   </span>
-                  <span className="text-xs font-bold">{user.name.split(" ")[0]}</span>
-                </span>
-                <Link className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/25 bg-white/[0.08] px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-black/25 backdrop-blur-md transition hover:border-white/35 hover:shadow-xl" href="/espace">
-                  <span className="absolute inset-0 bg-gradient-to-r from-white/[0.12] via-white/[0.06] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <span className="absolute -inset-1 bg-gradient-to-r from-[#e3a641]/20 via-transparent to-sky-500/20 opacity-0 blur transition-opacity duration-300 group-hover:opacity-100" />
-                  <span className="relative z-10">Mon espace</span>
-                  <Icon name="arrow-right" size={15} className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  <span className="relative z-10">{user.name.split(" ")[0]}</span>
                 </Link>
               </>
             ) : (
-              <Link className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/25 bg-white/[0.08] px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-black/25 backdrop-blur-md transition hover:border-white/35 hover:shadow-xl" href="/connexion">
-                <span className="absolute inset-0 bg-gradient-to-r from-white/[0.12] via-white/[0.06] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <span className="absolute -inset-1 bg-gradient-to-r from-[#e3a641]/20 via-transparent to-sky-500/20 opacity-0 blur transition-opacity duration-300 group-hover:opacity-100" />
-                <span className="relative z-10">Se connecter</span>
-                <Icon name="arrow-right" size={15} className="relative z-10 transition-transform duration-300 group-hover:translate-x-0.5" />
+              <Link className="group relative hidden items-center gap-1.5 overflow-hidden rounded-xl border border-white/20 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white backdrop-blur-md transition hover:border-white/30 lg:inline-flex" href="/connexion">
+                <span className="absolute inset-0 bg-gradient-to-r from-white/[0.08] to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                <span className="relative z-10">Connexion</span>
               </Link>
             )}
-            <div className="hidden sm:block">
-              <PulseButton href="#rencontre">
-                Parlons de votre projet
-              </PulseButton>
-            </div>
+            <PulseButton href="#rencontre">
+              <span className="hidden sm:inline">Parlons de votre projet</span>
+              <span className="sm:hidden">Démarrer</span>
+            </PulseButton>
             <MobileNav inverse links={mobileNavLinks} ctaHref={user ? "/espace" : "/connexion"} ctaText={user ? "Mon espace" : "Se connecter"} user={user ? { initials: user.initials, name: user.name, email: user.email } : null} />
           </div>
         </div>
