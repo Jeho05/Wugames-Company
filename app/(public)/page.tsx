@@ -109,36 +109,55 @@ export default function ClientBrandingPage() {
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
 
       {/* ═══ HEADER ═══ */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0b1526]/95 shadow-lg shadow-black/20 backdrop-blur-md">
-        <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between gap-3 px-5 sm:px-8">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.08] bg-gradient-to-b from-[#0a1420]/98 via-[#0d1829]/96 to-[#0b1526]/95 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#e3a641]/[0.03] via-transparent to-sky-500/[0.02]" />
+        <div className="relative mx-auto flex h-[80px] w-full max-w-[1240px] items-center justify-between gap-3 px-5 sm:px-8">
           <BrandMark inverse />
-          <nav aria-label="Navigation principale" className="hidden items-center gap-7 text-sm font-semibold lg:flex">
-            <a className="text-white/85 transition hover:text-white" href="#probleme">Le problème</a>
-            <a className="text-white/85 transition hover:text-white" href="#solution">Notre solution</a>
-            <a className="text-white/85 transition hover:text-white" href="#temoignages">Ils nous font confiance</a>
-            <a className="text-white/85 transition hover:text-white" href="#rencontre">Rencontrez-nous</a>
+          <nav aria-label="Navigation principale" className="hidden items-center gap-1 text-[13px] font-semibold lg:flex">
+            <a className="group relative rounded-lg px-3.5 py-2 text-white/80 transition hover:text-white" href="#probleme">
+              <span className="relative z-10">Le problème</span>
+              <span className="absolute inset-0 scale-0 rounded-lg bg-white/[0.08] transition-transform duration-200 group-hover:scale-100" />
+            </a>
+            <a className="group relative rounded-lg px-3.5 py-2 text-white/80 transition hover:text-white" href="#solution">
+              <span className="relative z-10">Notre solution</span>
+              <span className="absolute inset-0 scale-0 rounded-lg bg-white/[0.08] transition-transform duration-200 group-hover:scale-100" />
+            </a>
+            <a className="group relative rounded-lg px-3.5 py-2 text-white/80 transition hover:text-white" href="#temoignages">
+              <span className="relative z-10">Ils nous font confiance</span>
+              <span className="absolute inset-0 scale-0 rounded-lg bg-white/[0.08] transition-transform duration-200 group-hover:scale-100" />
+            </a>
+            <a className="group relative rounded-lg px-3.5 py-2 text-white/80 transition hover:text-white" href="#rencontre">
+              <span className="relative z-10">Rencontrez-nous</span>
+              <span className="absolute inset-0 scale-0 rounded-lg bg-white/[0.08] transition-transform duration-200 group-hover:scale-100" />
+            </a>
+            <span className="mx-1 h-5 w-px bg-white/10" />
             {siteLinks.map((link) => (
-              <Link className="text-white/85 transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
-                {link.label}
+              <Link className="group relative rounded-lg px-3.5 py-2 text-white/80 transition hover:text-[#f2c56d]" href={link.href} key={link.href}>
+                <span className="relative z-10">{link.label}</span>
+                <span className="absolute inset-0 scale-0 rounded-lg bg-[#e3a641]/[0.12] transition-transform duration-200 group-hover:scale-100" />
               </Link>
             ))}
           </nav>
           <div className="flex items-center gap-2.5">
             {user ? (
               <>
-                <span className="hidden items-center gap-2 text-white sm:flex">
-                  <span className="grid size-8 place-items-center rounded-full bg-[#e3a641] text-[11px] font-black text-[#14223b]">
+                <span className="hidden items-center gap-2.5 rounded-xl border border-white/[0.12] bg-white/[0.06] px-3 py-2 text-white backdrop-blur-sm sm:flex">
+                  <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#e3a641] to-[#f2c56d] text-[10px] font-black text-[#14223b] shadow-lg shadow-amber-500/25">
                     {user.initials}
                   </span>
-                  <span className="text-xs font-semibold">{user.name.split(" ")[0]}</span>
+                  <span className="text-xs font-bold">{user.name.split(" ")[0]}</span>
                 </span>
-                <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/espace">
-                  Mon espace
+                <Link className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2 text-xs font-bold text-white shadow-lg shadow-black/20 backdrop-blur-md transition hover:border-white/30 hover:shadow-xl sm:px-4 sm:py-2.5 sm:text-sm" href="/espace">
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/[0.08] to-white/[0.04] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <span className="relative z-10">Mon espace</span>
+                  <Icon name="arrow-right" size={15} className="relative z-10 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </>
             ) : (
-              <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
-                Se connecter
+              <Link className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2 text-xs font-bold text-white shadow-lg shadow-black/20 backdrop-blur-md transition hover:border-white/30 hover:shadow-xl sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
+                <span className="absolute inset-0 bg-gradient-to-r from-white/[0.08] to-white/[0.04] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="relative z-10">Se connecter</span>
+                <Icon name="arrow-right" size={15} className="relative z-10 transition-transform group-hover:translate-x-0.5" />
               </Link>
             )}
             <div className="hidden sm:block">
