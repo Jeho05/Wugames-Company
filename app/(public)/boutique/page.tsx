@@ -145,6 +145,14 @@ export default function BoutiquePage() {
                 </span>
               ) : null}
             </button>
+            {user ? (
+              <span className="hidden items-center gap-2 sm:flex">
+                <span className="grid size-8 place-items-center rounded-full bg-[#e3a641] text-[11px] font-black text-[#14223b]">
+                  {user.initials}
+                </span>
+                <span className="text-xs font-semibold text-white">{user.name.split(" ")[0]}</span>
+              </span>
+            ) : null}
             <Link
               className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-3.5 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] sm:px-4 sm:text-sm"
               href="/espace"

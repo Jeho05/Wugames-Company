@@ -19,6 +19,7 @@ type MobileNavProps = {
   ctaText?: string;
   ctaHref?: string;
   className?: string;
+  user?: { initials: string; name: string; email: string } | null;
 };
 
 export function MobileNav({
@@ -27,6 +28,7 @@ export function MobileNav({
   ctaText = "Se connecter",
   ctaHref = "/connexion",
   className = "",
+  user = null,
 }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [portalTarget] = useState(() =>
@@ -114,6 +116,19 @@ export function MobileNav({
                   </Link>
                 ))}
               </nav>
+
+              {/* User Identity (when logged in) */}
+              {user ? (
+                <div className="flex items-center gap-3 rounded-2xl bg-white/[0.06] px-4 py-3">
+                  <span className="grid size-10 place-items-center rounded-full bg-[#e3a641] text-sm font-black text-[#14223b]">
+                    {user.initials}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-white">{user.name}</p>
+                    <p className="truncate text-[11px] text-slate-400">{user.email}</p>
+                  </div>
+                </div>
+              ) : null}
 
               {/* Bottom Actions */}
               <div className="mt-auto space-y-3 pt-2">

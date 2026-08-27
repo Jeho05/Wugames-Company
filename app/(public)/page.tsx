@@ -125,9 +125,17 @@ export default function ClientBrandingPage() {
           </nav>
           <div className="flex items-center gap-2.5">
             {user ? (
-              <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/espace">
-                Mon espace
-              </Link>
+              <>
+                <span className="hidden items-center gap-2 text-white sm:flex">
+                  <span className="grid size-8 place-items-center rounded-full bg-[#e3a641] text-[11px] font-black text-[#14223b]">
+                    {user.initials}
+                  </span>
+                  <span className="text-xs font-semibold">{user.name.split(" ")[0]}</span>
+                </span>
+                <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/espace">
+                  Mon espace
+                </Link>
+              </>
             ) : (
               <Link className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white shadow-sm backdrop-blur-md transition hover:border-white/35 hover:bg-white/20 sm:px-4 sm:py-2.5 sm:text-sm" href="/connexion">
                 Se connecter
@@ -138,7 +146,7 @@ export default function ClientBrandingPage() {
                 Parlons de votre projet
               </PulseButton>
             </div>
-            <MobileNav inverse links={mobileNavLinks} ctaHref={user ? "/espace" : "/connexion"} ctaText={user ? "Mon espace" : "Se connecter"} />
+            <MobileNav inverse links={mobileNavLinks} ctaHref={user ? "/espace" : "/connexion"} ctaText={user ? "Mon espace" : "Se connecter"} user={user ? { initials: user.initials, name: user.name, email: user.email } : null} />
           </div>
         </div>
       </header>

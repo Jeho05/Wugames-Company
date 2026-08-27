@@ -139,6 +139,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionExpired, setSessionExpired] = useState(false);
   const pending2faRef = useRef<Pending2fa>(null);
   const restoreStarted = useRef(false);
+  const userRef = useRef<AuthUser | null>(user);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const persistTokens = useCallback((tokens: authApi.AuthTokensLike) => {
     setSession({
@@ -201,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = subscribeAuth(() => {
       const session = getSession();
       if (session === null) {
-        if (user) setSessionExpired(true);
+        if (userRef.current) setSessionExpired(true);
         clearCachedUser();
         setUser(null);
       }
