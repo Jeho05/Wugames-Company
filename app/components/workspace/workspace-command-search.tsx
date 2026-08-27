@@ -54,7 +54,7 @@ export function WorkspaceCommandSearch() {
     const extra: SearchEntry[] = [
       { href: "/espace/carte", icon: "map", label: "Carte terrain", section: "Modules" },
       { href: "/espace/administration", icon: "shield", label: "Administration", section: "Modules" },
-      { href: "/boutique", icon: "shopping-bag", label: "Boutique matériaux", section: "Site public" },
+      { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique matériaux", section: "Modules" },
       { href: "/realisations", icon: "camera", label: "Nos réalisations", section: "Site public" },
       { href: "/blog", icon: "newspaper", label: "Blog & conseils", section: "Site public" },
       { href: "/", icon: "building", label: "Vitrine WUGAMS", section: "Site public" },

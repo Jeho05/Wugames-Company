@@ -168,7 +168,7 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
         <div className="mt-2 grid grid-cols-3 gap-2.5 px-5 pb-5">
           <Link
             className="group flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-center transition hover:border-[#e3a641]/40 hover:bg-white hover:shadow-md"
-            href="/boutique"
+            href="/espace/boutique"
           >
             <span className="grid size-10 place-items-center rounded-xl bg-[#0f7a5f]/10 text-[#0f7a5f] transition group-hover:scale-105">
               <Icon name="shopping-bag" size={17} />
