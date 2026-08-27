@@ -289,111 +289,137 @@ export default function WorkspaceBoutiquePage() {
         Les prix affichés incluent la TVA. Livraison offerte dès 100 000 FCFA sur Abidjan.
       </p>
 
+      {/* Cart Sidebar */}
       {cartOpen ? (
-        <div className="fixed inset-0 z-[60]">
+        <div className="fixed inset-0 z-[60] flex items-end justify-end sm:items-stretch">
           <button
             aria-label="Fermer le panier"
-            className="absolute inset-0 bg-slate-950/45"
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
             onClick={() => setCartOpen(false)}
             type="button"
           />
-          <aside className="absolute inset-y-0 right-0 flex w-full max-w-[400px] flex-col bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-              <div>
-                <p className="text-sm font-bold text-[#1a2943]">Votre panier</p>
-                <p className="mt-0.5 text-xs text-slate-500">{cartCount} article{cartCount > 1 ? "s" : ""}</p>
+          <aside className="relative flex w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-4 sm:px-6">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[#e3a641] to-[#f2c56d] text-white">
+                  <Icon name="shopping-bag" size={20} />
+                </span>
+                <div>
+                  <p className="font-bold text-[#17294b]">Votre panier</p>
+                  <p className="text-xs text-slate-500">{cartCount} article{cartCount > 1 ? "s" : ""}</p>
+                </div>
               </div>
               <button
                 aria-label="Fermer"
-                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="grid size-9 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 onClick={() => setCartOpen(false)}
                 type="button"
               >
-                <Icon name="close" size={18} />
+                <Icon name="close" size={20} />
               </button>
             </div>
 
             {cart.length === 0 ? (
-              <div className="grid flex-1 place-items-center p-8 text-center">
-                <div>
-                  <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
-                    <Icon name="shopping-bag" size={22} />
-                  </span>
-                  <p className="mt-4 text-sm font-bold text-slate-700">Panier vide</p>
-                  <p className="mt-1 text-xs text-slate-500">Parcourez le catalogue pour ajouter des articles.</p>
+              <div className="flex flex-1 items-center justify-center p-8 text-center">
+                <div className="max-w-xs">
+                  <div className="mx-auto grid size-20 place-items-center rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100">
+                    <Icon name="shopping-bag" size={32} className="text-slate-300" />
+                  </div>
+                  <p className="mt-6 text-lg font-bold text-slate-700">Panier vide</p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                    Parcourez notre catalogue pour découvrir nos produits et commencer vos achats.
+                  </p>
                   <button
-                    className="mt-4 rounded-xl bg-[#17294b] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#243a61]"
+                    className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17294b] to-[#1e3557] px-5 py-3 text-sm font-bold text-white transition hover:shadow-lg"
                     onClick={() => setCartOpen(false)}
                     type="button"
                   >
                     Voir le catalogue
+                    <Icon name="arrow-right" size={16} />
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                <div className="flex-1 divide-y divide-slate-100 overflow-y-auto px-5">
-                  {cart.map((item) => (
-                    <div className="flex gap-3 py-4" key={item.product.id}>
-                      <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img alt={item.product.name} className="h-full w-full object-cover" src={item.product.image} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="truncate text-xs font-bold text-[#233856]">{item.product.name}</p>
-                          <button
-                            aria-label={"Retirer " + item.product.name}
-                            className="text-slate-300 transition hover:text-[#db6d5b]"
-                            onClick={() => removeItem(item.product.id)}
-                            type="button"
-                          >
-                            <Icon name="trash" size={15} />
-                          </button>
+                {/* Cart Items */}
+                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+                  <div className="space-y-4">
+                    {cart.map((item) => (
+                      <div className="group relative rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-300 hover:shadow-md" key={item.product.id}>
+                        <div className="flex gap-3">
+                          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 sm:h-24 sm:w-24">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img alt={item.product.name} className="h-full w-full object-cover" src={item.product.image} />
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div>
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-bold text-[#17294b] text-sm leading-snug">{item.product.name}</h3>
+                                <button
+                                  aria-label={"Retirer " + item.product.name}
+                                  className="grid size-7 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                                  onClick={() => removeItem(item.product.id)}
+                                  type="button"
+                                >
+                                  <Icon name="trash" size={16} />
+                                </button>
+                              </div>
+                              <p className="mt-1 text-xs text-slate-500">{item.product.filiale}</p>
+                            </div>
+                            <div className="mt-2 flex items-center justify-between">
+                              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
+                                <button
+                                  aria-label="Diminuer la quantité"
+                                  className="grid size-7 place-items-center rounded-md text-slate-600 transition hover:bg-white active:scale-95"
+                                  onClick={() => updateQuantity(item.product.id, -1)}
+                                  type="button"
+                                >
+                                  <Icon name="minus" size={14} />
+                                </button>
+                                <span className="min-w-[28px] text-center text-sm font-bold text-[#17294b]">{item.quantity}</span>
+                                <button
+                                  aria-label="Augmenter la quantité"
+                                  className="grid size-7 place-items-center rounded-md text-slate-600 transition hover:bg-white active:scale-95"
+                                  onClick={() => updateQuantity(item.product.id, 1)}
+                                  type="button"
+                                >
+                                  <Icon name="plus" size={14} />
+                                </button>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-slate-400">{formatFcfa(item.product.price)} / {item.product.unit}</p>
+                                <p className="text-sm font-bold text-[#17294b]">{formatFcfa(item.product.price * item.quantity)}</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <p className="mt-0.5 text-[11px] font-medium text-slate-400">
-                          {formatFcfa(item.product.price)}
-                        </p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <button
-                            aria-label="Diminuer la quantité"
-                            className="grid size-6 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-slate-300"
-                            onClick={() => updateQuantity(item.product.id, -1)}
-                            type="button"
-                          >
-                            <Icon name="minus" size={13} />
-                          </button>
-                          <span className="w-6 text-center text-xs font-bold text-[#233856]">{item.quantity}</span>
-                          <button
-                            aria-label="Augmenter la quantité"
-                            className="grid size-6 place-items-center rounded-md border border-slate-200 text-slate-500 transition hover:border-slate-300"
-                            onClick={() => updateQuantity(item.product.id, 1)}
-                            type="button"
-                          >
-                            <Icon name="plus" size={13} />
-                          </button>
-                        </div>
                       </div>
-                      <p className="shrink-0 text-xs font-bold text-[#17294b]">
-                        {formatFcfa(item.product.price * item.quantity)}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-4 sm:px-6">
+                  <div className="mb-3 rounded-xl bg-white p-4 shadow-sm">
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-sm font-semibold text-slate-600">Sous-total</p>
+                      <p className="text-2xl font-bold text-[#17294b]">{formatFcfa(cartTotal)}</p>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-xs">
+                      <Icon name={cartTotal >= 100000 ? "check" : "truck"} size={14} className={cartTotal >= 100000 ? "text-emerald-500" : "text-slate-400"} />
+                      <p className={cartTotal >= 100000 ? "font-semibold text-emerald-700" : "text-slate-500"}>
+                        {cartTotal >= 100000 ? "Livraison offerte sur Abidjan" : "Livraison Abidjan : 4 500 FCFA"}
                       </p>
                     </div>
-                  ))}
-                </div>
-                <div className="border-t border-slate-100 px-5 py-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <p className="font-semibold text-slate-500">Total</p>
-                    <p className="text-lg font-bold text-[#17294b]">{formatFcfa(cartTotal)}</p>
                   </div>
-                  <p className="mt-1 text-[11px] text-slate-400">
-                    {cartTotal >= 100000 ? "Livraison offerte sur Abidjan." : "Livraison Abidjan : 4 500 FCFA."}
-                  </p>
                   <button
-                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-3 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e3a641] to-[#f2c56d] px-5 py-4 text-base font-bold text-[#14223b] shadow-lg transition hover:shadow-xl active:scale-[0.98]"
                     onClick={() => setCheckoutOpen(true)}
                     type="button"
                   >
-                    Passer la commande <Icon name="arrow-right" size={17} />
+                    Passer la commande
+                    <Icon name="arrow-right" size={18} />
                   </button>
                 </div>
               </>
