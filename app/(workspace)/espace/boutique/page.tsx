@@ -345,53 +345,60 @@ export default function WorkspaceBoutiquePage() {
             ) : (
               <>
                 {/* Cart Items */}
-                <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-4">
-                  <div className="space-y-4 sm:space-y-3">
+                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+                  <div className="space-y-3">
                     {cart.map((item) => (
-                      <div className="group relative rounded-2xl border-2 border-slate-200 bg-white p-4 transition hover:border-[#e3a641]/30 hover:shadow-lg sm:rounded-xl sm:border sm:p-3" key={item.product.id}>
-                        <div className="flex gap-4 sm:gap-3">
-                          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 sm:h-20 sm:w-20">
+                      <div className="group relative rounded-xl border-2 border-slate-200 bg-white p-3 transition hover:border-[#e3a641]/30 hover:shadow-lg sm:border sm:p-3" key={item.product.id}>
+                        <div className="flex gap-3">
+                          {/* Image */}
+                          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 sm:h-20 sm:w-20">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img alt={item.product.name} className="h-full w-full object-cover" src={item.product.image} />
                           </div>
-                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+
+                          {/* Product Info */}
+                          <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                             <div>
                               <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-bold text-[#17294b] text-base leading-snug sm:text-sm">{item.product.name}</h3>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="line-clamp-2 font-bold text-[#17294b] text-sm leading-tight sm:text-sm">{item.product.name}</h3>
+                                  <p className="mt-0.5 text-xs text-slate-500 sm:text-xs">{item.product.filiale}</p>
+                                </div>
                                 <button
                                   aria-label={"Retirer " + item.product.name}
-                                  className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 sm:size-8"
+                                  className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 sm:size-8"
                                   onClick={() => removeItem(item.product.id)}
                                   type="button"
                                 >
-                                  <Icon name="trash" size={18} className="sm:!w-4 sm:!h-4" />
+                                  <Icon name="trash" size={16} className="sm:!w-4 sm:!h-4" />
                                 </button>
                               </div>
-                              <p className="mt-1 text-sm text-slate-500 sm:text-xs">{item.product.filiale}</p>
                             </div>
-                            <div className="mt-3 flex items-center justify-between sm:mt-2">
-                              <div className="flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-1.5 sm:gap-1.5 sm:border sm:p-1">
+
+                            {/* Quantity Controls & Price - Stacked on very small screens */}
+                            <div className="flex flex-col gap-2 min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between">
+                              <div className="flex items-center gap-1.5 rounded-lg border-2 border-slate-200 bg-slate-50 p-1 sm:border sm:p-1">
                                 <button
                                   aria-label="Diminuer la quantité"
-                                  className="grid size-9 place-items-center rounded-lg text-slate-600 transition hover:bg-white active:scale-95 sm:size-7 sm:rounded-md"
+                                  className="grid size-8 place-items-center rounded-md text-slate-600 transition hover:bg-white active:scale-95 sm:size-7"
                                   onClick={() => updateQuantity(item.product.id, -1)}
                                   type="button"
                                 >
-                                  <Icon name="minus" size={16} className="sm:!w-3.5 sm:!h-3.5" />
+                                  <Icon name="minus" size={14} className="sm:!w-3.5 sm:!h-3.5" />
                                 </button>
-                                <span className="min-w-[32px] text-center text-base font-bold text-[#17294b] sm:min-w-[28px] sm:text-sm">{item.quantity}</span>
+                                <span className="min-w-[28px] text-center text-sm font-bold text-[#17294b] sm:text-sm">{item.quantity}</span>
                                 <button
                                   aria-label="Augmenter la quantité"
-                                  className="grid size-9 place-items-center rounded-lg text-slate-600 transition hover:bg-white active:scale-95 sm:size-7 sm:rounded-md"
+                                  className="grid size-8 place-items-center rounded-md text-slate-600 transition hover:bg-white active:scale-95 sm:size-7"
                                   onClick={() => updateQuantity(item.product.id, 1)}
                                   type="button"
                                 >
-                                  <Icon name="plus" size={16} className="sm:!w-3.5 sm:!h-3.5" />
+                                  <Icon name="plus" size={14} className="sm:!w-3.5 sm:!h-3.5" />
                                 </button>
                               </div>
-                              <div className="text-right">
-                                <p className="text-xs text-slate-400">{formatFcfa(item.product.price)} / {item.product.unit}</p>
-                                <p className="text-base font-bold text-[#17294b] sm:text-sm">{formatFcfa(item.product.price * item.quantity)}</p>
+                              <div className="flex items-baseline justify-between gap-2 min-[380px]:flex-col min-[380px]:items-end min-[380px]:gap-0">
+                                <p className="text-[10px] text-slate-400 sm:text-xs">{formatFcfa(item.product.price)} / {item.product.unit}</p>
+                                <p className="text-sm font-bold text-[#17294b] sm:text-sm">{formatFcfa(item.product.price * item.quantity)}</p>
                               </div>
                             </div>
                           </div>
@@ -402,26 +409,26 @@ export default function WorkspaceBoutiquePage() {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-5 sm:px-6 sm:py-4">
-                  <div className="mb-4 rounded-2xl bg-white p-5 shadow-md sm:mb-3 sm:rounded-xl sm:p-4">
-                    <div className="flex items-baseline justify-between">
-                      <p className="text-base font-semibold text-slate-600 sm:text-sm">Sous-total</p>
-                      <p className="text-3xl font-bold text-[#17294b] sm:text-2xl">{formatFcfa(cartTotal)}</p>
+                <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-4 sm:px-6">
+                  <div className="mb-3 rounded-xl bg-white p-4 shadow-md sm:p-4">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="text-sm font-semibold text-slate-600 sm:text-sm">Sous-total</p>
+                      <p className="text-2xl font-bold text-[#17294b] sm:text-2xl">{formatFcfa(cartTotal)}</p>
                     </div>
-                    <div className="mt-3 flex items-center gap-2 text-sm sm:mt-2 sm:text-xs">
-                      <Icon name={cartTotal >= 100000 ? "check" : "truck"} size={16} className={`${cartTotal >= 100000 ? "text-emerald-500" : "text-slate-400"} sm:!w-3.5 sm:!h-3.5`} />
-                      <p className={cartTotal >= 100000 ? "font-semibold text-emerald-700" : "text-slate-500"}>
+                    <div className="mt-2 flex items-start gap-2 text-xs sm:text-xs">
+                      <Icon name={cartTotal >= 100000 ? "check" : "truck"} size={14} className={`mt-0.5 shrink-0 ${cartTotal >= 100000 ? "text-emerald-500" : "text-slate-400"} sm:!w-3.5 sm:!h-3.5`} />
+                      <p className={`leading-tight ${cartTotal >= 100000 ? "font-semibold text-emerald-700" : "text-slate-500"}`}>
                         {cartTotal >= 100000 ? "Livraison offerte sur Abidjan" : "Livraison Abidjan : 4 500 FCFA"}
                       </p>
                     </div>
                   </div>
                   <button
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#e3a641] to-[#f2c56d] px-6 py-5 text-lg font-bold text-[#14223b] shadow-xl transition hover:shadow-2xl active:scale-[0.98] sm:rounded-xl sm:py-4 sm:text-base"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e3a641] to-[#f2c56d] px-5 py-4 text-base font-bold text-[#14223b] shadow-xl transition hover:shadow-2xl active:scale-[0.98] sm:py-4 sm:text-base"
                     onClick={() => setCheckoutOpen(true)}
                     type="button"
                   >
                     Passer la commande
-                    <Icon name="arrow-right" size={20} className="sm:!w-4 sm:!h-4" />
+                    <Icon name="arrow-right" size={18} className="sm:!w-4 sm:!h-4" />
                   </button>
                 </div>
               </>
