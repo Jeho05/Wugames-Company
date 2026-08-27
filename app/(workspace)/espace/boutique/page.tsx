@@ -142,21 +142,23 @@ export default function WorkspaceBoutiquePage() {
               Parcourez le catalogue et commandez directement depuis votre espace.
             </p>
           </div>
-          <button
-            className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
-            onClick={() => setCartOpen(true)}
-            type="button"
-            aria-label={"Panier, " + cartCount + " article(s)"}
-          >
-            <Icon name="shopping-bag" size={22} />
-            {cartCount > 0 ? (
-              <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-[#e3a641] text-[11px] font-black text-[#14223b] shadow-lg">
-                {cartCount}
-              </span>
-            ) : null}
-          </button>
         </div>
       </div>
+
+      {/* Floating Cart Button - Always visible */}
+      <button
+        className="fixed bottom-6 right-6 z-50 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-[#e3a641] to-[#f2c56d] text-[#14223b] shadow-2xl transition hover:scale-110 hover:shadow-[0_20px_60px_rgba(227,166,65,0.4)] active:scale-95 sm:size-14"
+        onClick={() => setCartOpen(true)}
+        type="button"
+        aria-label={"Ouvrir le panier, " + cartCount + " article(s)"}
+      >
+        <Icon name="shopping-bag" size={24} className="sm:!w-5 sm:!h-5" />
+        {cartCount > 0 ? (
+          <span className="absolute -right-1 -top-1 flex min-w-[26px] items-center justify-center rounded-full bg-[#17294b] px-1.5 py-0.5 text-xs font-black text-white shadow-lg ring-2 ring-[#f2c56d]">
+            {cartCount}
+          </span>
+        ) : null}
+      </button>
 
       {toast ? (
         <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4">
@@ -294,102 +296,102 @@ export default function WorkspaceBoutiquePage() {
         <div className="fixed inset-0 z-[60] flex items-end justify-end sm:items-stretch">
           <button
             aria-label="Fermer le panier"
-            className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
             onClick={() => setCartOpen(false)}
             type="button"
           />
-          <aside className="relative flex w-full max-w-full flex-col bg-white shadow-2xl sm:max-w-md">
+          <aside className="relative flex h-[85vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:h-full sm:max-w-lg sm:rounded-none">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-4 sm:px-6">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-[#17294b] to-[#1e3557] px-5 py-5 sm:px-6">
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[#e3a641] to-[#f2c56d] text-white">
-                  <Icon name="shopping-bag" size={20} />
+                <span className="grid size-12 place-items-center rounded-xl bg-white/10 text-white backdrop-blur">
+                  <Icon name="shopping-bag" size={22} />
                 </span>
                 <div>
-                  <p className="font-bold text-[#17294b]">Votre panier</p>
-                  <p className="text-xs text-slate-500">{cartCount} article{cartCount > 1 ? "s" : ""}</p>
+                  <p className="text-lg font-bold text-white">Votre panier</p>
+                  <p className="text-sm text-white/70">{cartCount} article{cartCount > 1 ? "s" : ""}</p>
                 </div>
               </div>
               <button
                 aria-label="Fermer"
-                className="grid size-9 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="grid size-10 place-items-center rounded-xl text-white/70 transition hover:bg-white/10 hover:text-white"
                 onClick={() => setCartOpen(false)}
                 type="button"
               >
-                <Icon name="close" size={20} />
+                <Icon name="close" size={22} />
               </button>
             </div>
 
             {cart.length === 0 ? (
               <div className="flex flex-1 items-center justify-center p-8 text-center">
                 <div className="max-w-xs">
-                  <div className="mx-auto grid size-20 place-items-center rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100">
-                    <Icon name="shopping-bag" size={32} className="text-slate-300" />
+                  <div className="mx-auto grid size-24 place-items-center rounded-3xl bg-gradient-to-br from-slate-50 to-slate-100 sm:size-20">
+                    <Icon name="shopping-bag" size={40} className="text-slate-300 sm:!w-8 sm:!h-8" />
                   </div>
-                  <p className="mt-6 text-lg font-bold text-slate-700">Panier vide</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                  <p className="mt-6 text-xl font-bold text-slate-700 sm:text-lg">Panier vide</p>
+                  <p className="mt-2 text-base leading-relaxed text-slate-500 sm:text-sm">
                     Parcourez notre catalogue pour découvrir nos produits et commencer vos achats.
                   </p>
                   <button
-                    className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17294b] to-[#1e3557] px-5 py-3 text-sm font-bold text-white transition hover:shadow-lg"
+                    className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17294b] to-[#1e3557] px-6 py-4 text-base font-bold text-white transition hover:shadow-xl sm:mt-6 sm:py-3 sm:text-sm"
                     onClick={() => setCartOpen(false)}
                     type="button"
                   >
                     Voir le catalogue
-                    <Icon name="arrow-right" size={16} />
+                    <Icon name="arrow-right" size={18} className="sm:!w-4 sm:!h-4" />
                   </button>
                 </div>
               </div>
             ) : (
               <>
                 {/* Cart Items */}
-                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-                  <div className="space-y-4">
+                <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-4">
+                  <div className="space-y-4 sm:space-y-3">
                     {cart.map((item) => (
-                      <div className="group relative rounded-xl border border-slate-200 bg-white p-3 transition hover:border-slate-300 hover:shadow-md" key={item.product.id}>
-                        <div className="flex gap-3">
-                          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 sm:h-24 sm:w-24">
+                      <div className="group relative rounded-2xl border-2 border-slate-200 bg-white p-4 transition hover:border-[#e3a641]/30 hover:shadow-lg sm:rounded-xl sm:border sm:p-3" key={item.product.id}>
+                        <div className="flex gap-4 sm:gap-3">
+                          <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 sm:h-20 sm:w-20">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img alt={item.product.name} className="h-full w-full object-cover" src={item.product.image} />
                           </div>
                           <div className="flex min-w-0 flex-1 flex-col justify-between">
                             <div>
                               <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-bold text-[#17294b] text-sm leading-snug">{item.product.name}</h3>
+                                <h3 className="font-bold text-[#17294b] text-base leading-snug sm:text-sm">{item.product.name}</h3>
                                 <button
                                   aria-label={"Retirer " + item.product.name}
-                                  className="grid size-7 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                                  className="grid size-9 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 sm:size-8"
                                   onClick={() => removeItem(item.product.id)}
                                   type="button"
                                 >
-                                  <Icon name="trash" size={16} />
+                                  <Icon name="trash" size={18} className="sm:!w-4 sm:!h-4" />
                                 </button>
                               </div>
-                              <p className="mt-1 text-xs text-slate-500">{item.product.filiale}</p>
+                              <p className="mt-1 text-sm text-slate-500 sm:text-xs">{item.product.filiale}</p>
                             </div>
-                            <div className="mt-2 flex items-center justify-between">
-                              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
+                            <div className="mt-3 flex items-center justify-between sm:mt-2">
+                              <div className="flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 p-1.5 sm:gap-1.5 sm:border sm:p-1">
                                 <button
                                   aria-label="Diminuer la quantité"
-                                  className="grid size-7 place-items-center rounded-md text-slate-600 transition hover:bg-white active:scale-95"
+                                  className="grid size-9 place-items-center rounded-lg text-slate-600 transition hover:bg-white active:scale-95 sm:size-7 sm:rounded-md"
                                   onClick={() => updateQuantity(item.product.id, -1)}
                                   type="button"
                                 >
-                                  <Icon name="minus" size={14} />
+                                  <Icon name="minus" size={16} className="sm:!w-3.5 sm:!h-3.5" />
                                 </button>
-                                <span className="min-w-[28px] text-center text-sm font-bold text-[#17294b]">{item.quantity}</span>
+                                <span className="min-w-[32px] text-center text-base font-bold text-[#17294b] sm:min-w-[28px] sm:text-sm">{item.quantity}</span>
                                 <button
                                   aria-label="Augmenter la quantité"
-                                  className="grid size-7 place-items-center rounded-md text-slate-600 transition hover:bg-white active:scale-95"
+                                  className="grid size-9 place-items-center rounded-lg text-slate-600 transition hover:bg-white active:scale-95 sm:size-7 sm:rounded-md"
                                   onClick={() => updateQuantity(item.product.id, 1)}
                                   type="button"
                                 >
-                                  <Icon name="plus" size={14} />
+                                  <Icon name="plus" size={16} className="sm:!w-3.5 sm:!h-3.5" />
                                 </button>
                               </div>
                               <div className="text-right">
                                 <p className="text-xs text-slate-400">{formatFcfa(item.product.price)} / {item.product.unit}</p>
-                                <p className="text-sm font-bold text-[#17294b]">{formatFcfa(item.product.price * item.quantity)}</p>
+                                <p className="text-base font-bold text-[#17294b] sm:text-sm">{formatFcfa(item.product.price * item.quantity)}</p>
                               </div>
                             </div>
                           </div>
@@ -400,26 +402,26 @@ export default function WorkspaceBoutiquePage() {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 py-4 sm:px-6">
-                  <div className="mb-3 rounded-xl bg-white p-4 shadow-sm">
+                <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-5 sm:px-6 sm:py-4">
+                  <div className="mb-4 rounded-2xl bg-white p-5 shadow-md sm:mb-3 sm:rounded-xl sm:p-4">
                     <div className="flex items-baseline justify-between">
-                      <p className="text-sm font-semibold text-slate-600">Sous-total</p>
-                      <p className="text-2xl font-bold text-[#17294b]">{formatFcfa(cartTotal)}</p>
+                      <p className="text-base font-semibold text-slate-600 sm:text-sm">Sous-total</p>
+                      <p className="text-3xl font-bold text-[#17294b] sm:text-2xl">{formatFcfa(cartTotal)}</p>
                     </div>
-                    <div className="mt-2 flex items-center gap-2 text-xs">
-                      <Icon name={cartTotal >= 100000 ? "check" : "truck"} size={14} className={cartTotal >= 100000 ? "text-emerald-500" : "text-slate-400"} />
+                    <div className="mt-3 flex items-center gap-2 text-sm sm:mt-2 sm:text-xs">
+                      <Icon name={cartTotal >= 100000 ? "check" : "truck"} size={16} className={`${cartTotal >= 100000 ? "text-emerald-500" : "text-slate-400"} sm:!w-3.5 sm:!h-3.5`} />
                       <p className={cartTotal >= 100000 ? "font-semibold text-emerald-700" : "text-slate-500"}>
                         {cartTotal >= 100000 ? "Livraison offerte sur Abidjan" : "Livraison Abidjan : 4 500 FCFA"}
                       </p>
                     </div>
                   </div>
                   <button
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#e3a641] to-[#f2c56d] px-5 py-4 text-base font-bold text-[#14223b] shadow-lg transition hover:shadow-xl active:scale-[0.98]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#e3a641] to-[#f2c56d] px-6 py-5 text-lg font-bold text-[#14223b] shadow-xl transition hover:shadow-2xl active:scale-[0.98] sm:rounded-xl sm:py-4 sm:text-base"
                     onClick={() => setCheckoutOpen(true)}
                     type="button"
                   >
                     Passer la commande
-                    <Icon name="arrow-right" size={18} />
+                    <Icon name="arrow-right" size={20} className="sm:!w-4 sm:!h-4" />
                   </button>
                 </div>
               </>
