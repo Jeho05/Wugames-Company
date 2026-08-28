@@ -55,7 +55,7 @@ export type SupplierKpis = {
 };
 
 export type SupplierOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   profile: SupplierProfileView;
   products: Produit[];
@@ -292,187 +292,6 @@ export function computeKpis(products: Produit[], movements: SupplierMovementView
 }
 
 /* ------------------------------------------------------------------ */
-/* Données de démonstration — un seul fournisseur, jamais mélangé      */
-/* ------------------------------------------------------------------ */
-
-const demoMouvements: Record<string, MouvementStock[]> = {
-  "p1": [
-    { id: "m101", produit_id: "p1", type: "ENTREE", quantite: 40, motif: "Réception de la commande", reference_externe: "CMD-2026-118", created_at: "2026-07-28T09:14:00.000Z" },
-    { id: "m102", produit_id: "p1", type: "SORTIE_VENTE", quantite: 6, motif: "Vente au comptoir", created_at: "2026-07-29T11:02:00.000Z" },
-    { id: "m103", produit_id: "p1", type: "SORTIE_CHANTIER", quantite: 4, motif: "Chantier villa Koné", reference_externe: "MS-2026-77", created_at: "2026-08-01T08:40:00.000Z" },
-    { id: "m104", produit_id: "p1", type: "SORTIE_VENTE", quantite: 2, motif: "Vente en ligne", created_at: "2026-08-03T16:20:00.000Z" },
-  ],
-  "p2": [
-    { id: "m201", produit_id: "p2", type: "ENTREE", quantite: 30, motif: "Réception de la commande", reference_externe: "CMD-2026-96", created_at: "2026-07-02T09:00:00.000Z" },
-    { id: "m202", produit_id: "p2", type: "SORTIE_CHANTIER", quantite: 12, motif: "Chantier immeuble Palmiers", reference_externe: "MS-2026-54", created_at: "2026-07-15T07:55:00.000Z" },
-    { id: "m203", produit_id: "p2", type: "SORTIE_VENTE", quantite: 6, motif: "Vente au comptoir", created_at: "2026-07-26T10:30:00.000Z" },
-    { id: "m204", produit_id: "p2", type: "AJUSTEMENT", quantite: 0, motif: "Inventaire mensuel", created_at: "2026-07-31T17:00:00.000Z" },
-  ],
-  "p3": [
-    { id: "m301", produit_id: "p3", type: "ENTREE", quantite: 60, motif: "Réception de la commande", reference_externe: "CMD-2026-87", created_at: "2026-06-25T08:30:00.000Z" },
-    { id: "m302", produit_id: "p3", type: "SORTIE_VENTE", quantite: 8, motif: "Vente au comptoir", created_at: "2026-07-05T15:10:00.000Z" },
-    { id: "m303", produit_id: "p3", type: "SORTIE_CHANTIER", quantite: 10, motif: "Chantier résidence Aya", reference_externe: "MS-2026-61", created_at: "2026-07-21T08:05:00.000Z" },
-  ],
-  "p4": [
-    { id: "m401", produit_id: "p4", type: "ENTREE", quantite: 25, motif: "Réception de la commande", reference_externe: "CMD-2026-104", created_at: "2026-07-08T10:00:00.000Z" },
-    { id: "m402", produit_id: "p4", type: "SORTIE_VENTE", quantite: 5, motif: "Vente en ligne", created_at: "2026-07-19T14:45:00.000Z" },
-    { id: "m403", produit_id: "p4", type: "SORTIE_CHANTIER", quantite: 11, motif: "Chantier villa Koné", reference_externe: "MS-2026-77", created_at: "2026-07-30T09:12:00.000Z" },
-  ],
-  "p5": [
-    { id: "m501", produit_id: "p5", type: "ENTREE", quantite: 15, motif: "Réception de la commande", reference_externe: "CMD-2026-52", created_at: "2026-06-14T09:20:00.000Z" },
-    { id: "m502", produit_id: "p5", type: "SORTIE_VENTE", quantite: 15, motif: "Vente au comptoir", created_at: "2026-06-28T11:40:00.000Z" },
-    { id: "m503", produit_id: "p5", type: "AJUSTEMENT", quantite: 0, motif: "Inventaire mensuel", created_at: "2026-07-31T17:05:00.000Z" },
-  ],
-  "p6": [
-    { id: "m601", produit_id: "p6", type: "ENTREE", quantite: 20, motif: "Réception de la commande", reference_externe: "CMD-2026-110", created_at: "2026-07-11T08:50:00.000Z" },
-    { id: "m602", produit_id: "p6", type: "SORTIE_CHANTIER", quantite: 3, motif: "Chantier immeuble Palmiers", reference_externe: "MS-2026-70", created_at: "2026-07-24T07:45:00.000Z" },
-  ],
-  "p7": [
-    { id: "m701", produit_id: "p7", type: "ENTREE", quantite: 100, motif: "Réception de la commande", reference_externe: "CMD-2026-72", created_at: "2026-06-20T08:10:00.000Z" },
-    { id: "m702", produit_id: "p7", type: "SORTIE_VENTE", quantite: 14, motif: "Vente au comptoir", created_at: "2026-07-09T10:25:00.000Z" },
-    { id: "m703", produit_id: "p7", type: "SORTIE_VENTE", quantite: 9, motif: "Vente en ligne", created_at: "2026-07-27T15:35:00.000Z" },
-  ],
-  "p8": [
-    { id: "m801", produit_id: "p8", type: "ENTREE", quantite: 30, motif: "Réception de la commande", reference_externe: "CMD-2026-95", created_at: "2026-07-04T09:40:00.000Z" },
-    { id: "m802", produit_id: "p8", type: "SORTIE_VENTE", quantite: 4, motif: "Vente au comptoir", created_at: "2026-07-22T13:15:00.000Z" },
-    { id: "m803", produit_id: "p8", type: "SORTIE_CHANTIER", quantite: 4, motif: "Chantier résidence Aya", reference_externe: "MS-2026-61", created_at: "2026-08-02T08:30:00.000Z" },
-  ],
-};
-
-const demoProduits: Produit[] = [
-  {
-    id: "p1", nom: "Peinture blanc mat 25 L", description: "Peinture acrylique blanche mate, usage intérieur et extérieur.", reference: "PE-2501",
-    prix_unitaire: 38500, quantite_actuelle: 28, stock_minimum: 15, statut: "DISPONIBLE",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-treich",
-    fournisseur_id: "f-batipro", created_at: "2026-03-12T09:00:00.000Z", updated_at: "2026-08-03T16:20:00.000Z",
-    filiale: { id: "f-treich", nom: "WUGAMS Treichville", code: "TRE" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p1,
-  },
-  {
-    id: "p2", nom: "Ciment 50 kg", description: "Ciment gris CPJ 42,5 en sac de 50 kg.", reference: "CM-5002",
-    prix_unitaire: 6200, quantite_actuelle: 12, stock_minimum: 20, statut: "REAPPROVISIONNEMENT_REQUIS",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-cocody",
-    fournisseur_id: "f-batipro", created_at: "2026-02-05T09:00:00.000Z", updated_at: "2026-07-31T17:00:00.000Z",
-    filiale: { id: "f-cocody", nom: "WUGAMS Cocody", code: "COC" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p2,
-  },
-  {
-    id: "p3", nom: "Carrelage grès 60×60", description: "Carrelage grès cérame émaillé 60×60, finition brillante.", reference: "CG-6001",
-    prix_unitaire: 9800, quantite_actuelle: 42, stock_minimum: 30, statut: "DISPONIBLE",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-marcory",
-    fournisseur_id: "f-batipro", created_at: "2026-01-20T09:00:00.000Z", updated_at: "2026-07-21T08:05:00.000Z",
-    filiale: { id: "f-marcory", nom: "WUGAMS Marcory", code: "MAR" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p3,
-  },
-  {
-    id: "p4", nom: "Câble électrique 2,5 mm²", description: "Câble rigide cuivre 2,5 mm², rouleau de 100 m.", reference: "CE-2503",
-    prix_unitaire: 14500, quantite_actuelle: 9, stock_minimum: 12, statut: "REAPPROVISIONNEMENT_REQUIS",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-treich",
-    fournisseur_id: "f-batipro", created_at: "2026-03-30T09:00:00.000Z", updated_at: "2026-07-30T09:12:00.000Z",
-    filiale: { id: "f-treich", nom: "WUGAMS Treichville", code: "TRE" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p4,
-  },
-  {
-    id: "p5", nom: "Peinture acrylique bleu 4 L", description: "Peinture acrylique bleu profond, pot de 4 L.", reference: "PA-4010",
-    prix_unitaire: 12300, quantite_actuelle: 0, stock_minimum: 10, statut: "RUPTURE",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-cocody",
-    fournisseur_id: "f-batipro", created_at: "2026-02-18T09:00:00.000Z", updated_at: "2026-07-31T17:05:00.000Z",
-    filiale: { id: "f-cocody", nom: "WUGAMS Cocody", code: "COC" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p5,
-  },
-  {
-    id: "p6", nom: "Plaque de plâtre 1,2×2,5 m", description: "Plaque de plâtre standard 13 mm, épaisseur 1,2×2,5 m.", reference: "PP-1201",
-    prix_unitaire: 7400, quantite_actuelle: 17, stock_minimum: 8, statut: "COMMANDE_EN_COURS",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-yopo",
-    fournisseur_id: "f-batipro", created_at: "2026-04-09T09:00:00.000Z", updated_at: "2026-07-24T07:45:00.000Z",
-    filiale: { id: "f-yopo", nom: "WUGAMS Yopougon", code: "YOP" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p6,
-  },
-  {
-    id: "p7", nom: "Tuyau PVC 100 mm", description: "Tuyau PVC pression 100 mm, longueur 3 m.", reference: "TP-1000",
-    prix_unitaire: 3150, quantite_actuelle: 77, stock_minimum: 40, statut: "DISPONIBLE",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-marcory",
-    fournisseur_id: "f-batipro", created_at: "2026-01-08T09:00:00.000Z", updated_at: "2026-07-27T15:35:00.000Z",
-    filiale: { id: "f-marcory", nom: "WUGAMS Marcory", code: "MAR" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p7,
-  },
-  {
-    id: "p8", nom: "Ciment colle 25 kg", description: "Ciment colle flexible pour carrelage, sac de 25 kg.", reference: "CC-2500",
-    prix_unitaire: 8900, quantite_actuelle: 22, stock_minimum: 12, statut: "DISPONIBLE",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-yopo",
-    fournisseur_id: "f-batipro", created_at: "2026-03-01T09:00:00.000Z", updated_at: "2026-08-02T08:30:00.000Z",
-    filiale: { id: "f-yopo", nom: "WUGAMS Yopougon", code: "YOP" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: demoMouvements.p8,
-  },
-  {
-    id: "p9", nom: "Panneau OSB 18 mm", description: "Panneau OSB 18 mm, format 2500×1250 mm.", reference: "OS-1812",
-    prix_unitaire: 12900, quantite_actuelle: 0, stock_minimum: 5, statut: "ARCHIVE",
-    adresse_reference_lat: null, adresse_reference_lng: null, filiale_id: "f-treich",
-    fournisseur_id: "f-batipro", created_at: "2025-11-14T09:00:00.000Z", updated_at: "2026-05-02T09:00:00.000Z",
-    filiale: { id: "f-treich", nom: "WUGAMS Treichville", code: "TRE" },
-    fournisseur: { id: "f-batipro", raison_sociale: "BatiPro CI" }, mouvements: [],
-  },
-];
-
-const demoNotifications: Notification[] = [
-  {
-    id: "n1", lu: false, type: "stock",
-    message: "« Ciment 50 kg » a atteint son seuil minimum à WUGAMS Cocody. Un réapprovisionnement est nécessaire.",
-    created_at: new Date(Date.now() - 2 * 3_600_000).toISOString(), niveau: "haut", produit_id: "p2",
-  },
-  {
-    id: "n2", lu: false, type: "produit",
-    message: "« Peinture acrylique bleu 4 L » est en rupture de stock à WUGAMS Cocody.",
-    created_at: new Date(Date.now() - 5 * 3_600_000).toISOString(), niveau: "haut", produit_id: "p5",
-  },
-  {
-    id: "n3", lu: false, type: "stock",
-    message: "« Câble électrique 2,5 mm² » est sous son seuil minimum à WUGAMS Treichville.",
-    created_at: new Date(Date.now() - 26 * 3_600_000).toISOString(), niveau: "moyen", produit_id: "p4",
-  },
-  {
-    id: "n4", lu: false, type: "produit",
-    message: "Une commande de réapprovisionnement est en cours pour « Plaque de plâtre 1,2×2,5 m ».",
-    created_at: new Date(Date.now() - 3 * 86_400_000).toISOString(), niveau: "info", produit_id: "p6",
-  },
-  {
-    id: "n5", lu: true, type: "securite",
-    message: "Une nouvelle connexion a été détectée sur votre compte fournisseur. Vérifiez que c'est bien vous.",
-    created_at: new Date(Date.now() - 6 * 86_400_000).toISOString(), niveau: "moyen",
-  },
-  {
-    id: "n6", lu: true, type: "info",
-    message: "Bienvenue sur votre portail fournisseur WUGAMS. Vous pouvez suivre vos produits en temps réel.",
-    created_at: new Date(Date.now() - 14 * 86_400_000).toISOString(), niveau: "info",
-  },
-];
-
-function demoOverview(user: User | null): SupplierOverview {
-  const profile: SupplierProfileView = {
-    firstName: user?.first_name ?? "Bienvenue",
-    lastName: user?.last_name ?? "",
-    raisonSociale: user?.fournisseur_profile?.raison_sociale ?? "BatiPro CI",
-    email: user?.email ?? "contact@batipro.ci",
-    phone: user?.phone ?? "+225 27 21 00 45",
-    adresse: "Zone industrielle, Abidjan",
-    siret: "CI-123456789",
-    twoFactor: user?.two_factor_enabled ?? false,
-    fournisseurId: user?.fournisseur_profile?.id ?? "f-batipro",
-  };
-  const movements = aggregateMovements(demoProduits);
-  return {
-    source: "demo",
-    updatedAt: Date.now(),
-    profile,
-    products: demoProduits,
-    movements,
-    notifications: { list: demoNotifications, unread: 4 },
-    kpis: computeKpis(demoProduits, movements),
-    filiales: [...new Map(demoProduits.filter((p) => p.filiale).map((p) => [p.filiale!.id, p.filiale!])).values()],
-  };
-}
-
-/* ------------------------------------------------------------------ */
 /* Chargement — BR-05 : jamais de fournisseur_id transmis à l'API      */
 /* ------------------------------------------------------------------ */
 
@@ -484,12 +303,6 @@ export async function loadSupplierOverview(user: User | null): Promise<SupplierO
     notificationsApi.listNotifications(),
     notificationsApi.unreadCount(),
   ]);
-
-  const apiDown = produitsResult.status !== "fulfilled" && notificationsResult.status !== "fulfilled";
-
-  if (apiDown) {
-    return demoOverview(user);
-  }
 
   const all = produitsResult.status === "fulfilled" ? produitsResult.value : [];
   /* Isolation stricte côté frontend en complément du filtrage API :

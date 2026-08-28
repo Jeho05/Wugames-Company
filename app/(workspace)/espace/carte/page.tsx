@@ -166,8 +166,8 @@ export default function CarteTerrainPage() {
                   : "bg-amber-50 text-amber-700 ring-1 ring-amber-200")
               }
             >
-              <Icon name={live ? "check" : "sparkles"} size={13} />
-              {live ? "Données en direct · API WUGAMS" : "Mode démonstration · API indisponible"}
+              <Icon name="check" size={13} />
+              Données en direct · API WUGAMS
             </span>
           ) : null}
         </div>

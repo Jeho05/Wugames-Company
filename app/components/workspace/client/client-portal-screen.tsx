@@ -14,7 +14,6 @@ import { ClientNotifications } from "@/app/components/workspace/client/client-no
 import { ClientProfil } from "@/app/components/workspace/client/client-profil";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 import {
-  demoClientPortalData,
   globalStateFrom,
   loadClientPortalData,
 } from "@/app/lib/client-data";
@@ -39,7 +38,7 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
 ];
 
 export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
-  const [data, setData] = useState<ClientPortalData>(demoClientPortalData);
+  const [data, setData] = useState<ClientPortalData | null>(null);
   const [cleans, setCleans] = useState<CleansOverview>(demoCleansOverview);
   const [live, setLive] = useState(false);
   const [activeId, setActiveId] = useState("portail-apercu");
@@ -80,6 +79,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
   }, [reduce]);
 
   const kpi = useMemo(() => {
+    if (!data) return null;
     const facturesImpayees = data.factures.filter((f) => f.statut === "EMISE" || f.statut === "EN_RETARD");
     const montantImpaye = facturesImpayees.reduce((sum, f) => sum + Number(f.montant_ttc), 0);
     const dernierEvenement = data.notifications[0]?.time ?? "Aujourd'hui";
@@ -97,11 +97,26 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
   }, [data]);
 
   const state = useMemo(
-    () => globalStateFrom(data.missions, data.factures, data.devis),
+    () => data ? globalStateFrom(data.missions, data.factures, data.devis) : "ok" as const,
     [data]
   );
 
-  const missionsActives = data.missions.filter((m) => m.statut !== "TERMINE" && m.statut !== "VALIDE").length;
+  const missionsActives = data ? data.missions.filter((m) => m.statut !== "TERMINE" && m.statut !== "VALIDE").length : 0;
+
+  if (!data) {
+    return (
+      <div className="space-y-10 lg:space-y-12">
+        <div className="animate-pulse space-y-4">
+          <div className="h-40 rounded-3xl bg-slate-200/70" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-24 rounded-2xl bg-slate-200/70" />
+            <div className="h-24 rounded-2xl bg-slate-200/70" />
+          </div>
+          <div className="h-96 rounded-2xl bg-slate-200/70" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 lg:space-y-12">
@@ -135,9 +150,9 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
 
       <div id="portail-apercu" className="scroll-mt-32 lg:scroll-mt-44 space-y-10 lg:space-y-12">
         <ClientHero
-          facturesEnAttente={kpi.facturesImpayees}
+          facturesEnAttente={kpi?.facturesImpayees ?? 0}
           missionsActives={missionsActives}
-          notificationsNonLues={kpi.notificationsNonLues}
+          notificationsNonLues={kpi?.notificationsNonLues ?? 0}
           onNavigate={navigateTo}
           state={state}
           user={user}
@@ -152,7 +167,7 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
               </p>
             </div>
           </div>
-          <ClientKpiGrid {...kpi} />
+          {kpi ? <ClientKpiGrid {...kpi} /> : null}
         </div>
       </div>
 

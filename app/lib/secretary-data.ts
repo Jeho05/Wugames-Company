@@ -68,7 +68,7 @@ export type SearchEntry = {
 };
 
 export type SecretaryOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   firstName: string;
   kpis: SecretaryKpi[];
@@ -82,62 +82,6 @@ export type SecretaryOverview = {
   users: User[];
   unread: number;
 };
-
-/* ------------------------------------------------------------------ */
-/* Données de repli (démo — uniquement si l'API est indisponible)      */
-/* ------------------------------------------------------------------ */
-
-const demoKpis: SecretaryKpi[] = [
-  { key: "clients", label: "Clients", value: "342", change: "+9,1 %", trend: "up", icon: "users", spark: [20, 22, 24, 23, 26, 25, 28, 30, 29, 32, 34, 36], caption: "fiches actives" },
-  { key: "fournisseurs", label: "Fournisseurs", value: "27", change: "+2", trend: "up", icon: "truck", spark: [10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16], caption: "référencés" },
-  { key: "utilisateurs", label: "Utilisateurs", value: "86", change: "+4,9 %", trend: "up", icon: "hardhat", spark: [30, 31, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44], caption: "comptes ERP" },
-  { key: "nouveaux", label: "Nouveaux aujourd'hui", value: "5", change: "2 clients · 1 fournisseur · 2 users", trend: "up", icon: "sparkles", spark: [1, 2, 1, 3, 2, 2, 4, 3, 3, 5, 4, 5], caption: "créés ce jour" },
-  { key: "demandes", label: "Demandes en attente", value: "7", change: "3 à qualifier", trend: "flat", icon: "clipboard", spark: [6, 7, 5, 8, 6, 7, 9, 8, 7, 9, 8, 7], caption: "à traiter" },
-  { key: "documents", label: "Documents créés", value: "34", change: "+12,4 %", trend: "up", icon: "file-text", spark: [14, 15, 17, 16, 18, 19, 21, 20, 22, 24, 23, 26], caption: "ce mois" },
-];
-
-const demoTasks: SecretaryTask[] = [
-  { id: "t1", title: "Dossier client à compléter", detail: "SCI Les Palmiers · pièce d'identité manquante", time: "09:00", priority: "high", category: "dossier" },
-  { id: "t2", title: "Valider la fiche fournisseur", detail: "BatiPro CI · justificatif fiscal à vérifier", time: "10:30", priority: "high", category: "validation" },
-  { id: "t3", title: "Rendez-vous — M. Koné", detail: "Demande de devis rénovation villa", time: "11:00", priority: "medium", category: "rdv" },
-  { id: "t4", title: "Rappel — relance client", detail: "Résidence Koffi · pièces manquantes au dossier", time: "14:00", priority: "medium", category: "rappel" },
-  { id: "t5", title: "Créer compte ouvrier", detail: "Yao Christian · signature du contrat requise", time: "15:30", priority: "low", category: "dossier" },
-  { id: "t6", title: "Rappel — facture fournisseur", detail: "Matériaux Bénin · échéance de paiement", time: "16:00", priority: "low", category: "rappel" },
-];
-
-const demoActivity: SecretaryActivityItem[] = [
-  { id: "a1", type: "client", title: "Client créé", detail: "SCI Les Palmiers · compte membre", time: "Il y a 12 min" },
-  { id: "a2", type: "utilisateur", title: "Utilisateur ajouté", detail: "Yao Christian · Ouvrier terrain", time: "Il y a 1 h" },
-  { id: "a3", type: "fournisseur", title: "Fournisseur modifié", detail: "BatiPro CI · coordonnées mises à jour", time: "Il y a 2 h" },
-  { id: "a4", type: "audit", title: "Profil mis à jour", detail: "Résidence Koffi · adresse corrigée", time: "Il y a 4 h" },
-  { id: "a5", type: "client", title: "Client créé", detail: "Bureaux N'Dri · compte standard", time: "Hier" },
-  { id: "a6", type: "utilisateur", title: "Utilisateur ajouté", detail: "Mariam Bamba · Secrétaire", time: "Hier" },
-];
-
-const demoNotifications: SecretaryNotificationItem[] = [
-  { id: "n1", kind: "client", title: "Nouveau client", detail: "SCI Les Palmiers vient de s'inscrire", time: "Il y a 12 min", unread: true },
-  { id: "n2", kind: "demande", title: "Nouvelle demande", detail: "M. Koné · devis rénovation villa", time: "Il y a 38 min", unread: true },
-  { id: "n3", kind: "validation", title: "Validation nécessaire", detail: "Fiche fournisseur BatiPro CI", time: "Il y a 2 h", unread: true },
-  { id: "n4", kind: "fournisseur", title: "Nouveau fournisseur", detail: "Matériaux Bénin · profil créé", time: "Il y a 5 h", unread: false },
-];
-
-const demoSearchIndex: SearchEntry[] = [
-  { id: "s1", kind: "client", title: "SCI Les Palmiers", subtitle: "client@lespalmiers.com · +229 00 00 00 11", href: "/espace/clients" },
-  { id: "s2", kind: "client", title: "Résidence Koffi", subtitle: "contact@residencekoffi.bj · +229 00 00 00 22", href: "/espace/clients" },
-  { id: "s3", kind: "fournisseur", title: "BatiPro CI", subtitle: "contact@batipro.ci · +225 07 65 43 21", href: "/espace/fournisseurs" },
-  { id: "s4", kind: "fournisseur", title: "Matériaux Bénin", subtitle: "ventes@materiauxbenin.bj · +229 00 00 00 44", href: "/espace/fournisseurs" },
-  { id: "s5", kind: "utilisateur", title: "Yao Christian", subtitle: "christian.yao@wugams.example · ROLE_OUVRIER", href: "/espace/ouvriers" },
-  { id: "s6", kind: "utilisateur", title: "Mariam Bamba", subtitle: "mariam.bamba@wugams.example · ROLE_SECRETAIRE", href: "/espace/administration" },
-];
-
-const demoAgenda: AgendaEvent[] = [
-  { id: "ag1", day: 6, type: "anniversaire", label: "Kouassi Didier · anniversaire" },
-  { id: "ag2", day: 8, type: "rdv", label: "Rendez-vous M. Koné", time: "11:00" },
-  { id: "ag3", day: 9, type: "rappel", label: "Relance SCI Les Palmiers" },
-  { id: "ag4", day: 14, type: "echeance", label: "Échéance commande BatiPro CI" },
-  { id: "ag5", day: 20, type: "rdv", label: "Rendez-vous Bureaux N'Dri", time: "09:30" },
-  { id: "ag6", day: 27, type: "anniversaire", label: "Mariam Bamba · anniversaire" },
-];
 
 /* ------------------------------------------------------------------ */
 /* Utilitaires                                                         */
@@ -240,26 +184,6 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview> {
   const users = usersRes.status === "fulfilled" ? usersRes.value : [];
   const notifications = notifRes.status === "fulfilled" ? notifRes.value : [];
   const audits = auditRes.status === "fulfilled" ? auditRes.value : [];
-
-  const apiUp = clientsRes.status === "fulfilled" || fournisseursRes.status === "fulfilled";
-
-  if (!apiUp) {
-    return {
-      source: "demo",
-      updatedAt: Date.now(),
-      firstName: "Secrétaire",
-      kpis: demoKpis,
-      tasks: demoTasks,
-      activity: demoActivity,
-      notifications: demoNotifications,
-      agenda: demoAgenda,
-      searchIndex: demoSearchIndex,
-      clients: [],
-      fournisseurs: [],
-      users: [],
-      unread: 3,
-    };
-  }
 
   const now = Date.now();
   const months = lastMonthKeys(12);
@@ -419,7 +343,6 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview> {
           category: "dossier" as const,
         }]
       : []),
-    ...demoTasks.filter((t) => t.category === "rdv" || t.category === "rappel").slice(0, 3),
   ];
 
   /* --- Activité récente --------------------------------------------- */
@@ -478,7 +401,6 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview> {
   /* --- Agenda : anniversaires professionnels réels ------------------- */
   const nowDate = new Date();
   const agenda: AgendaEvent[] = [
-    ...demoAgenda.filter((e) => e.type === "rdv" || e.type === "rappel" || e.type === "echeance"),
     ...users
       .map((u): AgendaEvent | null => {
         const created = new Date(u.created_at ?? "");
@@ -499,11 +421,11 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview> {
     updatedAt: now,
     firstName: "Secrétaire",
     kpis,
-    tasks: tasks.length > 0 ? tasks : demoTasks,
-    activity: activity.length > 0 ? activity : demoActivity,
-    notifications: enrichedNotifications.length > 0 ? enrichedNotifications : demoNotifications,
+    tasks,
+    activity,
+    notifications: enrichedNotifications,
     agenda,
-    searchIndex: searchIndex.length > 0 ? searchIndex : demoSearchIndex,
+    searchIndex,
     clients,
     fournisseurs,
     users,
@@ -560,12 +482,7 @@ export const boutiqueStatutMeta: Record<SecretaryBoutique["statut"], { label: st
   SUSPENDUE: { label: "Suspendue", badge: "border-rose-200 bg-rose-50 text-rose-700", dot: "bg-rose-500" },
 };
 
-export const demoSecBoutiques: SecretaryBoutique[] = [
-  { id: "b1", nom: "Espace Wu · Porto-Novo", type: "entretien", gerant: "Aïcha Soglo", adresse: "Avenue Clozel, Porto-Novo", membres: 128, commandes: 342, chiffreAffaires: 4_850_000, statut: "ACTIVE", created_at: "2024-02-14T09:00:00.000Z" },
-  { id: "b2", nom: "Boutique Matériaux · Cotonou", type: "materiaux", gerant: "Koffi Amoussou", adresse: "Carrefour Godomey, Cotonou", membres: 96, commandes: 187, chiffreAffaires: 12_300_000, statut: "ACTIVE", created_at: "2024-05-02T09:00:00.000Z" },
-  { id: "b3", nom: "Wu Mobilier · Ouidah", type: "mobilier", gerant: "Grâce Hounkpatin", adresse: "Route des pêches, Ouidah", membres: 41, commandes: 63, chiffreAffaires: 2_150_000, statut: "EN_PREPARATION", created_at: "2025-10-21T09:00:00.000Z" },
-  { id: "b4", nom: "Outillage Express · Abomey", type: "outillage", gerant: "Rachid Zannou", adresse: "Marché Agbotta, Abomey", membres: 57, commandes: 94, chiffreAffaires: 1_780_000, statut: "SUSPENDUE", created_at: "2024-11-03T09:00:00.000Z" },
-];
+export const demoSecBoutiques: SecretaryBoutique[] = [];
 
 /* ------------------------------------------------------------------ */
 /* Espace de vente (caisse)                                            */
@@ -592,22 +509,9 @@ export type Vente = {
   caisse: string;
 };
 
-export const demoSecProduits: ProduitVente[] = [
-  { id: "p1", nom: "Kit entretien premium", categorie: "entretien", prix: 25_000, stock: 34, unite: "unité", boutiqueId: "b1" },
-  { id: "p2", nom: "Détergent 5 L", categorie: "entretien", prix: 6_500, stock: 120, unite: "bidon", boutiqueId: "b1" },
-  { id: "p3", nom: "Ciment 50 kg", categorie: "materiaux", prix: 9_500, stock: 0, unite: "sac", boutiqueId: "b2" },
-  { id: "p4", nom: "Peinture acrylique 10 L", categorie: "materiaux", prix: 32_000, stock: 18, unite: "seau", boutiqueId: "b2" },
-  { id: "p5", nom: "Chaise en rotin", categorie: "mobilier", prix: 18_500, stock: 12, unite: "pièce", boutiqueId: "b3" },
-  { id: "p6", nom: "Table basse modulaire", categorie: "mobilier", prix: 45_000, stock: 7, unite: "pièce", boutiqueId: "b3" },
-  { id: "p7", nom: "Perceuse sans fil 18 V", categorie: "outillage", prix: 28_000, stock: 9, unite: "pièce", boutiqueId: "b4" },
-  { id: "p8", nom: "Échafaudage 2 m", categorie: "outillage", prix: 65_000, stock: 4, unite: "lot", boutiqueId: "b4" },
-];
+export const demoSecProduits: ProduitVente[] = [];
 
-export const demoSecVentes: Vente[] = [
-  { id: "v1", client: "SCI Les Palmiers", items: [{ produitId: "p1", nom: "Kit entretien premium", quantite: 2, prix: 25_000 }], total: 50_000, mode: "MOMO", statut: "PAYEE", date: "2026-08-12T10:24:00.000Z", caisse: "Aïcha Soglo" },
-  { id: "v2", client: "M. Koné (devis)", items: [{ produitId: "p4", nom: "Peinture acrylique 10 L", quantite: 3, prix: 32_000 }, { produitId: "p2", nom: "Détergent 5 L", quantite: 1, prix: 6_500 }], total: 102_500, mode: "CARTE", statut: "PAYEE", date: "2026-08-12T09:05:00.000Z", caisse: "Koffi Amoussou" },
-  { id: "v3", client: "Résidence Koffi", items: [{ produitId: "p7", nom: "Perceuse sans fil 18 V", quantite: 1, prix: 28_000 }], total: 28_000, mode: "COMPTE", statut: "EN_ATTENTE", date: "2026-08-11T16:40:00.000Z", caisse: "Rachid Zannou" },
-];
+export const demoSecVentes: Vente[] = [];
 
 export const venteModeMeta: Record<Vente["mode"], { label: string; icon: IconName }> = {
   MOMO: { label: "Mobile Money", icon: "phone" },
@@ -631,11 +535,7 @@ export type CompteCreation = {
   date: string;
 };
 
-export const demoSecComptes: CompteCreation[] = [
-  { id: "cc1", nom: "Yao Christian", email: "christian.yao@wugams.example", telephone: "+229 00 00 00 01", role: "ROLE_OUVRIER", statut: "EN_ATTENTE", demandePar: "Mariam Bamba", date: "2026-08-13T08:12:00.000Z" },
-  { id: "cc2", nom: "Bureaux N'Dri", email: "contact@bureauxndri.bj", telephone: "+229 00 00 00 02", role: "ROLE_CLIENT_MEMBRE", statut: "EN_ATTENTE", demandePar: "Formulaire site", date: "2026-08-12T18:45:00.000Z" },
-  { id: "cc3", nom: "Matériaux Bénin", email: "ventes@materiauxbenin.bj", telephone: "+229 00 00 00 03", role: "ROLE_FOURNISSEUR", statut: "VALIDE", demandePar: "Koffi Amoussou", date: "2026-08-10T11:20:00.000Z" },
-];
+export const demoSecComptes: CompteCreation[] = [];
 
 export function formatMontantFcfa(amount: number): string {
   return new Intl.NumberFormat("fr-FR").format(amount) + " FCFA";

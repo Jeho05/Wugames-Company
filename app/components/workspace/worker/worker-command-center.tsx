@@ -40,7 +40,6 @@ import { WorkerProfileScreen } from "@/app/components/workspace/worker/worker-pr
 import { WorkerServicesScreen } from "@/app/components/workspace/worker/worker-services-screen";
 import { useNetworkOnline } from "@/app/components/workspace/worker/worker-online-hook";
 import {
-  demoWorkerServicesOverview,
   loadServiceProofs,
   loadWorkerServicesOverview,
   saveServiceProof,
@@ -76,7 +75,7 @@ export function WorkerCommandCenter() {
 
   const [fullUser, setFullUser] = useState<User | null>(null);
   const [overview, setOverview] = useState<WorkerOverview | null>(null);
-  const [servicesOverview, setServicesOverview] = useState<WorkerServiceOverview>(demoWorkerServicesOverview);
+  const [servicesOverview, setServicesOverview] = useState<WorkerServiceOverview>({ source: "api", services: [], primeDisponible: null });
   const [proofs, setProofs] = useState<Record<string, WorkerServicePreuve>>(() => loadServiceProofs());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -355,9 +354,6 @@ export function WorkerCommandCenter() {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[9px] font-bold text-slate-500">
-                  {overview.source === "demo" ? "Mode démo" : "En ligne"}
-                </span>
                 <button
                   aria-label="Actualiser"
                   className="grid size-9 place-items-center rounded-full border border-slate-200 bg-white text-[#0f7a5f] shadow-sm transition active:scale-95"

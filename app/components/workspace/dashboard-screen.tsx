@@ -175,12 +175,7 @@ const roleFraming: Record<string, { eyebrow: string; description: string }> = {
 export function DashboardScreen() {
   const { user } = useAuth();
   const [period, setPeriod] = useState("Ce mois");
-  const [live, setLive] = useState<DashboardLiveData>({
-    source: "demo",
-    metrics: dashboardMetrics,
-    schedule,
-    alerts: stockAlerts,
-  });
+  const [live, setLive] = useState<DashboardLiveData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -195,6 +190,22 @@ export function DashboardScreen() {
   const framing = user ? (roleFraming[user.role] ?? roleFraming.ROLE_MGR_OPS) : roleFraming.ROLE_MGR_OPS;
   const firstName = user ? user.name.split(" ")[0] : "Jéhovani";
   const isWorker = user?.role === "ROLE_OUVRIER";
+
+  if (!live) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-20 max-w-xl rounded-2xl bg-slate-200/70" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="h-32 rounded-2xl bg-slate-200/70" />
+            <div className="h-32 rounded-2xl bg-slate-200/70" />
+            <div className="h-32 rounded-2xl bg-slate-200/70" />
+          </div>
+          <div className="h-96 rounded-2xl bg-slate-200/70" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

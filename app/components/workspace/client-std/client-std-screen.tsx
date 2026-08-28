@@ -16,7 +16,6 @@ import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vi
 import {
   clientStdProgress,
   clientStdStateFrom,
-  demoClientStdData,
   loadClientStdData,
 } from "@/app/lib/client-std-data";
 import type { ClientStdData } from "@/app/lib/client-std-data";
@@ -39,7 +38,7 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
 ];
 
 export function ClientStdScreen({ user }: ClientStdScreenProps) {
-  const [data, setData] = useState<ClientStdData>(demoClientStdData);
+  const [data, setData] = useState<ClientStdData>({ live: false, missions: [], commandes: [], devis: [], notifications: [], projets: [] });
   const [cleans, setCleans] = useState<CleansOverview>(demoCleansOverview);
   const [live, setLive] = useState(false);
   const [activeId, setActiveId] = useState("std-apercu");

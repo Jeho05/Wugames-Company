@@ -156,18 +156,13 @@ export function SupplierHealthHero({
         <span>
           Dernière actualisation : {formatUpdated(updatedAt)}
         </span>
-        {source === "demo" ? (
-          <span className="rounded-full bg-amber-400/15 px-2.5 py-0.5 text-[9px] font-bold text-amber-200">
-            Données de démonstration
-          </span>
-        ) : null}
         <motion.span
           animate={{ opacity: [1, 0.4, 1] }}
           className="inline-flex items-center gap-1.5"
           transition={{ duration: 2.4, repeat: Infinity }}
         >
           <span className="size-1.5 rounded-full bg-emerald-400" />
-          {source === "api" ? "Connecté à l'API" : "Mode démo"}
+          Connecté à l&apos;API
         </motion.span>
       </div>
     </section>

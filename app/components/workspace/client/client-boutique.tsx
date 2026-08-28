@@ -10,8 +10,6 @@ import { useAuth } from "@/app/lib/auth-context";
 import {
   boutiqueCategorieMeta,
   boutiqueCommandeFromApi,
-  demoBoutiqueCommandes,
-  demoBoutiqueProduits,
   formatMontantFcfa,
   loadBoutiqueData,
   passerCommandeApi,
@@ -38,8 +36,8 @@ const categorieOrder: BoutiqueProduit["categorie"][] = ["entretien", "materiaux"
 
 export function ClientBoutique({ sectionId = "portail-boutique", embedded = false }: ClientBoutiqueProps) {
   const { user } = useAuth();
-  const [produits, setProduits] = useState<BoutiqueProduit[]>(demoBoutiqueProduits);
-  const [commandes, setCommandes] = useState<BoutiqueCommande[]>(demoBoutiqueCommandes);
+  const [produits, setProduits] = useState<BoutiqueProduit[]>([]);
+  const [commandes, setCommandes] = useState<BoutiqueCommande[]>([]);
   const [live, setLive] = useState(false);
   const [panier, setPanier] = useState<PanierLigne[]>([]);
   const [categorie, setCategorie] = useState<BoutiqueProduit["categorie"] | "toutes">("toutes");

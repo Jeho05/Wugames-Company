@@ -81,7 +81,7 @@ export type OpsAlert = {
 };
 
 export type OpsOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   status: GlobalStatus;
   missionsToday: number;
@@ -147,100 +147,6 @@ function toneOf(mission: Mission): "ok" | "warning" | "critical" {
   if (mission.statut === "RAPPORT_SOUMIS" || mission.statut === "POINTAGE_A_VERIFIER") return "warning";
   return "ok";
 }
-
-/* Données de repli (démo — uniquement si l'API est indisponible)      */
-
-const demoKpis: OpsKpi[] = [
-  { key: "en_cours", label: "Missions en cours", value: "12", change: "+2", trend: "up", icon: "hardhat", spark: [8, 9, 11, 10, 12, 11, 13, 12, 14, 13, 15, 12], caption: "sur 3 filiales" },
-  { key: "terminees", label: "Missions terminées", value: "146", change: "+9,8 %", trend: "up", icon: "check", spark: [70, 76, 82, 88, 95, 102, 108, 116, 124, 131, 139, 146], caption: "ce trimestre" },
-  { key: "retard", label: "Missions en retard", value: "3", change: "−1", trend: "down", icon: "warning", spark: [7, 6, 5, 6, 4, 5, 3, 4, 2, 3, 4, 3], caption: "2 pointages à vérifier" },
-  { key: "equipes_dispo", label: "Équipes disponibles", value: "4", change: "−1", trend: "down", icon: "users", spark: [6, 6, 5, 5, 6, 5, 4, 4, 5, 4, 5, 4], caption: "prêtes à partir" },
-  { key: "equipes_terrain", label: "Équipes sur le terrain", value: "7", change: "+1", trend: "up", icon: "map", spark: [4, 5, 5, 6, 6, 7, 6, 7, 8, 7, 8, 7], caption: "déployées actuellement" },
-  { key: "productivite", label: "Productivité", value: "87,4 %", change: "+3,2 pts", trend: "up", icon: "chart", spark: [76, 78, 80, 79, 82, 81, 84, 83, 85, 86, 85, 87], caption: "rendement moyen S1-S9" },
-  { key: "incidents", label: "Incidents", value: "5", change: "−2", trend: "down", icon: "warning", spark: [12, 11, 9, 10, 8, 7, 8, 6, 7, 5, 6, 5], caption: "pointages hors rayon" },
-  { key: "taux_reussite", label: "Taux de réussite", value: "94,2 %", change: "+1,6 pts", trend: "up", icon: "sparkles", spark: [88, 89, 90, 90, 91, 92, 91, 93, 92, 93, 94, 94], caption: "missions validées" },
-];
-
-const demoMapMissions: MapMission[] = [
-  { id: "m1", titre: "Rénovation villa Les Palmiers", client: "SCI Les Palmiers", x: 58, y: 34, statut: "En cours", tone: "ok", progression: 62 },
-  { id: "m2", titre: "Chantier résidence Koffi", client: "Résidence Koffi", x: 74, y: 58, statut: "En retard", tone: "critical", progression: 45 },
-  { id: "m3", titre: "Dépannage urgente N'Dri", client: "Bureaux N'Dri", x: 42, y: 66, statut: "Pointage à vérifier", tone: "warning", progression: 40 },
-  { id: "m4", titre: "Installation hôtel Baobab", client: "Hôtel Le Baobab", x: 28, y: 24, statut: "En cours", tone: "ok", progression: 78 },
-  { id: "m5", titre: "Finitions immeuble Soro", client: "Immeuble Soro", x: 82, y: 22, statut: "En cours", tone: "ok", progression: 30 },
-  { id: "m6", titre: "Sécurisation clinique Horizon", client: "Clinique Horizon", x: 66, y: 78, statut: "En retard", tone: "critical", progression: 25 },
-  { id: "m7", titre: "Mobilier marchés communaux", client: "Marché Grand Bassam", x: 18, y: 52, statut: "Planifiée", tone: "warning", progression: 5 },
-  { id: "m8", titre: "Rénovation Villa Amara", client: "Villa Amara", x: 50, y: 88, statut: "En cours", tone: "ok", progression: 55 },
-];
-
-const demoTasks: OpsMissionRow[] = [
-  { id: "t1", titre: "Dépannage urgente N'Dri", client: "Bureaux N'Dri", lieu: "Abidjan · Plateau", chef: "A. Kouassi", heure: "08:30", priorite: "urgente", progression: 40, statut: "Pointage à vérifier", tone: "danger" },
-  { id: "t2", titre: "Chantier résidence Koffi", client: "Résidence Koffi", lieu: "Cocody · Riviera", chef: "J. Diabaté", heure: "09:00", priorite: "haute", progression: 45, statut: "En retard", tone: "danger" },
-  { id: "t3", titre: "Rénovation villa Les Palmiers", client: "SCI Les Palmiers", lieu: "Yopougon · Niangon", chef: "S. Traoré", heure: "10:00", priorite: "haute", progression: 62, statut: "En cours", tone: "info" },
-  { id: "t4", titre: "Installation hôtel Le Baobab", client: "Hôtel Le Baobab", lieu: "San-Pédro · Plage", chef: "M. Bamba", heure: "11:30", priorite: "moyenne", progression: 78, statut: "En cours", tone: "info" },
-  { id: "t5", titre: "Finitions immeuble Soro", client: "Immeuble Soro", lieu: "Marcory · Zone 4", chef: "K. Yao", heure: "14:00", priorite: "moyenne", progression: 30, statut: "En cours", tone: "info" },
-  { id: "t6", titre: "Mobilier marchés communaux", client: "Marché Grand Bassam", lieu: "Grand-Bassam · Centre", chef: "F. N'Guessan", heure: "16:00", priorite: "normale", progression: 5, statut: "Planifiée", tone: "neutral" },
-];
-
-const demoTeams: OpsTeam[] = [
-  { id: "e1", nom: "Équipe Alpha", chef: "A. Kouassi", membres: 6, missionActuelle: "Dépannage urgente N'Dri", progression: 40, statut: "Pointage à vérifier", elapsed: "6 h 12 min", couleur: "#38bdf8" },
-  { id: "e2", nom: "Équipe Bravo", chef: "J. Diabaté", membres: 5, missionActuelle: "Chantier résidence Koffi", progression: 45, statut: "En retard", elapsed: "7 h 05 min", couleur: "#fb7185" },
-  { id: "e3", nom: "Équipe Charlie", chef: "S. Traoré", membres: 7, missionActuelle: "Rénovation villa Les Palmiers", progression: 62, statut: "Sur site", elapsed: "5 h 40 min", couleur: "#34d399" },
-  { id: "e4", nom: "Équipe Delta", chef: "M. Bamba", membres: 4, missionActuelle: "Installation hôtel Le Baobab", progression: 78, statut: "Sur site", elapsed: "4 h 22 min", couleur: "#e3a641" },
-  { id: "e5", nom: "Équipe Echo", chef: "K. Yao", membres: 5, missionActuelle: "Finitions immeuble Soro", progression: 30, statut: "Sur site", elapsed: "3 h 08 min", couleur: "#a78bfa" },
-  { id: "e6", nom: "Équipe Foxtrot", chef: "F. N'Guessan", membres: 4, missionActuelle: "En attente d'affectation", progression: 0, statut: "Disponible", elapsed: "—", couleur: "#64748b" },
-];
-
-const demoTimeline: OpsTimelineEvent[] = [
-  { id: "tl1", kind: "creee", title: "Mission créée", detail: "Sécurisation clinique Horizon · par le Gérant", time: "Il y a 18 min" },
-  { id: "tl2", kind: "demarree", title: "Mission démarrée", detail: "Rénovation villa Les Palmiers · Équipe Charlie", time: "Il y a 2 h" },
-  { id: "tl3", kind: "incident", title: "Incident signalé", detail: "Pointage hors rayon · Dépannage N'Dri", time: "Il y a 3 h" },
-  { id: "tl4", kind: "equipe", title: "Équipe affectée", detail: "Équipe Echo → Finitions immeuble Soro", time: "Il y a 4 h" },
-  { id: "tl5", kind: "validation", title: "Validation effectuée", detail: "Villa Amara · mission validée par le Gérant", time: "Hier" },
-  { id: "tl6", kind: "terminee", title: "Mission terminée", detail: "Peinture école Yopougon · Équipe Alpha", time: "Hier" },
-];
-
-const demoCalendar: CalendarMission[] = [
-  { id: "c1", titre: "Rénovation Les Palmiers", day: 3, statut: "En cours", tone: "ok" },
-  { id: "c2", titre: "Chantier Koffi", day: 4, statut: "En retard", tone: "critical" },
-  { id: "c3", titre: "Dépannage N'Dri", day: 5, statut: "Pointage à vérifier", tone: "warning" },
-  { id: "c4", titre: "Installation Baobab", day: 7, statut: "En cours", tone: "ok" },
-  { id: "c5", titre: "Finitions Soro", day: 8, statut: "En cours", tone: "ok" },
-  { id: "c6", titre: "Sécurisation Horizon", day: 11, statut: "En retard", tone: "critical" },
-  { id: "c7", titre: "Mobilier marchés", day: 13, statut: "Planifiée", tone: "warning" },
-  { id: "c8", titre: "Rénovation Amara", day: 15, statut: "En cours", tone: "ok" },
-  { id: "c9", titre: "Peinture école Yopougon", day: 18, statut: "Terminée", tone: "ok" },
-  { id: "c10", titre: "Toiture clinique Horizon", day: 22, statut: "Planifiée", tone: "warning" },
-];
-
-const demoAlerts: OpsAlert[] = [
-  { id: "oa1", severity: "critical", title: "Mission bloquée", detail: "Dépannage N'Dri · pointage hors rayon · 3 h sans confirmation" },
-  { id: "oa2", severity: "critical", title: "Retard critique", detail: "Chantier Koffi · 7 h 05 d'exécution · échéance dépassée" },
-  { id: "oa3", severity: "warning", title: "Validation urgente", detail: "Rénovation Amara · rapport soumis · en attente depuis 1 jour" },
-  { id: "oa4", severity: "warning", title: "Pointage manquant", detail: "Équipe Delta · arrivée non pointée sur le site Baobab" },
-  { id: "oa5", severity: "info", title: "Équipe absente", detail: "Équipe Foxtrot · pas encore sortie · mission planifiée à 16:00" },
-];
-
-const demoPerformance: OpsOverview["performance"] = {
-  missionsSeries: [
-    { label: "Août", value: 21 }, { label: "Sept.", value: 26 }, { label: "Oct.", value: 24 },
-    { label: "Nov.", value: 29 }, { label: "Déc.", value: 27 }, { label: "Janv.", value: 33 },
-    { label: "Févr.", value: 31 }, { label: "Mars", value: 36 }, { label: "Avr.", value: 34 },
-    { label: "Mai", value: 39 }, { label: "Juin", value: 41 }, { label: "Juil.", value: 44 },
-  ],
-  teamPerformance: [
-    { name: "Alpha", value: 92, color: "#38bdf8" },
-    { name: "Bravo", value: 78, color: "#fb7185" },
-    { name: "Charlie", value: 96, color: "#34d399" },
-    { name: "Delta", value: 88, color: "#e3a641" },
-    { name: "Echo", value: 90, color: "#a78bfa" },
-  ],
-  avgDurationHours: 6.4,
-  delais: [
-    { name: "Dans les délais", value: 137, color: "#34d399" },
-    { name: "En retard", value: 9, color: "#fb7185" },
-  ],
-  delaisRespect: 93.8,
-};
 
 /* Utilitaires                                                         */
 
@@ -324,23 +230,6 @@ export async function loadOpsOverview(): Promise<OpsOverview> {
   const ranking = rankingResult.status === "fulfilled" ? rankingResult.value : null;
   const audits = auditResult.status === "fulfilled" ? auditResult.value : [];
   const clients = clientsResult.status === "fulfilled" ? clientsResult.value : [];
-
-  if (missions.length === 0) {
-    return {
-      source: "demo",
-      updatedAt: now,
-      status: "retards",
-      missionsToday: 9,
-      kpis: demoKpis,
-      mapMissions: demoMapMissions,
-      priorityMissions: demoTasks,
-      teams: demoTeams,
-      timeline: demoTimeline,
-      calendar: demoCalendar,
-      alerts: demoAlerts,
-      performance: demoPerformance,
-    };
-  }
 
   const clientNameById = new Map(clients.map((client) => [client.id, [client.user?.first_name, client.user?.last_name].filter(Boolean).join(" ") || client.user?.email || "Client"]));
 
@@ -484,7 +373,6 @@ export async function loadOpsOverview(): Promise<OpsOverview> {
         time: relativeTime(mission.created_at),
       });
     }
-    timeline.push(...demoTimeline.slice(0, 2));
   }
   timeline.splice(7);
 
@@ -604,15 +492,15 @@ export async function loadOpsOverview(): Promise<OpsOverview> {
     status,
     missionsToday,
     kpis,
-    mapMissions: mapMissions.length > 0 ? mapMissions : demoMapMissions,
-    priorityMissions: priorityMissions.length > 0 ? priorityMissions : demoTasks,
-    teams: teams.length > 0 ? teams : demoTeams,
+    mapMissions,
+    priorityMissions,
+    teams,
     timeline,
-    calendar: calendar.length > 0 ? calendar : demoCalendar,
+    calendar,
     alerts,
     performance: {
       missionsSeries,
-      teamPerformance: teamPerformance.length > 0 ? teamPerformance : demoPerformance.teamPerformance,
+      teamPerformance,
       avgDurationHours: Math.round(avgDurationHours * 10) / 10,
       delais,
       delaisRespect: Math.round(delaisRespect * 10) / 10,
@@ -634,16 +522,7 @@ export type VitrinePage = {
   updated_at: string;
 };
 
-export const demoSecVitrinePages: VitrinePage[] = [
-  { id: "vp1", titre: "Accueil", route: "/", statut: "PUBLIE", section: "principale", visites: 12480, updated_at: "2026-08-10T09:00:00.000Z" },
-  { id: "vp2", titre: "Services", route: "/services", statut: "PUBLIE", section: "principale", visites: 8932, updated_at: "2026-08-08T14:30:00.000Z" },
-  { id: "vp3", titre: "Boutique — Espace Wu", route: "/boutique", statut: "PUBLIE", section: "principale", visites: 5410, updated_at: "2026-08-12T10:00:00.000Z" },
-  { id: "vp4", titre: "À propos", route: "/a-propos", statut: "PUBLIE", section: "support", visites: 2105, updated_at: "2026-07-28T16:20:00.000Z" },
-  { id: "vp5", titre: "Blog & conseils", route: "/blog", statut: "PUBLIE", section: "contenu", visites: 3822, updated_at: "2026-08-11T11:45:00.000Z" },
-  { id: "vp6", titre: "Recrutement ouvriers", route: "/recrutement", statut: "BROUILLON", section: "principale", visites: 0, updated_at: "2026-08-12T08:00:00.000Z" },
-  { id: "vp7", titre: "Mode2Vie [Lifestyle]™", route: "/mode2vie", statut: "BROUILLON", section: "contenu", visites: 0, updated_at: "2026-08-13T07:30:00.000Z" },
-  { id: "vp8", titre: "Contact & devis", route: "/contact", statut: "PUBLIE", section: "support", visites: 1876, updated_at: "2026-07-15T09:10:00.000Z" },
-];
+export const demoSecVitrinePages: VitrinePage[] = [];
 
 export const vitrineSectionMeta: Record<VitrinePage["section"], { label: string; tile: string }> = {
   principale: { label: "Vitrine", tile: "bg-[#e3a641]/15 text-[#f2c56d]" },
@@ -680,93 +559,5 @@ export const conversationRoleMeta: Record<ConversationRole, { label: string; dot
   secretaire: { label: "Secrétariat", dot: "bg-slate-400" },
 };
 
-export const demoSecConversations: ConversationThread[] = [
-  {
-    id: "cv1",
-    kind: "partenaire",
-    role: "fournisseur",
-    nom: "BatiPro CI",
-    detail: "Réapprovisionnement ciment et peinture",
-    avatar: "BP",
-    unread: 2,
-    derniereActivite: "il y a 12 min",
-    messages: [
-      { id: "m1", auteur: "eux", texte: "Bonjour, votre commande de 200 sacs de ciment est prête. Livraison jeudi ?", heure: "09:41", lu: true },
-      { id: "m2", auteur: "moi", texte: "Parfait. Je confirme la livraison jeudi à l'Espace Wu Porto-Novo, à partir de 8h.", heure: "09:52", lu: true },
-      { id: "m3", auteur: "eux", texte: "Noté. La peinture acrylique est en rupture chez notre sous-traitant, délai de 10 jours.", heure: "10:05", lu: true },
-      { id: "m4", auteur: "eux", texte: "Voulez-vous que je bloque les 60 seaux au tarif actuel ?", heure: "10:06", lu: false },
-    ],
-  },
-  {
-    id: "cv2",
-    kind: "communaut",
-    role: "ouvriers",
-    nom: "Équipe Porto-Novo",
-    detail: "54 membres · points de la semaine",
-    avatar: "EP",
-    unread: 5,
-    derniereActivite: "il y a 26 min",
-    messages: [
-      { id: "m1", auteur: "eux", texte: "Bravo à Yao Christian, mission terminée en avance ce matin !", heure: "07:12", lu: true },
-      { id: "m2", auteur: "moi", texte: "Excellente semaine à tous. Rappel : photos de chantier avant 17h.", heure: "07:30", lu: true },
-      { id: "m3", auteur: "eux", texte: "Besoin d'un créneau pour la formation pointage mobile jeudi.", heure: "07:44", lu: true },
-      { id: "m4", auteur: "eux", texte: "Le chantier de la Résidence Koffi a besoin de 2 renforts demain.", heure: "07:45", lu: false },
-      { id: "m5", auteur: "eux", texte: "Qui est disponible ?", heure: "07:46", lu: false },
-    ],
-  },
-  {
-    id: "cv3",
-    kind: "partenaire",
-    role: "partenariat",
-    nom: "Réseau Banque Atlantique",
-    detail: "Convention salaires ouvriers",
-    avatar: "BA",
-    unread: 1,
-    derniereActivite: "il y a 1 h",
-    messages: [
-      { id: "m1", auteur: "eux", texte: "La convention de virement des salaires est validée côté banque. Merci d'envoyer le RIB de votre filiale.", heure: "11:02", lu: false },
-    ],
-  },
-  {
-    id: "cv4",
-    kind: "communaut",
-    role: "membres",
-    nom: "Membres WUGAMS Cleans",
-    detail: "128 membres · offres d'août",
-    avatar: "MW",
-    unread: 0,
-    derniereActivite: "il y a 3 h",
-    messages: [
-      { id: "m1", auteur: "moi", texte: "L'offre d'août est en ligne : -20 % sur les abonnements 6 mois.", heure: "08:15", lu: true },
-      { id: "m2", auteur: "eux", texte: "Super initiative, déjà 12 inscriptions ce matin !", heure: "08:40", lu: true },
-    ],
-  },
-  {
-    id: "cv5",
-    kind: "partenaire",
-    role: "secretaire",
-    nom: "Mariam Bamba — Secrétariat",
-    detail: "Validations de fiches et devis",
-    avatar: "MB",
-    unread: 0,
-    derniereActivite: "hier",
-    messages: [
-      { id: "m1", auteur: "eux", texte: "Les 3 devis de la semaine sont prêts pour votre signature.", heure: "16:20", lu: true },
-      { id: "m2", auteur: "moi", texte: "Je passe les valider demain matin. Merci Mariam.", heure: "16:45", lu: true },
-    ],
-  },
-  {
-    id: "cv6",
-    kind: "partenaire",
-    role: "filiale",
-    nom: "Filiale Cotonou",
-    detail: "Coordination chantiers et stocks",
-    avatar: "FC",
-    unread: 0,
-    derniereActivite: "hier",
-    messages: [
-      { id: "m1", auteur: "eux", texte: "Le stock de ciment passe en réapprovisionnement requis. Bon de commande envoyé.", heure: "14:10", lu: true },
-    ],
-  },
-];
+export const demoSecConversations: ConversationThread[] = [];
 

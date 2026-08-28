@@ -182,7 +182,7 @@ export type BranchHealth = {
 };
 
 export type BranchOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   filiale: { id: string; nom: string; code: string };
   health: BranchHealth;
@@ -208,46 +208,8 @@ export type BranchOverview = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Données de repli (démo — uniquement si l'API est indisponible)      */
+/* Utilitaires                                                         */
 /* ------------------------------------------------------------------ */
-
-const demoFiliale = { id: "fl-demo", nom: "WUGAMS Matériaux", code: "WGM-ABJ" };
-
-const demoHealth: BranchHealth = {
-  level: "attention",
-  score: 72,
-  factors: [
-    { label: "Missions en retard", ok: false },
-    { label: "Ruptures de stock", ok: true },
-    { label: "Factures en retard", ok: true },
-    { label: "Disponibilité des équipes", ok: true },
-    { label: "Rendement moyen", ok: true },
-    { label: "Alertes actives", ok: false },
-  ],
-};
-
-const demoKpis: BranchKpi[] = [
-  { key: "missions_retard", label: "Missions en retard", value: "2", change: "−1", trend: "down", icon: "clock", spark: [4, 4, 3, 3, 4, 3, 2, 3, 2, 2, 3, 2], caption: "à suivre aujourd'hui", href: "/espace/missions" },
-  { key: "ruptures", label: "Produits en rupture", value: "3", change: "−1", trend: "down", icon: "boxes", spark: [5, 5, 4, 4, 5, 4, 4, 3, 3, 4, 3, 3], caption: "impact chantiers : 1", href: "/espace/stocks" },
-  { key: "factures_retard", label: "Factures en retard", value: "2", change: "0", trend: "flat", icon: "bell", spark: [3, 3, 2, 2, 3, 2, 2, 3, 2, 2, 2, 2], caption: "relance conseillée", href: "/espace/factures" },
-  { key: "commandes", label: "Commandes en cours", value: "4", change: "+1", trend: "up", icon: "shopping-bag", spark: [2, 3, 2, 3, 3, 2, 3, 4, 3, 3, 4, 4], caption: "chez les fournisseurs", href: "/espace/stocks" },
-  { key: "utilisateurs", label: "Utilisateurs de la filiale", value: "18", change: "+2", trend: "up", icon: "users", spark: [12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 18, 18], caption: "dont 9 ouvriers", href: "/espace/utilisateurs" },
-  { key: "missions_actives", label: "Missions actives", value: "7", change: "+3", trend: "up", icon: "hardhat", spark: [3, 4, 3, 5, 4, 5, 6, 5, 6, 7, 6, 7], caption: "sur 14 planifiées", href: "/espace/missions" },
-  { key: "produits_dispo", label: "Produits disponibles", value: "112", change: "+6", trend: "up", icon: "package", spark: [84, 88, 91, 93, 97, 99, 102, 104, 106, 108, 110, 112], caption: "au catalogue de la filiale", href: "/espace/stocks" },
-  { key: "a_reappro", label: "À réapprovisionner", value: "11", change: "+3", trend: "up", icon: "warning", spark: [6, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 11], caption: "sous le seuil minimum", href: "/espace/stocks" },
-  { key: "factures_cours", label: "Factures en cours", value: "9", change: "+2", trend: "up", icon: "file-text", spark: [5, 6, 7, 6, 8, 7, 9, 8, 9, 8, 9, 9], caption: "émises et brouillons", href: "/espace/factures" },
-  { key: "rendement", label: "Rendement moyen des équipes", value: "78 %", change: "+4 pts", trend: "up", icon: "chart", spark: [66, 68, 70, 69, 72, 71, 74, 73, 75, 76, 75, 78], caption: "sur le cycle en cours", href: "/espace/evaluations" },
-];
-
-const demoAlerts: BranchAlert[] = [
-  { id: "ba1", level: "critique", category: "stock", title: "Rupture de stock", detail: "Ciment CPJ 42,5 : 0 unité restante, 3 chantiers impactés.", time: "Il y a 12 min", entity: "Ciment CPJ 42,5", action: { label: "Voir le stock", href: "/espace/stocks" } },
-  { id: "ba2", level: "critique", category: "facture", title: "Facture en retard", detail: "FAC-2026-0184 (42 j) dépasse son échéance de 9 jours.", time: "Il y a 1 h", entity: "FAC-2026-0184", action: { label: "Voir la facture", href: "/espace/factures" } },
-  { id: "ba3", level: "urgent", category: "mission", title: "Mission en retard", detail: "Rénovation villa Koné — pointage attendu depuis 2 h.", time: "Il y a 2 h", entity: "Rénovation villa Koné", action: { label: "Voir la mission", href: "/espace/missions" } },
-  { id: "ba4", level: "urgent", category: "stock", title: "Réapprovisionnement requis", detail: "Fer HA12 : 145 barres restantes, seuil à 300.", time: "Il y a 3 h", entity: "Fer à béton HA12", action: { label: "Voir le stock", href: "/espace/stocks" } },
-  { id: "ba5", level: "attention", category: "reception", title: "Réception à confirmer", detail: "Livraison carrelage 60×60 reçue — confirmation en attente.", time: "Il y a 5 h", entity: "CMD-2026-0140", action: { label: "Confirmer", href: "/espace/stocks" } },
-  { id: "ba6", level: "attention", category: "rendement", title: "Rendement en baisse", detail: "L'équipe Atelier affiche 61 % ce cycle (moyenne 78 %).", time: "Hier", entity: "Équipe Atelier", action: { label: "Voir les évaluations", href: "/espace/evaluations" } },
-  { id: "ba7", level: "info", category: "utilisateur", title: "Utilisateur inactif", detail: "Kouassi Jean n'a pas d'activité depuis 30 jours.", time: "Hier", entity: "Kouassi Jean", action: { label: "Voir le profil", href: "/espace/utilisateurs" } },
-];
 
 const statutLabels: Record<MissionStatut, string> = {
   PLANIFIE: "Planifiée",
@@ -269,132 +231,6 @@ const statutProgression: Record<MissionStatut, number> = {
   RAPPORT_SOUMIS: 80,
   VALIDE: 95,
   TERMINE: 100,
-};
-
-const demoMissions: BranchMissionRow[] = [
-  { id: "m1", titre: "Rénovation villa Koné", client: "David Koné", ouvrier: "Yao Kouassi", lieu: "Bingerville", date: "Aujourd'hui, 08:00", progression: 60, statut: "EN_COURS", statutLabel: "En cours", dernierPointage: "07:58 · arrivée", photos: 12, anomalieGps: false, retard: false },
-  { id: "m2", titre: "Nettoyage bureaux SOCIMEX", client: "Groupe Socimex", ouvrier: "Awa Traoré", lieu: "Plateau, Abidjan", date: "Aujourd'hui, 09:30", progression: 15, statut: "NOTIFIE", statutLabel: "Notifiée", dernierPointage: null, photos: 0, anomalieGps: false, retard: false },
-  { id: "m3", titre: "Chantier atelier rive droite", client: "SCI Les Palmiers", ouvrier: "Mamadou Diallo", lieu: "Yopougon", date: "Hier, 14:00", progression: 60, statut: "EN_COURS", statutLabel: "En cours", dernierPointage: "08:04 · sortie hors rayon", photos: 8, anomalieGps: true, retard: true },
-  { id: "m4", titre: "Peinture façade résidence Aya", client: "Aya N'Guessan", ouvrier: "Jean Kouassi", lieu: "Marcory", date: "Hier, 10:00", progression: 80, statut: "RAPPORT_SOUMIS", statutLabel: "Rapport soumis", dernierPointage: "16:02 · sortie", photos: 21, anomalieGps: false, retard: false },
-  { id: "m5", titre: "Livraison matériaux chantier Koffi", client: "Patrick Koffi", ouvrier: "Équipe Logistique", lieu: "Cocody", date: "Demain, 07:00", progression: 5, statut: "PLANIFIE", statutLabel: "Planifiée", dernierPointage: null, photos: 0, anomalieGps: false, retard: false },
-];
-
-const demoMapMissions: BranchMapMission[] = [
-  { id: "m1", titre: "Rénovation villa Koné", lat: 5.366, lng: -3.985, statut: "EN_COURS", statutLabel: "En cours", client: "David Koné", ouvrier: "Yao Kouassi", horaires: "08:00 – 16:00", progression: 60, dernierPointage: "07:58 · arrivée" },
-  { id: "m2", titre: "Nettoyage bureaux SOCIMEX", lat: 5.322, lng: -4.017, statut: "NOTIFIE", statutLabel: "Notifiée", client: "Groupe Socimex", ouvrier: "Awa Traoré", horaires: "09:30 – 15:30", progression: 15, dernierPointage: null },
-  { id: "m3", titre: "Chantier atelier rive droite", lat: 5.348, lng: -4.073, statut: "EN_COURS", statutLabel: "En cours · anomalie GPS", client: "SCI Les Palmiers", ouvrier: "Mamadou Diallo", horaires: "07:00 – 13:00", progression: 60, dernierPointage: "08:04 · sortie hors rayon" },
-  { id: "m4", titre: "Peinture façade résidence Aya", lat: 5.304, lng: -3.991, statut: "RAPPORT_SOUMIS", statutLabel: "Rapport soumis", client: "Aya N'Guessan", ouvrier: "Jean Kouassi", horaires: "10:00 – 17:00", progression: 80, dernierPointage: "16:02 · sortie" },
-];
-
-const demoStock: BranchStock = {
-  totalUnits: 52_840,
-  totalValue: "186,4 M FCFA",
-  produitsCount: 112,
-  belowThreshold: 11,
-  ruptures: 3,
-  pendingReceptions: 2,
-  flux: [
-    { label: "Févr.", entrees: 82, sortiesVente: 41, sortiesChantier: 30, ajustements: 4 },
-    { label: "Mars", entrees: 95, sortiesVente: 46, sortiesChantier: 32, ajustements: 3 },
-    { label: "Avr.", entrees: 89, sortiesVente: 52, sortiesChantier: 31, ajustements: 5 },
-    { label: "Mai", entrees: 106, sortiesVente: 55, sortiesChantier: 37, ajustements: 2 },
-    { label: "Juin", entrees: 112, sortiesVente: 58, sortiesChantier: 40, ajustements: 4 },
-    { label: "Juil.", entrees: 121, sortiesVente: 61, sortiesChantier: 43, ajustements: 3 },
-  ],
-  critical: [
-    { id: "c1", reference: "CIM-425", nom: "Ciment CPJ 42,5 (sac 50 kg)", quantite: 0, seuil: 200, fournisseur: "BatiPro CI", statut: "RUPTURE", derniereModification: "Aujourd'hui, 08:12", priorite: "urgente" },
-    { id: "c2", reference: "FER-HA12", nom: "Fer à béton HA12 (barre)", quantite: 145, seuil: 300, fournisseur: "Matériaux Bénin", statut: "REAPPROVISIONNEMENT_REQUIS", derniereModification: "Hier, 16:40", priorite: "urgente" },
-    { id: "c3", reference: "PEI-25B", nom: "Peinture acrylique blanche (pot 25 kg)", quantite: 32, seuil: 60, fournisseur: "ColorPro", statut: "REAPPROVISIONNEMENT_REQUIS", derniereModification: "Hier, 11:05", priorite: "haute" },
-    { id: "c4", reference: "CAR-60G", nom: "Carrelage 60×60 grès (boîte)", quantite: 58, seuil: 90, fournisseur: "Ceramica Plus", statut: "DISPONIBLE", derniereModification: "Il y a 3 j", priorite: "haute" },
-    { id: "c5", reference: "ELE-25R", nom: "Fil électrique 2,5 mm² (rouleau 100 m)", quantite: 0, seuil: 70, fournisseur: "ÉlectroDiffusion", statut: "RUPTURE", derniereModification: "Il y a 4 j", priorite: "urgente" },
-  ],
-};
-
-const demoSuppliers: BranchSupplier[] = [
-  { id: "s1", raisonSociale: "BatiPro CI", contact: "Sékou Coulibaly", telephone: "+225 07 08 45 12", adresse: "Zone industrielle, Abidjan", produits: 34, commandes: 2, derniereActivite: "Aujourd'hui, 08:12", statut: "actif" },
-  { id: "s2", raisonSociale: "Matériaux Bénin", contact: "Yves Hounkpatin", telephone: "+229 01 96 44 30", adresse: "Cotonou, Bénin", produits: 22, commandes: 1, derniereActivite: "Hier, 16:40", statut: "actif" },
-  { id: "s3", raisonSociale: "Ceramica Plus", contact: "Nadia Fofana", telephone: "+225 05 55 12 78", adresse: "Marcory, Abidjan", produits: 18, commandes: 1, derniereActivite: "Il y a 3 j", statut: "regulier" },
-  { id: "s4", raisonSociale: "ÉlectroDiffusion", contact: "Paul Assi", telephone: "+225 07 47 90 21", adresse: "Treichville, Abidjan", produits: 15, commandes: 0, derniereActivite: "Il y a 6 j", statut: "regulier" },
-  { id: "s5", raisonSociale: "ColorPro", contact: "Mariam Bamba", telephone: "+225 01 02 88 45", adresse: "Cocody, Abidjan", produits: 11, commandes: 0, derniereActivite: "Il y a 15 j", statut: "inactif" },
-];
-
-const demoClients: BranchClient[] = [
-  { id: "cl1", nom: "David Koné", type: "MEMBRE", telephone: "+225 07 55 41 90", email: "david.kone@mail.com", missions: 4, commandes: 1, factures: 3, derniereActivite: "Aujourd'hui" },
-  { id: "cl2", nom: "Groupe Socimex", type: "STANDARD", telephone: "+225 27 21 35 80", email: "contact@socimex.ci", missions: 6, commandes: 2, factures: 5, derniereActivite: "Hier" },
-  { id: "cl3", nom: "SCI Les Palmiers", type: "MEMBRE", telephone: "+225 05 66 20 14", email: "gestion@palmiers.ci", missions: 3, commandes: 0, factures: 4, derniereActivite: "Il y a 2 j" },
-  { id: "cl4", nom: "Aya N'Guessan", type: "STANDARD", telephone: "+225 01 41 77 36", email: "aya.ng@mail.com", missions: 2, commandes: 0, factures: 2, derniereActivite: "Hier" },
-  { id: "cl5", nom: "Patrick Koffi", type: "MEMBRE", telephone: "+225 07 09 63 52", email: "p.koffi@mail.com", missions: 5, commandes: 3, factures: 6, derniereActivite: "Il y a 4 j" },
-];
-
-const demoInvoices: BranchOverview["invoices"] = {
-  kpis: [
-    { key: "total", label: "Total facturé", value: "38,6 M FCFA", change: "+9,2 %", icon: "chart", tone: "good" },
-    { key: "payees", label: "Factures payées", value: "14", change: "+3", icon: "check", tone: "good" },
-    { key: "emises", label: "Factures émises", value: "9", change: "+2", icon: "file-text", tone: "neutral" },
-    { key: "retard", label: "Factures en retard", value: "2", change: "0", icon: "warning", tone: "bad" },
-    { key: "attente", label: "Montant en attente", value: "11,2 M FCFA", change: "5 factures", icon: "clock", tone: "warn" },
-  ],
-  list: [
-    { id: "f1", numero: "FAC-2026-0184", client: "SCI Les Palmiers", montantHt: "4 800 000", montantTtc: "5 664 000", date: "12 juin", echeance: "28 juin", statut: "EN_RETARD", statutTone: "bad", mission: "Chantier atelier", retard: true },
-    { id: "f2", numero: "FAC-2026-0183", client: "Groupe Socimex", montantHt: "3 200 000", montantTtc: "3 776 000", date: "18 juin", echeance: "03 juillet", statut: "EMISE", statutTone: "warn", mission: "Nettoyage bureaux", retard: false },
-    { id: "f3", numero: "FAC-2026-0182", client: "David Koné", montantHt: "2 750 000", montantTtc: "3 245 000", date: "25 juin", echeance: "10 juillet", statut: "EMISE", statutTone: "warn", mission: "Rénovation villa", retard: false },
-    { id: "f4", numero: "FAC-2026-0181", client: "Patrick Koffi", montantHt: "1 900 000", montantTtc: "2 242 000", date: "02 juin", echeance: "17 juin", statut: "PAYEE", statutTone: "good", mission: "Livraison matériaux", retard: false },
-    { id: "f5", numero: "FAC-2026-0180", client: "Aya N'Guessan", montantHt: "980 000", montantTtc: "1 156 400", date: "28 mai", echeance: "12 juin", statut: "PAYEE", statutTone: "good", mission: "Peinture façade", retard: false },
-  ],
-  trend: [
-    { label: "Févr.", valeur: 3.1 }, { label: "Mars", valeur: 4.4 }, { label: "Avr.", valeur: 3.8 },
-    { label: "Mai", valeur: 5.2 }, { label: "Juin", valeur: 6.1 }, { label: "Juil.", valeur: 6.8 },
-  ],
-};
-
-const demoTeam: BranchTeamMember[] = [
-  { id: "t1", initiales: "YA", nom: "Yao Kouassi", role: "Ouvrier", telephone: "+225 07 12 45 89", actif: true, derniereActivite: "Aujourd'hui, 08:01", missions: 12, rendement: 82 },
-  { id: "t2", initiales: "AT", nom: "Awa Traoré", role: "Ouvrier", telephone: "+225 05 44 78 21", actif: true, derniereActivite: "Aujourd'hui, 09:15", missions: 9, rendement: 79 },
-  { id: "t3", initiales: "MD", nom: "Mamadou Diallo", role: "Ouvrier", telephone: "+225 01 87 33 60", actif: true, derniereActivite: "Aujourd'hui, 08:04", missions: 14, rendement: 74 },
-  { id: "t4", initiales: "JK", nom: "Jean Kouassi", role: "Resp. ouvriers", telephone: "+225 07 66 09 12", actif: true, derniereActivite: "Hier, 18:30", missions: 6, rendement: 88 },
-  { id: "t5", initiales: "AG", nom: "Aminata Gbagbo", role: "Secrétaire", telephone: "+225 05 20 77 45", actif: false, derniereActivite: "Il y a 30 j", missions: 0, rendement: null },
-];
-
-const demoEvaluations: BranchOverview["evaluations"] = {
-  ranking: [
-    { id: "e1", personne: "Jean Kouassi", total: 312, rendement: 87, rang: 1, evolution: "up" },
-    { id: "e2", personne: "Yao Kouassi", total: 296, rendement: 82, rang: 2, evolution: "up" },
-    { id: "e3", personne: "Awa Traoré", total: 285, rendement: 79, rang: 3, evolution: "stable" },
-    { id: "e4", personne: "Mamadou Diallo", total: 267, rendement: 74, rang: 4, evolution: "down" },
-    { id: "e5", personne: "Salif Traoré", total: 219, rendement: 61, rang: 5, evolution: "down" },
-  ],
-  radar: [
-    { critere: "S1 · Sécurité", moyenne: 34 },
-    { critere: "S2 · Santé", moyenne: 31 },
-    { critere: "S3 · Sincérité", moyenne: 33 },
-    { critere: "S4 · Sérénité", moyenne: 29 },
-    { critere: "S5 · Simplicité", moyenne: 30 },
-    { critere: "S6 · Service", moyenne: 35 },
-    { critere: "S7 · Spécialisation", moyenne: 32 },
-    { critere: "S8 · Sourire", moyenne: 31 },
-    { critere: "S9 · Appartenance", moyenne: 34 },
-  ],
-};
-
-const demoActivity: BranchActivityItem[] = [
-  { id: "a1", icon: "package", auteur: "Awa Traoré", action: "Produit ajouté", entite: "Mastic acrylique · MAS-01", date: "Aujourd'hui", heure: "09:20" },
-  { id: "a2", icon: "arrow-down", auteur: "Jean Kouassi", action: "Mouvement de stock", entite: "Ciment CPJ 42,5 · entrée +600 sacs", date: "Aujourd'hui", heure: "08:47" },
-  { id: "a3", icon: "check", auteur: "Système", action: "Réception confirmée", entite: "CMD-2026-0140 · Carrelage 60×60", date: "Hier", heure: "17:05" },
-  { id: "a4", icon: "hardhat", auteur: "Yao Kouassi", action: "Mission démarrée", entite: "Rénovation villa Koné", date: "Hier", heure: "08:00" },
-  { id: "a5", icon: "file-text", auteur: "Secrétariat", action: "Facture émise", entite: "FAC-2026-0183 · Groupe Socimex", date: "Hier", heure: "11:32" },
-  { id: "a6", icon: "user-plus", auteur: "Direction", action: "Utilisateur rattaché", entite: "Fatou Ndiaye · Ouvrier", date: "Il y a 2 j", heure: "14:10" },
-  { id: "a7", icon: "chart", auteur: "Jean Kouassi", action: "Évaluation créée", entite: "Cycle 2026-T1 · Awa Traoré", date: "Il y a 2 j", heure: "10:03" },
-];
-
-const demoNotifications: { list: BranchNotification[]; unread: number } = {
-  list: [
-    { id: "n1", lu: false, type: "stock_critique", message: "Rupture de stock : Ciment CPJ 42,5 (0 restante).", createdAt: "Il y a 12 min" },
-    { id: "n2", lu: false, type: "mission_retard", message: "Mission « Chantier atelier rive droite » en retard.", createdAt: "Il y a 2 h" },
-    { id: "n3", lu: false, type: "reception", message: "Réception carrelage 60×60 à confirmer.", createdAt: "Il y a 5 h" },
-    { id: "n4", lu: true, type: "facture", message: "FAC-2026-0183 émise pour Groupe Socimex.", createdAt: "Hier" },
-    { id: "n5", lu: true, type: "evaluation", message: "Nouvelle évaluation : Awa Traoré (cycle T1).", createdAt: "Il y a 2 j" },
-  ],
-  unread: 3,
 };
 
 /* ------------------------------------------------------------------ */
@@ -508,32 +344,6 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
       notificationsApi.listNotifications(),
     ]);
 
-  const apiDown =
-    usersResult.status !== "fulfilled" &&
-    missionsResult.status !== "fulfilled" &&
-    produitsResult.status !== "fulfilled";
-
-  if (apiDown) {
-    return {
-      source: "demo",
-      updatedAt: now,
-      filiale: demoFiliale,
-      health: demoHealth,
-      kpis: demoKpis,
-      alerts: demoAlerts,
-      missions: demoMissions,
-      mapMissions: demoMapMissions,
-      stock: demoStock,
-      suppliers: demoSuppliers,
-      clients: demoClients,
-      invoices: demoInvoices,
-      team: demoTeam,
-      evaluations: demoEvaluations,
-      activity: demoActivity,
-      notifications: demoNotifications,
-    };
-  }
-
   const allUsers = usersResult.status === "fulfilled" ? usersResult.value : [];
   const allMissions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
   const allFactures = facturesResult.status === "fulfilled" ? facturesResult.value : [];
@@ -553,8 +363,8 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
   const fournisseurs = allFournisseurs.filter((fournisseur) => !filialeId || produits.some((produit) => produit.fournisseur_id === fournisseur.id));
   const evaluations = allEvaluations.filter((evaluation) => userIds.has(evaluation.personne_id));
 
-  const filialeNom = produits.find((produit) => produit.filiale?.nom)?.filiale?.nom ?? (users.find((user) => user.filiale?.nom)?.filiale?.nom ?? demoFiliale.nom);
-  const filialeCode = produits.find((produit) => produit.filiale?.code)?.filiale?.code ?? (users.find((user) => user.filiale?.code)?.filiale?.code ?? demoFiliale.code);
+  const filialeNom = produits.find((produit) => produit.filiale?.nom)?.filiale?.nom ?? (users.find((user) => user.filiale?.nom)?.filiale?.nom ?? "WUGAMS");
+  const filialeCode = produits.find((produit) => produit.filiale?.code)?.filiale?.code ?? (users.find((user) => user.filiale?.code)?.filiale?.code ?? "");
 
   const clientNomById = new Map(allClients.map((client) => [client.id, client.user ? `${client.user.first_name} ${client.user.last_name}`.trim() : "Client non renseigné"]));
 
@@ -650,7 +460,7 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
     ruptures: ruptures.length,
     pendingReceptions: enCommande.length,
     flux,
-    critical: critical.length > 0 ? critical : demoStock.critical,
+    critical: critical.length > 0 ? critical : [],
   };
 
   /* --- Fournisseurs ------------------------------------------------------ */
@@ -913,7 +723,6 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
         heure: new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(new Date(mouvement.created_at)),
       });
     }
-    activity.push(...demoActivity.slice(3, 6));
   }
   activity.splice(8);
 
@@ -965,20 +774,20 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
   return {
     source: "api",
     updatedAt: now,
-    filiale: { id: filialeId ?? demoFiliale.id, nom: filialeNom, code: filialeCode },
+    filiale: { id: filialeId ?? "", nom: filialeNom, code: filialeCode },
     health: { level, score, factors },
     kpis,
-    alerts: alerts.length > 0 ? alerts : demoAlerts,
-    missions: missionRows.length > 0 ? missionRows : demoMissions,
-    mapMissions: mapMissions.length > 0 ? mapMissions : demoMapMissions,
+    alerts,
+    missions: missionRows,
+    mapMissions,
     stock,
-    suppliers: suppliers.length > 0 ? suppliers : demoSuppliers,
-    clients: clientsView.length > 0 ? clientsView : demoClients,
+    suppliers,
+    clients: clientsView,
     invoices,
-    team: team.length > 0 ? team : demoTeam,
-    evaluations: { ranking: ranking.length > 0 ? ranking : demoEvaluations.ranking, radar: radar.length > 0 ? radar : demoEvaluations.radar },
-    activity: activity.length > 0 ? activity : demoActivity,
-    notifications: { list: notifications, unread: unread > 0 ? unread : demoNotifications.unread },
+    team,
+    evaluations: { ranking, radar },
+    activity,
+    notifications: { list: notifications, unread },
   };
 }
 

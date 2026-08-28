@@ -87,7 +87,7 @@ export type ExecutiveFinance = {
 };
 
 export type ExecutiveOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   health: ExecutiveHealth;
   kpis: ExecutiveKpi[];
@@ -101,76 +101,6 @@ export type ExecutiveOverview = {
   unread: number;
   missionCounters: { label: string; count: number; tone: "neutral" | "info" | "success" | "danger" }[];
 };
-
-/* ------------------------------------------------------------------ */
-/* Données de repli (démo — uniquement si l'API est indisponible)      */
-/* ------------------------------------------------------------------ */
-
-const demoKpis: ExecutiveKpi[] = [
-  { key: "ca", label: "Chiffre d'affaires", value: "41,8 M FCFA", change: "+12,8 %", trend: "up", icon: "chart", spark: [24, 28, 26, 32, 30, 36, 34, 41, 38, 44, 42, 48], caption: "vs. mois précédent" },
-  { key: "factures", label: "Factures", value: "128", change: "+6,4 %", trend: "up", icon: "file-text", spark: [14, 16, 15, 18, 17, 19, 21, 20, 22, 21, 23, 24], caption: "64 encaissées ce mois" },
-  { key: "clients", label: "Clients", value: "342", change: "+9,1 %", trend: "up", icon: "users", spark: [20, 22, 24, 23, 26, 25, 28, 30, 29, 32, 34, 36], caption: "18 membres actifs" },
-  { key: "fournisseurs", label: "Fournisseurs", value: "27", change: "+2 parts", trend: "up", icon: "truck", spark: [10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16], caption: "2 nouveaux partenaires" },
-  { key: "filiales", label: "Filiales", value: "4", change: "Stable", trend: "flat", icon: "building", spark: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], caption: "2 en expansion" },
-  { key: "employes", label: "Employés", value: "86", change: "+4,9 %", trend: "up", icon: "hardhat", spark: [30, 31, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44], caption: "76 sur le terrain" },
-  { key: "missions", label: "Missions actives", value: "23", change: "-2", trend: "down", icon: "clipboard", spark: [18, 20, 22, 21, 24, 23, 25, 24, 26, 25, 24, 23], caption: "sur 41 planifiées" },
-  { key: "stock", label: "Stock disponible", value: "1 214", change: "+3,2 %", trend: "up", icon: "boxes", spark: [40, 42, 41, 43, 45, 44, 46, 48, 47, 49, 50, 52], caption: "unités · 4 dépôts" },
-];
-
-const demoAlerts: ExecutiveAlert[] = [
-  { id: "a1", severity: "critical", title: "Factures impayées", detail: "3 factures en retard · 2,4 M FCFA" },
-  { id: "a2", severity: "critical", title: "Stock critique", detail: "Ciment 50 kg sous le seuil minimum" },
-  { id: "a3", severity: "warning", title: "Mission urgente", detail: "KOFFI-041 · rapport attendu avant 18h" },
-  { id: "a4", severity: "warning", title: "Validation en attente", detail: "2 rapports de mission à valider" },
-  { id: "a5", severity: "warning", title: "Pointage GPS à vérifier", detail: "N'Dri Mireille · hors rayon 300 m" },
-  { id: "a6", severity: "info", title: "Employé absent", detail: "1 ouvrier sans pointage aujourd'hui" },
-];
-
-const demoActivity: ExecutiveActivityItem[] = [
-  { id: "t1", type: "mission", title: "Nouvelle mission créée", detail: "Villa Koné · planifiée au 12 mars", time: "Il y a 12 min" },
-  { id: "t2", type: "facture", title: "Facture payée", detail: "FAC-2026-084 · 8,4 M FCFA encaissés", time: "Il y a 38 min" },
-  { id: "t3", type: "client", title: "Client ajouté", detail: "SCI Les Palmiers · compte membre", time: "Il y a 1 h" },
-  { id: "t4", type: "stock", title: "Stock modifié", detail: "Entrée · 40 sacs de ciment à Treichville", time: "Il y a 2 h" },
-  { id: "t5", type: "utilisateur", title: "Nouvel utilisateur", detail: "Yao Christian · Ouvrier terrain", time: "Il y a 3 h" },
-  { id: "t6", type: "fournisseur", title: "Commande fournisseur", detail: "BatiPro CI · réapprovisionnement câbles", time: "Il y a 5 h" },
-];
-
-const demoMissions: ExecutiveMission[] = [
-  { id: "KOFFI-041", title: "Rénovation complète", client: "Résidence Koffi", location: "Cocody, Abidjan", filiale: "Rénovation", statut: "En cours", equipe: "Atlas", date: "12 mars" },
-  { id: "AHO-012", title: "Nettoyage bureaux", client: "Groupe Ahoua", location: "Marcory, Abidjan", filiale: "Nettoyage & Entretien", statut: "En cours", equipe: "Horizon", date: "12 mars" },
-  { id: "KON-005", title: "Construction villa", client: "David Koné", location: "Bingerville", filiale: "Rénovation", statut: "En attente", equipe: "Sirocco", date: "15 mars" },
-  { id: "PAL-003", title: "Entretien copropriété", client: "SCI Les Palmiers", location: "Treichville", filiale: "Nettoyage & Entretien", statut: "Retard", equipe: "Atlas", date: "10 mars" },
-  { id: "NDR-021", title: "Fourniture matériaux", client: "Bureaux N'Dri", location: "Plateau, Abidjan", filiale: "Matériaux", statut: "Terminée", equipe: "Logistique", date: "11 mars" },
-  { id: "VIL-015", title: "Mobilier sur mesure", client: "Villa Koné", location: "Bingerville", filiale: "Mobilier", statut: "En attente", equipe: "Menuiserie", date: "17 mars" },
-];
-
-const demoFiliales: ExecutiveFiliale[] = [
-  { id: "f1", nom: "WUGAMS Rénovation", code: "RENO", ca: "18,2 M FCFA", employes: 32, missions: 12, performance: 86, croissance: 14.2, sante: "excellente" },
-  { id: "f2", nom: "WUGAMS Nettoyage & Entretien", code: "NET", ca: "9,6 M FCFA", employes: 24, missions: 8, performance: 74, croissance: 8.6, sante: "bonne" },
-  { id: "f3", nom: "WUGAMS Matériaux", code: "MAT", ca: "11,4 M FCFA", employes: 18, missions: 2, performance: 68, croissance: -2.4, sante: "attention" },
-  { id: "f4", nom: "WUGAMS Mobilier", code: "MOB", ca: "2,6 M FCFA", employes: 12, missions: 1, performance: 81, croissance: 21.8, sante: "bonne" },
-];
-
-const demoTeams: ExecutiveTeam[] = [
-  { id: "e1", nom: "Équipe Atlas", score: 92, progression: 6.8, membres: 6, rang: null },
-  { id: "e2", nom: "Équipe Horizon", score: 87, progression: 4.2, membres: 5, rang: null },
-  { id: "e3", nom: "Équipe Sirocco", score: 79, progression: -1.4, membres: 5, rang: null },
-  { id: "e4", nom: "Menuiserie & Finitions", score: 84, progression: 9.1, membres: 4, rang: null },
-];
-
-const demoFactureRepartition = [
-  { name: "Payées", value: 68, color: "#10b981" },
-  { name: "En attente", value: 21, color: "#e3a641" },
-  { name: "En retard", value: 7, color: "#ef4444" },
-  { name: "Annulées", value: 4, color: "#94a3b8" },
-];
-
-const demoAudits: AuditLog[] = [
-  { id: "d1", user_id: "u1", action: "CREATE", table_cible: "missions", entite_id: "KOFFI-041", valeur_avant: null, valeur_apres: { statut: "PLANIFIE" }, ip: "196.12.4.8", created_at: new Date().toISOString(), user: { id: "u1", first_name: "Aïcha", last_name: "Koné", email: "demo.a.kone@wugams.example" } },
-  { id: "d2", user_id: "u2", action: "UPDATE", table_cible: "factures", entite_id: "FAC-2026-084", valeur_avant: { statut: "EMISE" }, valeur_apres: { statut: "PAYEE" }, ip: "196.12.4.8", created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(), user: { id: "u2", first_name: "Salif", last_name: "Traoré", email: "demo.s.traore@wugams.example" } },
-  { id: "d3", user_id: "u3", action: "CREATE", table_cible: "clients", entite_id: "CL-104", valeur_avant: null, valeur_apres: { type: "MEMBRE" }, ip: "196.12.4.9", created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), user: { id: "u3", first_name: "Mariam", last_name: "Bamba", email: "demo.m.bamba@wugams.example" } },
-  { id: "d4", user_id: "u4", action: "UPDATE", table_cible: "stocks", entite_id: "P-002", valeur_avant: { quantite_actuelle: 24 }, valeur_apres: { quantite_actuelle: 64 }, ip: "196.12.4.10", created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), user: { id: "u4", first_name: "Jean", last_name: "Kouassi", email: "demo.j.kouassi@wugams.example" } },
-];
 
 /* ------------------------------------------------------------------ */
 /* Utilitaires                                                         */
@@ -307,33 +237,29 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview> {
   const ranking = rankingRes.status === "fulfilled" ? rankingRes.value : null;
   const unread = notifRes.status === "fulfilled" ? notifRes.value : 0;
 
+  const now = Date.now();
+
   if (!filiales || !factures) {
     return {
-      source: "demo",
-      updatedAt: Date.now(),
-      health: "attention",
-      kpis: demoKpis,
-      alerts: demoAlerts,
-      activity: demoActivity,
-      missions: demoMissions,
-      filiales: demoFiliales,
-      teams: demoTeams,
+      source: "api" as const,
+      updatedAt: now,
+      health: "stable" as const,
+      kpis: [],
+      alerts: [],
+      activity: [],
+      missions: [],
+      filiales: [],
+      teams: [],
       finances: {
         caSeries: lastMonthKeys(12).map((month) => ({ mois: month.label, ca: 0 })),
-        factureRepartition: demoFactureRepartition,
+        factureRepartition: [],
       },
-      audits: demoAudits,
+      audits: [],
       unread,
-      missionCounters: [
-        { label: "En attente", count: 2, tone: "neutral" },
-        { label: "En cours", count: 2, tone: "info" },
-        { label: "Terminée", count: 1, tone: "success" },
-        { label: "Retard", count: 1, tone: "danger" },
-      ],
+      missionCounters: [],
     };
   }
 
-  const now = Date.now();
   const months = lastMonthKeys(12);
   const monthKeys = months.map((month) => month.key);
   const currentMonthKey = monthKeys[monthKeys.length - 1];
@@ -669,15 +595,15 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview> {
           membres: null,
           rang: e.rang,
         }))
-      : demoTeams;
+      : [];
 
   return {
     source: "api",
     updatedAt: now,
     health: healthFromAlerts(alerts),
     kpis,
-    alerts: alerts.length > 0 ? alerts : demoAlerts,
-    activity: activity.length > 0 ? activity : demoActivity,
+    alerts,
+    activity,
     missions: missions.slice(0, 6).map((m) => ({
       id: m.id.slice(0, 8).toUpperCase(),
       title: m.titre,
@@ -692,7 +618,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview> {
     teams,
     finances: {
       caSeries,
-      factureRepartition: factureRepartition.length > 0 ? factureRepartition : demoFactureRepartition,
+      factureRepartition,
     },
     audits: audits.slice(0, 5),
     unread,

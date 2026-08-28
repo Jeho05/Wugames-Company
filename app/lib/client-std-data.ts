@@ -77,176 +77,6 @@ export function clientStdProgress(missions: ClientStdMissionView[]): number {
 }
 
 /* ------------------------------------------------------------------ */
-/* Données de démonstration (repli si l'API est indisponible)          */
-/* ------------------------------------------------------------------ */
-
-const demoMissions: ClientStdMissionView[] = [
-  {
-    id: "sm1",
-    titre: "Réparation toiture · Magasin Zone 4",
-    statut: "EN_COURS",
-    progression: 62,
-    date: "Aujourd'hui, 08:00",
-    equipe: "Équipe Couverture",
-    dernierPointage: "07:55 · arrivée sur site",
-  },
-  {
-    id: "sm2",
-    titre: "Nettoyage de bureaux · SOCIPAR",
-    statut: "RAPPORT_SOUMIS",
-    progression: 85,
-    date: "Hier, 10:00",
-    equipe: "Équipe Nettoyage",
-    dernierPointage: "15:40 · sortie du site",
-  },
-  {
-    id: "sm3",
-    titre: "Livraison matériaux · Plateau",
-    statut: "ACCEPTE",
-    progression: 30,
-    date: "Vendredi 7 août, 09:30",
-    equipe: "Équipe Logistique",
-    dernierPointage: null,
-  },
-  {
-    id: "sm4",
-    titre: "Entretien climatisation · Résidence",
-    statut: "PLANIFIE",
-    progression: 5,
-    date: "Lundi 10 août, 14:00",
-    equipe: "Équipe Technique",
-    dernierPointage: null,
-  },
-];
-
-const demoCommandes: ClientStdCommandeView[] = [
-  {
-    id: "sc1",
-    numero: "CMD-2026-034",
-    date: "5 août 2026",
-    statut: "EN_PREPARATION",
-    nbArticles: 4,
-    montant: 342_000,
-    articles: ["Peinture façade beige — 12 L", "Peinture acrylique blanche — 8 L", "Gesso d'accrochage — 3 L", "Rouleaux & pinceaux — 1 lot"],
-  },
-  {
-    id: "sc2",
-    numero: "CMD-2026-032",
-    date: "30 juillet 2026",
-    statut: "LIVREE",
-    nbArticles: 2,
-    montant: 156_800,
-    articles: ["Coffre à outils 108 pièces", "Ruban adhésif professionnel — 10 rouleaux"],
-  },
-  {
-    id: "sc3",
-    numero: "CMD-2026-030",
-    date: "22 juillet 2026",
-    statut: "EN_PREPARATION",
-    nbArticles: 1,
-    montant: 89_900,
-    articles: ["Kit quincaillerie porte d'entrée"],
-  },
-];
-
-const demoDevis: ClientStdDevisView[] = [
-  {
-    id: "sd1",
-    numero: "DEV-2026-098",
-    objet: "Rafraîchissement façade · Magasin Zone 4",
-    montant: 1_240_000,
-    date: "5 août 2026",
-    validite: "30 jours",
-    statut: "EN_ATTENTE",
-  },
-  {
-    id: "sd2",
-    numero: "DEV-2026-096",
-    objet: "Nettoyage bureaux · contrat trimestriel",
-    montant: 690_000,
-    date: "28 juillet 2026",
-    validite: "30 jours",
-    statut: "ACCEPTE",
-  },
-  {
-    id: "sd3",
-    numero: "DEV-2026-093",
-    objet: "Rénovation salle de réunion",
-    montant: 3_150_000,
-    date: "12 juillet 2026",
-    validite: "15 jours",
-    statut: "EXPIRE",
-  },
-];
-
-const demoNotifications: ClientStdNotificationView[] = [
-  {
-    id: "sn1",
-    kind: "mission",
-    titre: "Mission mise à jour",
-    detail: "Nettoyage de bureaux · SOCIPAR — rapport soumis",
-    time: "Il y a 3 h",
-    lu: false,
-  },
-  {
-    id: "sn2",
-    kind: "commande",
-    titre: "Commande modifiée",
-    detail: "CMD-2026-034 — ajout de 2 rouleaux de peinture",
-    time: "Il y a 8 h",
-    lu: false,
-  },
-  {
-    id: "sn3",
-    kind: "devis",
-    titre: "Nouveau devis",
-    detail: "DEV-2026-098 · Rafraîchissement façade — en attente de votre réponse",
-    time: "Hier",
-    lu: false,
-  },
-  {
-    id: "sn4",
-    kind: "info",
-    titre: "Information",
-    detail: "Votre espace client est désormais disponible",
-    time: "2 août",
-    lu: true,
-  },
-];
-
-const demoProjets: ClientProjetView[] = [
-  {
-    id: "spj1",
-    titre: "Réparation toiture · Magasin Zone 4",
-    filiale: "WUGAMS Rénovation",
-    statut: "EN_COURS",
-    progression: 62,
-    debut: "4 août 2026",
-    fin: null,
-    equipe: "Équipe Couverture",
-    galerie: [
-      { url: "https://images.unsplash.com/photo-1632260260864-caf7fde5ec36?w=1400&q=80", legende: "Toiture avant travaux" },
-      { url: "https://images.unsplash.com/photo-1621429869419-7e4ddb0f8c21?w=1400&q=80", legende: "Remplacement des tôles" },
-    ],
-    rapport: "Remplacement partiel de la couverture en cours. Étanchéité vérifiée à chaque jonction.",
-  },
-  {
-    id: "spj2",
-    titre: "Nettoyage de bureaux · SOCIPAR",
-    filiale: "WUGAMS Nettoyage & Entretien",
-    statut: "RAPPORT_SOUMIS",
-    progression: 85,
-    debut: "5 août 2026",
-    fin: null,
-    equipe: "Équipe Nettoyage",
-    galerie: [
-      { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80", legende: "Open space après intervention" },
-    ],
-    rapport: "Nettoyage complet des espaces communs. Rapport photos joint au dossier.",
-  },
-];
-
-/* ------------------------------------------------------------------ */
 /* Conversion API → vues                                               */
 /* ------------------------------------------------------------------ */
 
@@ -354,15 +184,6 @@ function projetView(projet: ClientProjet): ClientProjetView {
 /* Chargement — aucun endpoint financier pour le ROLE_CLIENT_STD       */
 /* ------------------------------------------------------------------ */
 
-export const demoClientStdData: ClientStdData = {
-  live: false,
-  missions: demoMissions,
-  commandes: demoCommandes,
-  devis: demoDevis,
-  notifications: demoNotifications,
-  projets: demoProjets,
-};
-
 export async function loadClientStdData(): Promise<ClientStdData> {
   const [missionsRes, commandesRes, devisRes, notificationsRes, projetsRes] = await Promise.allSettled([
     getMissions(),
@@ -377,10 +198,6 @@ export async function loadClientStdData(): Promise<ClientStdData> {
     commandesRes.status === "fulfilled" ||
     devisRes.status === "fulfilled";
 
-  /* API injoignable : repli complet sur la démonstration (badge « Aperçu démo »). */
-  if (!live) return demoClientStdData;
-
-  /* API joignable : les listes réelles sont affichées, même vides. */
   const apiMissions = missionsRes.status === "fulfilled" ? missionsRes.value.map(missionView) : [];
 
   const apiCommandes = commandesRes.status === "fulfilled" ? commandesRes.value.map(commandeView) : [];
@@ -394,7 +211,7 @@ export async function loadClientStdData(): Promise<ClientStdData> {
   const apiProjets = projetsRes.status === "fulfilled" ? projetsRes.value.map(projetView) : [];
 
   return {
-    live: true,
+    live,
     missions: apiMissions,
     commandes: apiCommandes,
     devis: apiDevis,

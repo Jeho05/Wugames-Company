@@ -177,15 +177,10 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
       {source ? (
         <div className="flex justify-end">
           <span
-            className={
-              "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold " +
-              (source === "api"
-                ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                : "bg-amber-50 text-amber-700 ring-1 ring-amber-200")
-            }
+            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200"
           >
-            <Icon name={source === "api" ? "check" : "sparkles"} size={13} />
-            {source === "api" ? "Données en direct · API WUGAMS" : "Mode démonstration · API indisponible"}
+            <Icon name="check" size={13} />
+            Données en direct · API WUGAMS
           </span>
         </div>
       ) : null}

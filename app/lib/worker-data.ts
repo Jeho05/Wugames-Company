@@ -52,7 +52,7 @@ export type WorkerRanking = {
 };
 
 export type WorkerOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   missions: WorkerMission[];
   notifications: { list: Notification[]; unread: number };
@@ -172,134 +172,7 @@ export function toWorkerMission(mission: Mission): WorkerMission {
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* Données de repli (démo)                                             */
-/* ------------------------------------------------------------------ */
 
-const demoMissions: WorkerMission[] = [
-  {
-    id: "m1",
-    titre: "Rénovation villa Koné",
-    description: "Repeindre la façade et remplacer deux portes intérieures. Matériel fourni sur place.",
-    client: "Client membre",
-    adresse: "Bingerville, Abidjan — Villa n°42",
-    lat: 5.366,
-    lng: -3.985,
-    rayonMetres: 150,
-    datePlanifiee: "aujourd'hui, 08:00",
-    statut: "EN_COURS",
-    statutLabel: "En cours",
-    progression: 60,
-    filiale: "WUGAMS Matériaux",
-    photos: 0,
-    dernierPointage: "08:04 · arrivée",
-    arrivagePointee: true,
-    sortiePointee: false,
-    contact: "+225 07 55 41 90",
-    pointages: [],
-  },
-  {
-    id: "m2",
-    titre: "Nettoyage bureaux SOCIMEX",
-    description: "Entretien complet des bureaux, 3 étages.",
-    client: "Client standard",
-    adresse: "Plateau, Abidjan — Tour B, 5ᵉ étage",
-    lat: 5.322,
-    lng: -4.017,
-    rayonMetres: 200,
-    datePlanifiee: "demain, 09:30",
-    statut: "NOTIFIE",
-    statutLabel: "À accepter",
-    progression: 15,
-    filiale: "WUGAMS Matériaux",
-    photos: 0,
-    dernierPointage: null,
-    arrivagePointee: false,
-    sortiePointee: false,
-    contact: "+225 27 21 35 80",
-    pointages: [],
-  },
-  {
-    id: "m3",
-    titre: "Peinture façade résidence Aya",
-    description: "Deux couches de peinture façade, zone sud.",
-    client: "Client standard",
-    adresse: "Marcory, Abidjan",
-    lat: 5.304,
-    lng: -3.991,
-    rayonMetres: 150,
-    datePlanifiee: "dans 3 jours, 10:00",
-    statut: "PLANIFIE",
-    statutLabel: "Planifiée",
-    progression: 5,
-    filiale: "WUGAMS Matériaux",
-    photos: 0,
-    dernierPointage: null,
-    arrivagePointee: false,
-    sortiePointee: false,
-    contact: "+225 01 41 77 36",
-    pointages: [],
-  },
-  {
-    id: "m4",
-    titre: "Livraison matériaux chantier Koffi",
-    description: "Livraison de ciment et de fer à béton.",
-    client: "Client membre",
-    adresse: "Cocody, Abidjan — Chantier Koffi",
-    lat: 5.348,
-    lng: -3.988,
-    rayonMetres: 100,
-    datePlanifiee: "il y a 4 jours, 07:00",
-    statut: "TERMINE",
-    statutLabel: "Terminée",
-    progression: 100,
-    filiale: "WUGAMS Matériaux",
-    photos: 6,
-    dernierPointage: "14:02 · sortie",
-    arrivagePointee: true,
-    sortiePointee: true,
-    contact: "+225 07 09 63 52",
-    pointages: [],
-  },
-  {
-    id: "m5",
-    titre: "Entretien copropriété Les Palmiers",
-    description: "Entretien des parties communes.",
-    client: "Client membre",
-    adresse: "Treichville, Abidjan",
-    lat: 5.302,
-    lng: -4.011,
-    rayonMetres: 120,
-    datePlanifiee: "il y a 9 jours, 09:00",
-    statut: "RAPPORT_SOUMIS",
-    statutLabel: "En attente de validation",
-    progression: 80,
-    filiale: "WUGAMS Matériaux",
-    photos: 4,
-    dernierPointage: "12:40 · sortie",
-    arrivagePointee: true,
-    sortiePointee: true,
-    contact: "+225 05 66 20 14",
-    pointages: [],
-  },
-];
-
-const demoNotifications: Notification[] = [
-  { id: "n1", lu: false, type: "rappel_mission", message: "Rappel : votre mission « Rénovation villa Koné » est en cours.", created_at: new Date(Date.now() - 30 * 60_000).toISOString() },
-  { id: "n2", lu: false, type: "nouvelle_mission", message: "Nouvelle mission : « Nettoyage bureaux SOCIMEX » (demain, 09:30).", created_at: new Date(Date.now() - 2 * 3_600_000).toISOString() },
-  { id: "n3", lu: false, type: "message", message: "Votre rapport « Entretien copropriété » a été transmis pour validation.", created_at: new Date(Date.now() - 26 * 3_600_000).toISOString() },
-  { id: "n4", lu: true, type: "rapport_valide", message: "Rapport validé : « Livraison matériaux chantier Koffi ».", created_at: new Date(Date.now() - 3 * 86_400_000).toISOString() },
-];
-
-const demoRanking: WorkerRanking = {
-  rendement: 82,
-  rang: 3,
-  totalParticipants: 9,
-  cycle: "Cycle 2026 · T1",
-  evolution: "up",
-  positions: 2,
-  meilleureNote: "Rigueur (S1) : 36/40",
-};
 
 /* ------------------------------------------------------------------ */
 /* Chargement — uniquement les missions de cet ouvrier                 */
@@ -312,23 +185,6 @@ export async function loadWorkerOverview(userId: string | null, ouvrierId: strin
     notificationsApi.listNotifications(),
     evaluationsApi.evaluationRanking(),
   ]);
-
-  const apiDown = missionsResult.status !== "fulfilled" && notificationsResult.status !== "fulfilled";
-
-  if (apiDown) {
-    return {
-      source: "demo",
-      updatedAt: now,
-      missions: demoMissions,
-      notifications: { list: demoNotifications, unread: 3 },
-      ranking: demoRanking,
-      worker: { nom: "Yao Kouassi", matricule: "WGM-0184", specialite: "Peinture & finitions" },
-      filiale: "WUGAMS Matériaux",
-      twoFactor: true,
-      email: "yao.kouassi@wugams.example",
-      phone: "+225 07 12 45 89",
-    };
-  }
 
   const allMissions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
   const allNotifications = notificationsResult.status === "fulfilled" ? notificationsResult.value : [];
@@ -366,9 +222,9 @@ export async function loadWorkerOverview(userId: string | null, ouvrierId: strin
   return {
     source: "api",
     updatedAt: now,
-    missions: view.length > 0 ? view : demoMissions,
+    missions: view,
     notifications: { list: allNotifications.slice(0, 12), unread },
-    ranking: ranking ?? demoRanking,
+    ranking,
     worker: { nom: "Ouvrier", matricule: "—", specialite: "—" },
     filiale: missions.find((mission) => mission.filiale?.nom)?.filiale?.nom ?? "WUGAMS",
     twoFactor: false,

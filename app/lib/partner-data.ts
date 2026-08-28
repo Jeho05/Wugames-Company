@@ -76,7 +76,7 @@ export type PartnerActivityItem = {
 };
 
 export type PartnerOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   stockStatus: StockStatus;
   kpis: PartnerKpi[];
@@ -94,115 +94,6 @@ export type PartnerOverview = {
     topPartenaires: { name: string; value: number; color: string }[];
     valeurFiliales: { name: string; value: number; color: string }[];
   };
-};
-
-/* ------------------------------------------------------------------ */
-/* Données de repli (démo — uniquement si l'API est indisponible)      */
-/* ------------------------------------------------------------------ */
-
-const demoKpis: PartnerKpi[] = [
-  { key: "produits", label: "Produits", value: "148", change: "+6", trend: "up", icon: "package", spark: [108, 112, 118, 121, 125, 129, 133, 136, 140, 142, 145, 148], caption: "référencés au catalogue" },
-  { key: "stock", label: "Stock disponible", value: "52 840", change: "+4,2 %", trend: "up", icon: "boxes", spark: [40200, 41800, 43100, 44500, 45800, 46900, 48200, 49600, 50800, 51900, 52300, 52840], caption: "unités en entrepôt" },
-  { key: "critiques", label: "Produits critiques", value: "9", change: "−2", trend: "down", icon: "warning", spark: [18, 17, 15, 16, 14, 13, 12, 13, 11, 10, 11, 9], caption: "sous le seuil minimum" },
-  { key: "partenaires", label: "Partenaires actifs", value: "23", change: "+3", trend: "up", icon: "building", spark: [14, 15, 16, 17, 18, 18, 19, 20, 20, 21, 22, 23], caption: "référencés au réseau" },
-  { key: "fournisseurs", label: "Fournisseurs actifs", value: "27", change: "+2", trend: "up", icon: "truck", spark: [18, 19, 20, 21, 21, 22, 23, 24, 24, 25, 26, 27], caption: "contrats en cours" },
-  { key: "entrees", label: "Entrées aujourd'hui", value: "14", change: "+3", trend: "up", icon: "arrow-down", spark: [7, 8, 9, 8, 11, 10, 12, 11, 13, 12, 11, 14], caption: "réceptions comptabilisées" },
-  { key: "sorties", label: "Sorties aujourd'hui", value: "31", change: "+5", trend: "up", icon: "arrow-up", spark: [22, 24, 23, 26, 25, 28, 27, 29, 28, 30, 26, 31], caption: "chantiers et ventes" },
-  { key: "valeur", label: "Valeur totale du stock", value: "186,4 M FCFA", change: "+7,3 %", trend: "up", icon: "chart", spark: [118, 126, 131, 138, 142, 149, 155, 160, 167, 172, 178, 186], caption: "au prix d'achat" },
-];
-
-const demoCoupons: StockBucket[] = [
-  { key: "eleve", label: "Stock élevé", count: 96, color: "#10b981", text: "text-emerald-700", bg: "bg-emerald-500" },
-  { key: "faible", label: "Stock faible", count: 27, color: "#f59e0b", text: "text-amber-700", bg: "bg-amber-500" },
-  { key: "critique", label: "Stock critique", count: 12, color: "#f97316", text: "text-orange-700", bg: "bg-orange-500" },
-  { key: "rupture", label: "Rupture", count: 5, color: "#f43f5e", text: "text-rose-700", bg: "bg-rose-500" },
-];
-
-const demoCritical: CriticalProduct[] = [
-  { id: "c1", nom: "Ciment CPJ 42,5 (sac 50 kg)", quantite: 84, seuil: 200, derniereLivraison: "Il y a 12 j", priorite: "urgente", fournisseur: "BatiPro CI" },
-  { id: "c2", nom: "Fer à béton HA12 (barre)", quantite: 145, seuil: 300, derniereLivraison: "Il y a 9 j", priorite: "urgente", fournisseur: "Matériaux Bénin" },
-  { id: "c3", nom: "Peinture acrylique blanche (pot 25 kg)", quantite: 32, seuil: 60, derniereLivraison: "Il y a 15 j", priorite: "haute", fournisseur: "ColorPro" },
-  { id: "c4", nom: "Carrelage 60×60 grès (boîte)", quantite: 58, seuil: 90, derniereLivraison: "Il y a 6 j", priorite: "haute", fournisseur: "Ceramica Plus" },
-  { id: "c5", nom: "Fil électrique 2,5 mm² (rouleau 100 m)", quantite: 41, seuil: 70, derniereLivraison: "Il y a 4 j", priorite: "moyenne", fournisseur: "ÉlectroDiffusion" },
-  { id: "c6", nom: "Plâtre en poudre (sac 40 kg)", quantite: 19, seuil: 40, derniereLivraison: "Il y a 20 j", priorite: "moyenne", fournisseur: "BatiPro CI" },
-];
-
-const demoPartners: PartnerCard[] = [
-  { id: "p1", nom: "BatiPro CI", produits: 34, livraisons: 87, performance: 94, fiabilite: 96, statut: "actif" },
-  { id: "p2", nom: "Matériaux Bénin", produits: 22, livraisons: 63, performance: 89, fiabilite: 91, statut: "actif" },
-  { id: "p3", nom: "Ceramica Plus", produits: 18, livraisons: 41, performance: 82, fiabilite: 78, statut: "en_retard" },
-  { id: "p4", nom: "ÉlectroDiffusion", produits: 15, livraisons: 36, performance: 90, fiabilite: 93, statut: "actif" },
-  { id: "p5", nom: "ColorPro", produits: 11, livraisons: 29, performance: 76, fiabilite: 71, statut: "en_retard" },
-  { id: "p6", nom: "Aciers du Golfe", produits: 9, livraisons: 18, performance: 96, fiabilite: 97, statut: "nouveau" },
-];
-
-const demoMovements: MovementEvent[] = [
-  { id: "m1", kind: "entree", title: "Entrée de stock", detail: "Ciment CPJ 42,5 · +600 sacs · BatiPro CI", time: "Il y a 25 min" },
-  { id: "m2", kind: "sortie", title: "Sortie chantier", detail: "Fer à béton HA12 · −150 barres · Chantier Koffi", time: "Il y a 1 h" },
-  { id: "m3", kind: "entree", title: "Entrée de stock", detail: "Carrelage 60×60 · +120 boîtes · Ceramica Plus", time: "Il y a 3 h" },
-  { id: "m4", kind: "correction", title: "Correction d'inventaire", detail: "Plâtre en poudre · ajustement +8 sacs", time: "Il y a 5 h" },
-  { id: "m5", kind: "transfert", title: "Transfert inter-entrepôts", detail: "Peinture blanche · Abidjan → Yamoussoukro · 40 pots", time: "Hier" },
-  { id: "m6", kind: "retour", title: "Retour fournisseur", detail: "Fil électrique 2,5 mm² · lot défectueux · −25 rouleaux", time: "Hier" },
-];
-
-const demoDeliveries: DeliveryRow[] = [
-  { id: "d1", commande: "CMD-2026-0142", fournisseur: "BatiPro CI", prevue: "Aujourd'hui, 14:00", statut: "en_attente", progression: 45 },
-  { id: "d2", commande: "CMD-2026-0141", fournisseur: "Matériaux Bénin", prevue: "Aujourd'hui, 10:00", statut: "retard", progression: 80 },
-  { id: "d3", commande: "CMD-2026-0140", fournisseur: "Ceramica Plus", prevue: "Hier, 16:00", statut: "livree", progression: 100 },
-  { id: "d4", commande: "CMD-2026-0139", fournisseur: "ColorPro", prevue: "Demain, 09:00", statut: "en_attente", progression: 20 },
-  { id: "d5", commande: "CMD-2026-0138", fournisseur: "ÉlectroDiffusion", prevue: "Il y a 2 j", statut: "livree", progression: 100 },
-  { id: "d6", commande: "CMD-2026-0137", fournisseur: "Aciers du Golfe", prevue: "Il y a 3 j", statut: "livree", progression: 100 },
-];
-
-const demoAlerts: PartnerAlert[] = [
-  { id: "pa1", severity: "critical", title: "Rupture de stock", detail: "5 produits en rupture · impact chantiers en cours" },
-  { id: "pa2", severity: "critical", title: "Retard fournisseur", detail: "CMD-2026-0141 · Matériaux Bénin · retardé de 4 h" },
-  { id: "pa3", severity: "warning", title: "Stock faible", detail: "12 produits sous le seuil · réapprovisionnement conseillé" },
-  { id: "pa4", severity: "warning", title: "Livraison en attente", detail: "CMD-2026-0142 · BatiPro CI · prévue aujourd'hui 14:00" },
-  { id: "pa5", severity: "info", title: "Commande urgente", detail: "Fer à béton HA12 · quantité critique · recommandation d'achat" },
-];
-
-const demoActivity: PartnerActivityItem[] = [
-  { id: "pa1", kind: "produit", title: "Produit ajouté", detail: "Mastic acrylique · référence MAS-01 · ColorPro", time: "Il y a 30 min" },
-  { id: "pa2", kind: "livraison", title: "Livraison reçue", detail: "CMD-2026-0140 · Carrelage 60×60 · 120 boîtes", time: "Il y a 2 h" },
-  { id: "pa3", kind: "stock", title: "Stock modifié", detail: "Plâtre en poudre · correction d'inventaire +8", time: "Il y a 5 h" },
-  { id: "pa4", kind: "partenaire", title: "Nouveau partenaire", detail: "Aciers du Golfe · intégré au réseau", time: "Hier" },
-  { id: "pa5", kind: "commande", title: "Commande créée", detail: "CMD-2026-0143 · Fer à béton HA12 · 300 barres", time: "Hier" },
-  { id: "pa6", kind: "livraison", title: "Livraison reçue", detail: "CMD-2026-0138 · Fil électrique · 60 rouleaux", time: "Il y a 2 j" },
-];
-
-const demoCharts: PartnerOverview["charts"] = {
-  stockEvolution: [
-    { label: "Août", valeur: 118 }, { label: "Sept.", valeur: 126 }, { label: "Oct.", valeur: 131 },
-    { label: "Nov.", valeur: 138 }, { label: "Déc.", valeur: 142 }, { label: "Janv.", valeur: 149 },
-    { label: "Févr.", valeur: 155 }, { label: "Mars", valeur: 160 }, { label: "Avr.", valeur: 167 },
-    { label: "Mai", valeur: 172 }, { label: "Juin", valeur: 178 }, { label: "Juil.", valeur: 186 },
-  ],
-  flux: [
-    { label: "Févr.", entrees: 82, sorties: 71 }, { label: "Mars", entrees: 95, sorties: 78 },
-    { label: "Avr.", entrees: 89, sorties: 84 }, { label: "Mai", entrees: 106, sorties: 92 },
-    { label: "Juin", entrees: 112, sorties: 98 }, { label: "Juil.", entrees: 121, sorties: 104 },
-  ],
-  topProduits: [
-    { name: "Ciment CPJ 42,5", value: 62.4, color: "#e3a641" },
-    { name: "Fer à béton HA12", value: 48.1, color: "#38bdf8" },
-    { name: "Carrelage 60×60", value: 31.7, color: "#34d399" },
-    { name: "Peinture acrylique", value: 22.5, color: "#a78bfa" },
-    { name: "Fil électrique 2,5", value: 15.2, color: "#fb7185" },
-  ],
-  topPartenaires: [
-    { name: "BatiPro CI", value: 68.2, color: "#e3a641" },
-    { name: "Matériaux Bénin", value: 42.9, color: "#38bdf8" },
-    { name: "Ceramica Plus", value: 24.6, color: "#34d399" },
-    { name: "ÉlectroDiffusion", value: 18.3, color: "#a78bfa" },
-    { name: "ColorPro", value: 11.8, color: "#fb7185" },
-  ],
-  valeurFiliales: [
-    { name: "Abidjan", value: 82.4, color: "#e3a641" },
-    { name: "Cotonou", value: 41.2, color: "#38bdf8" },
-    { name: "Dakar", value: 36.8, color: "#34d399" },
-    { name: "Lomé", value: 26.0, color: "#a78bfa" },
-  ],
 };
 
 /* ------------------------------------------------------------------ */
@@ -283,23 +174,6 @@ export async function loadPartnerOverview(): Promise<PartnerOverview> {
   const produits = produitsResult.status === "fulfilled" ? produitsResult.value : [];
   const fournisseurs = fournisseursResult.status === "fulfilled" ? fournisseursResult.value : [];
   const audits = auditResult.status === "fulfilled" ? auditResult.value : [];
-
-  if (produits.length === 0) {
-    return {
-      source: "demo",
-      updatedAt: now,
-      stockStatus: "faible",
-      kpis: demoKpis,
-      buckets: demoCoupons,
-      criticalProducts: demoCritical,
-      partners: demoPartners,
-      movements: demoMovements,
-      deliveries: demoDeliveries,
-      alerts: demoAlerts,
-      activity: demoActivity,
-      charts: demoCharts,
-    };
-  }
 
   const fournisseurNameById = new Map(fournisseurs.map((fournisseur) => [fournisseur.id, fournisseur.raison_sociale ?? "Fournisseur"]));
 
@@ -425,7 +299,6 @@ export async function loadPartnerOverview(): Promise<PartnerOverview> {
       progression: 100,
     })),
   ];
-  if (deliveries.length === 0) deliveries.push(...demoDeliveries);
 
   /* --- Alertes --------------------------------------------------------------- */
   const alerts: PartnerAlert[] = [];
@@ -463,7 +336,6 @@ export async function loadPartnerOverview(): Promise<PartnerOverview> {
         time: relativeTime(mouvement.created_at),
       });
     }
-    activity.push(...demoActivity.slice(2, 4));
   }
   activity.splice(6);
 
@@ -528,18 +400,18 @@ export async function loadPartnerOverview(): Promise<PartnerOverview> {
     stockStatus,
     kpis,
     buckets,
-    criticalProducts: criticalProducts.length > 0 ? criticalProducts : demoCritical,
-    partners: partners.length > 0 ? partners : demoPartners,
-    movements: movements.length > 0 ? movements : demoMovements,
+    criticalProducts,
+    partners,
+    movements,
     deliveries,
     alerts,
     activity,
     charts: {
       stockEvolution,
       flux,
-      topProduits: topProduits.length > 0 ? topProduits : demoCharts.topProduits,
-      topPartenaires: topPartenaires.length > 0 ? topPartenaires : demoCharts.topPartenaires,
-      valeurFiliales: valeurFiliales.length > 0 ? valeurFiliales : demoCharts.valeurFiliales,
+      topProduits,
+      topPartenaires,
+      valeurFiliales,
     },
   };
 }

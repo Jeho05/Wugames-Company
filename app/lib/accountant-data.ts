@@ -68,7 +68,7 @@ export type AccountantActivityItem = {
 };
 
 export type AccountantOverview = {
-  source: "api" | "demo";
+  source: "api";
   updatedAt: number;
   health: AccountantHealth;
   kpis: AccountantKpi[];
@@ -86,84 +86,6 @@ export type AccountantOverview = {
   reports: ReportItem[];
   activity: AccountantActivityItem[];
 };
-
-/* ------------------------------------------------------------------ */
-/* Données de repli (démo — uniquement si l'API est indisponible)      */
-/* ------------------------------------------------------------------ */
-
-const demoKpis: AccountantKpi[] = [
-  { key: "ca", label: "Chiffre d'affaires", value: "486,4 M FCFA", change: "+8,2 %", trend: "up", icon: "chart", spark: [182, 195, 205, 215, 232, 248, 261, 278, 292, 315, 348, 372], caption: "cumul 2026 · 412 factures" },
-  { key: "recettes", label: "Recettes du mois", value: "42,8 M FCFA", change: "+12,4 %", trend: "up", icon: "arrow-up", spark: [28, 31, 29, 34, 33, 36, 35, 38, 37, 40, 41, 43], caption: "encaissées · 18 paiements" },
-  { key: "depenses", label: "Dépenses du mois", value: "27,3 M FCFA", change: "+2,4 %", trend: "up", icon: "arrow-down", spark: [22, 24, 23, 25, 26, 25, 27, 26, 28, 27, 29, 27], caption: "charges courantes estimées", estimated: true },
-  { key: "benefice", label: "Bénéfice net", value: "15,5 M FCFA", change: "+18,7 %", trend: "up", icon: "sparkles", spark: [6, 7, 6, 9, 7, 11, 9, 12, 10, 13, 12, 16], caption: "marge nette estimée 36,2 %", estimated: true },
-  { key: "impayees", label: "Factures impayées", value: "9", change: "−2 vs mois dernier", trend: "down", icon: "warning", spark: [14, 13, 12, 14, 11, 12, 10, 11, 9, 10, 11, 9], caption: "total 58,3 M FCFA en retard" },
-  { key: "paiements", label: "Paiements reçus", value: "41,2 M FCFA", change: "+9,1 %", trend: "up", icon: "check", spark: [24, 26, 25, 29, 28, 31, 30, 33, 32, 36, 38, 41], caption: "18 paiements ce mois" },
-  { key: "creances", label: "Créances", value: "58,3 M FCFA", change: "+6,2 %", trend: "up", icon: "clock", spark: [34, 36, 38, 41, 40, 43, 45, 48, 47, 51, 55, 58], caption: "factures à encaisser" },
-  { key: "tresorerie", label: "Trésorerie disponible", value: "124,8 M FCFA", change: "+9,1 %", trend: "up", icon: "building", spark: [86, 90, 92, 97, 101, 104, 108, 111, 114, 118, 121, 125], caption: "soldes bancaires estimés", estimated: true },
-];
-
-const demoCashflow = {
-  daily: Array.from({ length: 30 }, (_, index) => ({
-    label: `${new Date(2026, 6, 30 - (29 - index)).getDate()}/${new Date(2026, 6, 30 - (29 - index)).getMonth() + 1}`,
-    valeur: Math.round((0.9 + ((index * 37) % 13) / 9) * 100) / 100,
-  })),
-  monthly: [
-    { label: "Août", valeur: 31.2 }, { label: "Sept.", valeur: 33.8 }, { label: "Oct.", valeur: 34.1 },
-    { label: "Nov.", valeur: 36.4 }, { label: "Déc.", valeur: 38.9 }, { label: "Janv.", valeur: 37.5 },
-    { label: "Févr.", valeur: 41.2 }, { label: "Mars", valeur: 39.8 }, { label: "Avr.", valeur: 43.6 },
-    { label: "Mai", valeur: 42.9 }, { label: "Juin", valeur: 45.3 }, { label: "Juil.", valeur: 48.1 },
-  ],
-  forecast: [
-    { label: "J+1", valeur: 1.62, foret: true }, { label: "J+2", valeur: 1.71, foret: true },
-    { label: "J+3", valeur: 1.58, foret: true }, { label: "J+4", valeur: 1.74, foret: true },
-    { label: "J+5", valeur: 1.66, foret: true }, { label: "J+6", valeur: 1.8, foret: true },
-    { label: "J+7", valeur: 1.77, foret: true },
-  ],
-};
-
-const demoInvoices: InvoiceRow[] = [
-  { id: "f1", numero: "FAC-2026-0412", client: "SCI Les Palmiers", montant: 38400000, dateEmission: "2026-08-03", echeance: "2026-09-02", statut: "EMISE", filiale: "Wugames Abidjan" },
-  { id: "f2", numero: "FAC-2026-0411", client: "Bureaux N'Dri", montant: 21800000, dateEmission: "2026-08-01", echeance: "2026-08-31", statut: "EN_RETARD", filiale: "Wugames Abidjan" },
-  { id: "f3", numero: "FAC-2026-0410", client: "Résidence Koffi", montant: 5475000, dateEmission: "2026-07-28", echeance: "2026-08-27", statut: "PAYEE", filiale: "Wugames Cotonou" },
-  { id: "f4", numero: "FAC-2026-0409", client: "Hôtel Le Baobab", montant: 12600000, dateEmission: "2026-07-24", echeance: "2026-08-23", statut: "PAYEE", filiale: "Wugames Dakar" },
-  { id: "f5", numero: "FAC-2026-0408", client: "Villa Amara", montant: 8940000, dateEmission: "2026-07-21", echeance: "2026-08-20", statut: "EMISE", filiale: "Wugames Cotonou" },
-  { id: "f6", numero: "FAC-2026-0407", client: "Immeuble Soro", montant: 15200000, dateEmission: "2026-07-15", echeance: "2026-08-14", statut: "EN_RETARD", filiale: "Wugames Abidjan" },
-  { id: "f7", numero: "FAC-2026-0406", client: "Clinique Horizon", montant: 6730000, dateEmission: "2026-07-10", echeance: "2026-08-09", statut: "ANNULEE", filiale: "Wugames Dakar" },
-  { id: "f8", numero: "FAC-2026-0405", client: "Marché Grand Bassam", montant: 41500000, dateEmission: "2026-07-05", echeance: "2026-08-04", statut: "BROUILLON", filiale: "Wugames Abidjan" },
-];
-
-const demoPayments: PaymentEvent[] = [
-  { id: "p1", kind: "recu", title: "Paiement reçu", detail: "Résidence Koffi · FAC-2026-0410 · 5 475 000 FCFA", time: "Aujourd'hui, 09:42" },
-  { id: "p2", kind: "recu", title: "Paiement reçu", detail: "Hôtel Le Baobab · FAC-2026-0409 · 12 600 000 FCFA", time: "Hier, 16:18" },
-  { id: "p3", kind: "attente", title: "Paiement en attente", detail: "Villa Amara · FAC-2026-0408 · en cours de vérification", time: "Hier, 11:05" },
-  { id: "p4", kind: "refuse", title: "Paiement refusé", detail: "Immeuble Soro · FAC-2026-0407 · fonds insuffisants", time: "Il y a 2 jours" },
-  { id: "p5", kind: "recu", title: "Paiement reçu", detail: "SCI Les Palmiers · FAC-2026-0398 · 38 400 000 FCFA", time: "Il y a 3 jours" },
-  { id: "p6", kind: "remboursement", title: "Remboursement effectué", detail: "Clinique Horizon · avoir AV-2026-007 · 1 200 000 FCFA", time: "Il y a 5 jours" },
-];
-
-const demoAlerts: AlertItem[] = [
-  { id: "al1", severity: "critical", title: "Facture en retard", detail: "FAC-2026-0411 · Bureaux N'Dri · 21 800 000 FCFA · échéance dépassée de 5 jours" },
-  { id: "al2", severity: "critical", title: "Paiement refusé", detail: "FAC-2026-0407 · Immeuble Soro · relance bancaire nécessaire" },
-  { id: "al3", severity: "warning", title: "Échéance proche", detail: "FAC-2026-0412 · SCI Les Palmiers · 38 400 000 FCFA · due dans 6 jours" },
-  { id: "al4", severity: "warning", title: "Créances élevées", detail: "9 factures impayées · 58,3 M FCFA · 12 % du CA" },
-  { id: "al5", severity: "info", title: "Trésorerie sous surveillance", detail: "Seuil de confort à 100 M FCFA · actuellement 124,8 M FCFA" },
-];
-
-const demoReports: ReportItem[] = [
-  { id: "r1", name: "Rapport de clôture — juillet 2026", format: "PDF", date: "31 juil. 2026", size: "1,2 Mo" },
-  { id: "r2", name: "Bilan mensuel consolidé", format: "PDF", date: "31 juil. 2026", size: "864 Ko" },
-  { id: "r3", name: "Suivi des créances — T2 2026", format: "XLSX", date: "28 juil. 2026", size: "412 Ko" },
-  { id: "r4", name: "Export factures (juillet)", format: "CSV", date: "25 juil. 2026", size: "96 Ko" },
-];
-
-const demoActivity: AccountantActivityItem[] = [
-  { id: "ac1", kind: "facture", title: "Facture créée", detail: "FAC-2026-0412 · SCI Les Palmiers · 38 400 000 FCFA", time: "Il y a 2 h" },
-  { id: "ac2", kind: "paiement", title: "Paiement reçu", detail: "FAC-2026-0410 · Résidence Koffi · 5 475 000 FCFA", time: "Il y a 4 h" },
-  { id: "ac3", kind: "modification", title: "Modification financière", detail: "FAC-2026-0408 · échéance reportée au 20 août", time: "Hier" },
-  { id: "ac4", kind: "annulation", title: "Facture annulée", detail: "FAC-2026-0406 · Clinique Horizon", time: "Hier" },
-  { id: "ac5", kind: "rapport", title: "Rapport généré", detail: "Rapport de clôture — juillet 2026", time: "Il y a 2 jours" },
-  { id: "ac6", kind: "paiement", title: "Paiement reçu", detail: "FAC-2026-0398 · SCI Les Palmiers · 38 400 000 FCFA", time: "Il y a 3 jours" },
-];
 
 /* ------------------------------------------------------------------ */
 /* Utilitaires                                                         */
@@ -316,34 +238,19 @@ export async function loadAccountantOverview(): Promise<AccountantOverview> {
 
   if (factures.length === 0) {
     return {
-      source: "demo",
+      source: "api",
       updatedAt: now,
       health: "excellente",
-      kpis: demoKpis,
-      cashflow: demoCashflow,
-      invoices: demoInvoices,
-      payments: demoPayments,
-      statutsBreakdown: [
-        { name: "Payées", value: 214, color: "#34d399" },
-        { name: "Émises", value: 96, color: "#38bdf8" },
-        { name: "En retard", value: 41, color: "#fb7185" },
-        { name: "Brouillons", value: 38, color: "#64748b" },
-        { name: "Annulées", value: 23, color: "#94a3b8" },
-      ],
-      filialesBreakdown: [
-        { name: "Wugames Abidjan", value: 41, color: "#e3a641" },
-        { name: "Wugames Cotonou", value: 29, color: "#38bdf8" },
-        { name: "Wugames Dakar", value: 18, color: "#34d399" },
-        { name: "Wugames Lomé", value: 12, color: "#a78bfa" },
-      ],
-      recettesDepenses: [
-        { label: "Recettes", value: 42.8, color: "#34d399" },
-        { label: "Dépenses", value: 27.3, color: "#fb7185" },
-        { label: "Bénéfice", value: 15.5, color: "#e3a641" },
-      ],
-      alerts: demoAlerts,
-      reports: demoReports,
-      activity: demoActivity,
+      kpis: [],
+      cashflow: { daily: [], monthly: [], forecast: [] },
+      invoices: [],
+      payments: [],
+      statutsBreakdown: [],
+      filialesBreakdown: [],
+      recettesDepenses: [],
+      alerts: [],
+      reports: [],
+      activity: [],
     };
   }
 
@@ -455,7 +362,7 @@ export async function loadAccountantOverview(): Promise<AccountantOverview> {
   }
   payments.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
   payments.splice(8);
-  if (payments.length === 0) payments.push(...demoPayments);
+  if (payments.length === 0) payments.push(...[]);
 
   /* --- Répartitions --------------------------------------------------- */
   const statutCounts = new Map<FactureStatut, number>();
@@ -672,9 +579,8 @@ export async function loadAccountantOverview(): Promise<AccountantOverview> {
     reports: consolidation
       ? [
           { id: "r-cons", name: "Consolidation des factures", format: "PDF", date: "À la demande", size: "—" },
-          ...demoReports,
         ]
-      : demoReports,
+      : [],
     activity,
   };
 }
