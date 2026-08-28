@@ -43,12 +43,12 @@ export function PartnerCommandCenter() {
 useEffect(() => {
     let cancelled = false;
     loadPartnerOverview().then((overview) => {
-      if (!cancelled) setData(overview);
+      if (!cancelled && overview) setData(overview);
     });
     return () => {
       cancelled = true;
     };
-  }, [refresh]);
+  }, []);
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 

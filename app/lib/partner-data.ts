@@ -163,13 +163,18 @@ function priorityOf(produit: Produit): CriticalProduct["priorite"] {
 /* Chargement                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function loadPartnerOverview(): Promise<PartnerOverview> {
+export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
   const now = Date.now();
   const [produitsResult, fournisseursResult, auditResult] = await Promise.allSettled([
     stocksApi.listProduits(),
     fournisseursApi.listFournisseurs(),
     auditApi.listAuditLogs(),
   ]);
+
+  // Si l'API produits échoue, retourner null pour afficher le loader
+  if (produitsResult.status === "rejected") {
+    return null;
+  }
 
   const produits = produitsResult.status === "fulfilled" ? produitsResult.value : [];
   const fournisseurs = fournisseursResult.status === "fulfilled" ? fournisseursResult.value : [];

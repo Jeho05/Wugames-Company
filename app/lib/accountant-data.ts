@@ -223,7 +223,7 @@ function buildForecast(dailyValues: number[]): CashflowPoint[] {
 /* Chargement                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function loadAccountantOverview(): Promise<AccountantOverview> {
+export async function loadAccountantOverview(): Promise<AccountantOverview | null> {
   const now = Date.now();
   const [facturesResult, consolidationResult, auditResult] = await Promise.allSettled([
     facturesApi.listFactures(),
@@ -235,6 +235,11 @@ export async function loadAccountantOverview(): Promise<AccountantOverview> {
   const audits = auditResult.status === "fulfilled" ? auditResult.value : [];
   const consolidation =
     consolidationResult.status === "fulfilled" ? consolidationResult.value : null;
+
+  // Si l'API n'a pas répondu correctement, retourner null pour afficher le loader
+  if (facturesResult.status === "rejected") {
+    return null;
+  }
 
   if (factures.length === 0) {
     return {

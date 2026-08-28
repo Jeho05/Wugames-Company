@@ -198,7 +198,7 @@ const sparkSeries: Record<string, number[]> = {
 /* Chargement                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function loadExecutiveOverview(): Promise<ExecutiveOverview> {
+export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null> {
   const [
     filialesRes,
     facturesRes,
@@ -224,6 +224,11 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview> {
     evaluationsApi.evaluationRanking(),
     unreadCount(),
   ]);
+
+  // Si les API principales échouent, retourner null pour afficher le loader
+  if (missionsRes.status === "rejected" && facturesListRes.status === "rejected") {
+    return null;
+  }
 
   const filiales = filialesRes.status === "fulfilled" ? filialesRes.value : null;
   const factures = facturesRes.status === "fulfilled" ? facturesRes.value : null;

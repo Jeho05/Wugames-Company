@@ -215,7 +215,7 @@ function statutToneOf(statut: string, danger: boolean): OpsMissionRow["tone"] {
 
 /* Chargement                                                          */
 
-export async function loadOpsOverview(): Promise<OpsOverview> {
+export async function loadOpsOverview(): Promise<OpsOverview | null> {
   const now = Date.now();
   const [missionsResult, usersResult, rankingResult, auditResult, clientsResult] = await Promise.allSettled([
     missionsApi.listMissions(),
@@ -224,6 +224,11 @@ export async function loadOpsOverview(): Promise<OpsOverview> {
     auditApi.listAuditLogs(),
     clientsApi.listClients(),
   ]);
+
+  // Si l'API missions échoue, retourner null pour afficher le loader
+  if (missionsResult.status === "rejected") {
+    return null;
+  }
 
   const missions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
   const users = usersResult.status === "fulfilled" ? usersResult.value : [];

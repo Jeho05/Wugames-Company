@@ -42,12 +42,12 @@ export function ExecutiveCommandCenter() {
 useEffect(() => {
     let cancelled = false;
     loadExecutiveOverview().then((overview) => {
-      if (!cancelled) setData(overview);
+      if (!cancelled && overview) setData(overview);
     });
     return () => {
       cancelled = true;
     };
-  }, [refresh]);
+  }, []);
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 

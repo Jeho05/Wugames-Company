@@ -42,12 +42,12 @@ export function AccountantCommandCenter() {
   useEffect(() => {
     let cancelled = false;
     loadAccountantOverview().then((overview) => {
-      if (!cancelled) setData(overview);
+      if (!cancelled && overview) setData(overview);
     });
     return () => {
       cancelled = true;
     };
-  }, [refresh]);
+  }, []);
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 

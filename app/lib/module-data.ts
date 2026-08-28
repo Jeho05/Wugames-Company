@@ -677,16 +677,16 @@ const apiLoaders: Record<string, Loader> = {
   },
 };
 
-export async function loadModuleData(slug: string, role: RoleCode): Promise<ModuleLoadResult> {
+export async function loadModuleData(slug: string, role: RoleCode): Promise<ModuleLoadResult | null> {
   const loader = apiLoaders[slug];
-  if (!loader) return { data: { rows: [], stats: [], insights: [] }, source: "demo" };
+  if (!loader) return null;
 
   const usableRoles: RoleCode[] = ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_DEV_DIGITAL", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"];
-  if (!usableRoles.includes(role)) return { data: { rows: [], stats: [], insights: [] }, source: "demo" };
+  if (!usableRoles.includes(role)) return null;
 
   try {
     return { data: await loader(role), source: "api" };
   } catch {
-    return { data: { rows: [], stats: [], insights: [] }, source: "demo" };
+    return null;
   }
 }

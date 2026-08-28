@@ -69,15 +69,15 @@ export function SecretaryCommandCenter() {
     setRefreshing(false);
   }, []);
 
-useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     loadSecretaryOverview().then((overview) => {
-      if (!cancelled) setData(overview);
+      if (!cancelled && overview) setData(overview);
     });
     return () => {
       cancelled = true;
     };
-  }, [refresh]);
+  }, []);
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 

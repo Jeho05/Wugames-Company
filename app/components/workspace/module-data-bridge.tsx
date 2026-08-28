@@ -56,6 +56,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
 
     loadModuleData(slug, role).then((result) => {
       if (cancelled) return;
+      if (!result) return; // Ne rien faire si l'API a échoué
       setData(result.data);
       setSource(result.source);
     });
