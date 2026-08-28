@@ -38,18 +38,16 @@ const navItems: { id: string; label: string; icon: IconName }[] = [
 ];
 
 export function ClientStdScreen({ user }: ClientStdScreenProps) {
-  const [data, setData] = useState<ClientStdData>({ live: false, missions: [], commandes: [], devis: [], notifications: [], projets: [] });
-  const [cleans, setCleans] = useState<CleansOverview>(demoCleansOverview);
-  const [live, setLive] = useState(false);
+  const [data, setData] = useState<ClientStdData | null>(null);
+  const [cleans, setCleans] = useState<CleansOverview | null>(null);
   const [activeId, setActiveId] = useState("std-apercu");
   const reduce = useReducedMotion();
 
   useEffect(() => {
     let cancelled = false;
     loadClientStdData().then((result) => {
-      if (cancelled) return;
+      if (cancelled || !result) return;
       setData(result);
-      setLive(result.live);
     });
     return () => {
       cancelled = true;
@@ -79,6 +77,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
   }, [reduce]);
 
   const kpi = useMemo(() => {
+    if (!data) return null;
     const dernierEvenement = data.notifications[0]?.time ?? "Aujourd'hui";
     return {
       missions: data.missions.length,
@@ -91,11 +90,22 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
   }, [data]);
 
   const state = useMemo(
-    () => clientStdStateFrom(data.missions, data.devis),
+    () => data ? clientStdStateFrom(data.missions, data.devis) : "ok",
     [data]
   );
 
-  const missionsActives = data.missions.filter((m) => m.statut !== "TERMINE" && m.statut !== "VALIDE").length;
+  const missionsActives = data ? data.missions.filter((m) => m.statut !== "TERMINE" && m.statut !== "VALIDE").length : 0;
+
+  if (!data || !kpi) {
+    return (
+      <div className="grid min-h-[60vh] place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
+          <p className="text-sm font-semibold text-slate-400">Chargement de votre espace client…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 lg:space-y-12">
@@ -142,7 +152,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
             <div>
               <h2 className="text-lg font-bold tracking-[-0.03em] text-[#16233a] dark:text-slate-100">Vue d&apos;ensemble</h2>
               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                {live ? "Données synchronisées avec vos dossiers WUGAMS" : "Aperçu de vos prestations chez WUGAMS"}
+                {data.live ? "Données synchronisées avec vos dossiers WUGAMS" : "Aperçu de vos prestations chez WUGAMS"}
               </p>
             </div>
           </div>
@@ -156,7 +166,7 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
       <ClientStdCommandes commandes={data.commandes} />
       <ClientStdDevis devis={data.devis} />
 
-      <ClientStdNotifications live={live} notifications={data.notifications} />
+      <ClientStdNotifications live={data.live} notifications={data.notifications} />
 
       <ClientStdProfil user={user} />
     </div>

@@ -184,7 +184,7 @@ function projetView(projet: ClientProjet): ClientProjetView {
 /* Chargement — aucun endpoint financier pour le ROLE_CLIENT_STD       */
 /* ------------------------------------------------------------------ */
 
-export async function loadClientStdData(): Promise<ClientStdData> {
+export async function loadClientStdData(): Promise<ClientStdData | null> {
   const [missionsRes, commandesRes, devisRes, notificationsRes, projetsRes] = await Promise.allSettled([
     getMissions(),
     getCommandes(),
@@ -192,6 +192,17 @@ export async function loadClientStdData(): Promise<ClientStdData> {
     listNotifications(),
     getProjets(),
   ]);
+
+  // Si toutes les APIs échouent, retourner null pour afficher le loader
+  if (
+    missionsRes.status === "rejected" &&
+    commandesRes.status === "rejected" &&
+    devisRes.status === "rejected" &&
+    notificationsRes.status === "rejected" &&
+    projetsRes.status === "rejected"
+  ) {
+    return null;
+  }
 
   const live =
     missionsRes.status === "fulfilled" ||
