@@ -17,6 +17,7 @@ import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
 import { ScrollChoreography } from "@/app/components/ui/scroll-choreography";
 import { ContactForm } from "@/app/components/branding/contact-form";
 import { useAuth } from "@/app/lib/auth-context";
+import { useTemoignages, useServices, useGaranties, useMarquee } from "@/app/hooks/use-vitrine";
 
 const navLinks = [
   { label: "Le problème", href: "#probleme" },
@@ -31,38 +32,12 @@ const siteLinks = [
   { label: "Blog", href: "/blog" },
 ];
 
+// Contenu éditorial statique (gardé car rédactionnel, non métier)
+// Les sections métier (services, garanties, témoignages, marquee) sont désormais dynamiques
 const painPoints = [
   "Vous avez déjà fait appel à un artisan qui n'a pas tenu ses promesses ?",
   "Vos travaux prennent du retard, vos devis augmentent, et personne ne vous rassure ?",
   "Vous ne savez plus à qui faire confiance pour réaliser vos projets de construction, de rénovation ou d'entretien ?",
-];
-
-const services = [
-  {
-    description: "Rénovation intérieure et extérieure, construction neuve, aménagement complet.",
-    icon: "folder" as const,
-    title: "Rénovation & Construction",
-  },
-  {
-    description: "Nettoyage professionnel pour résidences, bureaux, complexes médicaux et espaces verts.",
-    icon: "sparkles" as const,
-    title: "Nettoyage & Entretien",
-  },
-  {
-    description: "Vente de matériaux de bricolage, de construction et d'entretien, livraison rapide et conseil technique.",
-    icon: "boxes" as const,
-    title: "Matériaux & Fournitures",
-  },
-  {
-    description: "Achat, création, conception et restauration de mobilier sur mesure.",
-    icon: "hardhat" as const,
-    title: "Mobilier & Design",
-  },
-  {
-    description: "Partenariat et Communauté",
-    icon: "building" as const,
-    title: "Diriger & Créer d'entreprises",
-  },
 ];
 
 const beforeAfter = [
@@ -72,38 +47,14 @@ const beforeAfter = [
   { after: "Garantie d'accompagnement et de service après la réalisation de votre projet.", before: "Aucune garantie, bons sentiments" },
 ];
 
-const testimonials = [
-  {
-    name: "Koffi Amara",
-    role: "Propriétaire, Résidence Cocody",
-    text: "Après 3 mauvaises expériences avec des artisans, WUGAMS a tout changé. Le suivi en temps réel, la transparence sur les coûts. Pour la première fois, j&apos;ai pu dormir tranquille pendant mes travaux.",
-    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-  },
-  {
-    name: "Ahoua Brigitte",
-    role: "Directrice, SCI Les Palmiers",
-    text: "On ne nous a rien vendu. On nous a écoutés, compris, puis proposé une solution adaptée. C&apos;est ça la différence WUGAMS. Le résultat a dépassé nos attentes.",
-    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-  },
-  {
-    name: "Koné David",
-    role: "Entrepreneur immobilier",
-    text: "De la rénovation à la décoration, un seul interlocuteur. Zéro mauvaise surprise. Mon projet a été livré dans les temps et le budget était respecté à l&apos;euro près.",
-    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
-  },
-];
-
-const guarantees = [
-  { icon: "shield" as const, title: "Garantie de suivi et d'accompagnement", text: "Notre engagement ne s'arrête pas à la fin des travaux. Nous assurons un suivi et restons disponibles pour vous accompagner après la réalisation de votre projet." },
-  { icon: "check" as const, title: "Le devis qui vous convient", text: "Nous vous proposons différentes options et vous accompagnons dans la validation de la solution retenue." },
-  { icon: "clock" as const, title: "Respect du calendrier", text: "Nous définissons un calendrier réaliste avec vous. Si vous avez des contraintes de temps, nous pouvons proposer une réalisation express." },
-  { icon: "message" as const, title: "Suivi en temps réel", text: "Nous maintenons une communication claire et continue pour vous permettre de suivre l'évolution de votre projet." },
-];
-
 const mobileNavLinks = [...navLinks, ...siteLinks];
 
 export default function ClientBrandingPage() {
   const { user } = useAuth();
+  const { data: temoignages, loading: temoignagesLoading } = useTemoignages();
+  const { data: services, loading: servicesLoading } = useServices();
+  const { data: garanties, loading: garantiesLoading } = useGaranties();
+  const { data: marqueeItems, loading: marqueeLoading } = useMarquee();
 
   return (
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
@@ -170,11 +121,16 @@ export default function ClientBrandingPage() {
         }}
       />
 
-      {/* ═══ MARQUEE ═══ */}
-      <Marquee
-        className="border-y border-slate-200/60 bg-[#f0f4f8] py-3"
-        items={["1 200+ projets livrés", "4,7/5 satisfaction", "Zéro surprise tarifaire", "Garantie décennale 10 ans", "5 filiales spécialisées", "Suivi en temps réel", "Consultation gratuite", "Devis transparent"]}
-      />
+      {/* ═══ MARQUEE — dynamique, masquée si aucune donnée */}
+      {!marqueeLoading && marqueeItems && marqueeItems.length > 0 ? (
+        <Marquee className="border-y border-slate-200/60 bg-[#f0f4f8] py-3" items={marqueeItems.map((m) => m.label)} />
+      ) : marqueeLoading ? (
+        <div className="border-y border-slate-200/60 bg-[#f0f4f8] py-3">
+          <div className="mx-auto max-w-[1240px] px-5">
+            <div className="h-5 w-full animate-pulse rounded bg-slate-200/60" />
+          </div>
+        </div>
+      ) : null}
 
       {/* ═══ PROBLÈME ═══ */}
       <section className="bg-white" id="probleme">
@@ -233,115 +189,149 @@ export default function ClientBrandingPage() {
         </div>
       </section>
 
-      {/* ═══ FILIALES ═══ */}
-      <section className="relative border-y border-slate-200 bg-[#eef4fa]" id="solution">
-        <GradientMesh />
-        <div className="relative z-10 mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
-          <Reveal>
-            <div className="relative text-center">
-              <div className="pointer-events-none absolute -right-10 -top-20 hidden h-48 w-72 overflow-hidden rounded-2xl opacity-10 lg:block">
-                <Image
-                  alt="Chantier WUGAMS"
-                  className="size-full object-cover"
-                  height={400}
-                  src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
-                  width={600}
+      {/* ═══ FILIALES — dynamique, masquée si aucune donnée */}
+      {servicesLoading ? (
+        <section className="relative border-y border-slate-200 bg-[#eef4fa]" id="solution">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-44 animate-pulse rounded-2xl bg-white/60" />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : services && services.length > 0 ? (
+        <section className="relative border-y border-slate-200 bg-[#eef4fa]" id="solution">
+          <GradientMesh />
+          <div className="relative z-10 mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+            <Reveal>
+              <div className="relative text-center">
+                <div className="pointer-events-none absolute -right-10 -top-20 hidden h-48 w-72 overflow-hidden rounded-2xl opacity-10 lg:block">
+                  <Image
+                    alt="Chantier WUGAMS"
+                    className="size-full object-cover"
+                    height={400}
+                    src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+                    width={600}
+                  />
+                </div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos filiales</p>
+                <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Une équipe, cinq expertises.</h2>
+                <GooeyText
+                  className="mx-auto mt-4 h-9 sm:h-11"
+                  textClassName="text-xl font-bold tracking-[-0.04em] text-[#426b95] sm:text-3xl"
+                  texts={["Construire.", "Rénover.", "Entretenir.", "Aménager.", "Entreprendre."]}
                 />
+                <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-slate-500">
+                  Chaque filiale WUGAMS est spécialisée. Une équipe engagée vous accompagne à chaque étape de votre projet.
+                </p>
               </div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos filiales</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Une équipe, cinq expertises.</h2>
-              <GooeyText
-                className="mx-auto mt-4 h-9 sm:h-11"
-                textClassName="text-xl font-bold tracking-[-0.04em] text-[#426b95] sm:text-3xl"
-                texts={["Construire.", "Rénover.", "Entretenir.", "Aménager.", "Entreprendre."]}
-              />
-              <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-slate-500">
-                Chaque filiale WUGAMS est spécialisée. Une équipe engagée vous accompagne à chaque étape de votre projet.
-              </p>
-            </div>
-          </Reveal>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {services.map((service, i) => (
-              <Reveal delay={i * 100} key={service.title}>
-                <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5">
-                  <div className="p-5">
-                    <span className={"grid size-11 place-items-center rounded-2xl " + (i % 2 === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
-                      <Icon name={service.icon} size={22} />
-                    </span>
-                    <h3 className="mt-5 text-base font-bold text-[#24395d]">{service.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-500">{service.description}</p>
-                  </div>
-                </SpotlightCard>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ ENGAGEMENTS ═══ */}
-      <section className="bg-white">
-        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
-          <Reveal>
-            <div className="text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos engagements</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Voici les promesses que nous faisons à chacun de nos clients.</h2>
-            </div>
-          </Reveal>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {guarantees.map((item, i) => (
-              <Reveal delay={i * 100} key={item.title}>
-                <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
-                  <div className="p-5">
-                    <span className="grid size-10 place-items-center rounded-xl bg-[#edf3f9] text-[#426b95]"><Icon name={item.icon} size={20} /></span>
-                    <h3 className="mt-4 text-sm font-bold text-[#24395d]">{item.title}</h3>
-                    <p className="mt-2 text-xs leading-5 text-slate-500">{item.text}</p>
-                  </div>
-                </SpotlightCard>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ TÉMOIGNAGES ═══ */}
-      <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
-        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
-          <Reveal>
-            <div className="text-center">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Preuve sociale</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Ils nous ont fait confiance. Ils ne le regrettent pas.</h2>
-            </div>
-          </Reveal>
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <Reveal delay={i * 120} key={t.name}>
-                <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
-                  <div className="p-6">
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <svg className="size-4 fill-current" key={s} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                      ))}
+            </Reveal>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {services.map((service, i) => (
+                <Reveal delay={i * 100} key={service.id}>
+                  <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5">
+                    <div className="p-5">
+                      <span className={"grid size-11 place-items-center rounded-2xl " + (i % 2 === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
+                        <Icon name={service.icon} size={22} />
+                      </span>
+                      <h3 className="mt-5 text-base font-bold text-[#24395d]">{service.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">{service.description}</p>
                     </div>
-                    <p className="mt-4 text-sm leading-6 text-slate-600">&ldquo;{t.text}&rdquo;</p>
-                    <div className="mt-5 flex items-center gap-3">
-                      <TestimonialImage name={t.name} src={t.img} />
-                      <div>
-                        <p className="text-xs font-bold text-slate-700">{t.name}</p>
-                        <p className="mt-0.5 text-[11px] text-slate-400">{t.role}</p>
+                  </SpotlightCard>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ═══ ENGAGEMENTS — dynamique, masquée si aucune donnée */}
+      {garantiesLoading ? (
+        <section className="bg-white">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-100" />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : garanties && garanties.length > 0 ? (
+        <section className="bg-white">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+            <Reveal>
+              <div className="text-center">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Nos engagements</p>
+                <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Voici les promesses que nous faisons à chacun de nos clients.</h2>
+              </div>
+            </Reveal>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {garanties.map((item, i) => (
+                <Reveal delay={i * 100} key={item.id}>
+                  <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
+                    <div className="p-5">
+                      <span className="grid size-10 place-items-center rounded-xl bg-[#edf3f9] text-[#426b95]"><Icon name={item.icon} size={20} /></span>
+                      <h3 className="mt-4 text-sm font-bold text-[#24395d]">{item.title}</h3>
+                      <p className="mt-2 text-xs leading-5 text-slate-500">{item.text}</p>
+                    </div>
+                  </SpotlightCard>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ═══ TÉMOIGNAGES — dynamique, masquée si aucune donnée (avis + étoiles) */}
+      {temoignagesLoading ? (
+        <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-44 animate-pulse rounded-2xl bg-white" />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : temoignages && temoignages.length > 0 ? (
+        <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+            <Reveal>
+              <div className="text-center">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Preuve sociale</p>
+                <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Ils nous ont fait confiance. Ils ne le regrettent pas.</h2>
+              </div>
+            </Reveal>
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+              {temoignages.map((t, i) => (
+                <Reveal delay={i * 120} key={t.id}>
+                  <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
+                    <div className="p-6">
+                      <div className="flex items-center gap-1 text-amber-500">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <svg key={s} className={"size-4 " + (s <= t.rating ? "fill-current" : "fill-slate-200")} viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-600">&ldquo;{t.text}&rdquo;</p>
+                      <div className="mt-5 flex items-center gap-3">
+                        <TestimonialImage name={t.name} src={t.image} />
+                        <div>
+                          <p className="text-xs font-bold text-slate-700">{t.name}</p>
+                          <p className="mt-0.5 text-[11px] text-slate-400">{t.role}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </SpotlightCard>
-              </Reveal>
-            ))}
+                  </SpotlightCard>
+                </Reveal>
+              ))}
+            </div>
+            {/* Stats masquées si aucun témoignage (évite chiffre mocké) */}
           </div>
-          <div className="mt-10 text-center">
-            <p className="text-xs text-slate-400">
-              <span className="font-bold text-[#17294b]">1 200+ projets</span> livrés avec succès &middot; <span className="font-bold text-[#17294b]">4,7/5</span> de satisfaction moyenne
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* ═══ RENCONTRE ═══ */}
       <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="rencontre">

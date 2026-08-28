@@ -89,6 +89,7 @@ export const adminNavigationGroup: {
   label: "Administration",
   items: [
     { href: "/espace/administration", icon: "shield", label: "Administration" },
+    { href: "/espace/vitrine", icon: "sparkles", label: "Vitrine & Contenus" },
     { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
   ],
 };

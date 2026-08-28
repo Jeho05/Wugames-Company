@@ -22,6 +22,7 @@ import {
   navigationGroups,
   supplierNavigationGroup,
 } from "@/app/lib/demo-data";
+import { canManageVitrine } from "@/app/lib/vitrine-store";
 
 type BackOfficeShellProps = {
   children: ReactNode;
@@ -99,9 +100,16 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
 
   const isClient = clientRoles.has(user.role);
   const isAdmin = user.role === "ROLE_GERANT" || user.role === "ROLE_DEV_DIGITAL";
+  const canVitrine = canManageVitrine(user);
+  // Groupe vitrine visible pour les délégués même sans être admin
+  const vitrineGroup = {
+    label: "Vitrine",
+    items: [{ href: "/espace/vitrine", icon: "sparkles" as const, label: "Vitrine & Contenus" }],
+  };
   const groups = [
     ...(isClient ? clientNavigationGroups : user.role === "ROLE_FOURNISSEUR" ? supplierNavigationGroup : navigationGroups),
     ...(isAdmin ? [adminNavigationGroup] : []),
+    ...(canVitrine && !isAdmin ? [vitrineGroup] : []),
   ];
   const roleLabel = roleLabels[user.role] ?? user.role;
 
