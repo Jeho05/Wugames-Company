@@ -260,33 +260,8 @@ export function DashboardScreen() {
         </div>
       </section>
 
-      <div
-        className={
-          "flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm " +
-          (live.source === "api"
-            ? "border-emerald-100 bg-emerald-50 text-emerald-900"
-            : "border-sky-100 bg-[#edf6ff] text-sky-900")
-        }
-      >
-        <span
-          className={
-            "mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg shadow-sm " +
-            (live.source === "api" ? "bg-white text-emerald-600" : "bg-white text-sky-600")
-          }
-        >
-          <Icon name={live.source === "api" ? "check" : "sparkles"} size={15} />
-        </span>
-        <p className="leading-5">
-          {live.source === "api" ? (
-            <>
-              <span className="font-bold">Données en direct.</span> Les indicateurs, missions et alertes de stock proviennent de l&apos;API WUGAMS.
-            </>
-          ) : (
-            <>
-              <span className="font-bold">Base d&apos;interface prête.</span> Les chiffres et dossiers affichés sont fictifs pour le moment ; les vues sont structurées pour recevoir les données de l&apos;API.
-            </>
-          )}
-        </p>
+      <div className="flex justify-end">
+        <span className="size-1.5 rounded-full bg-emerald-400" />
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

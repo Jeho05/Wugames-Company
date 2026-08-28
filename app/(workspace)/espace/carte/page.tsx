@@ -158,17 +158,7 @@ export default function CarteTerrainPage() {
             ))}
           </div>
           {live !== null ? (
-            <span
-              className={
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold " +
-                (live
-                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                  : "bg-amber-50 text-amber-700 ring-1 ring-amber-200")
-              }
-            >
-              <Icon name="check" size={13} />
-              Données en direct · API WUGAMS
-            </span>
+            <span className="size-1.5 rounded-full bg-emerald-400" />
           ) : null}
         </div>
       </section>

@@ -153,10 +153,7 @@ export default function AdministrationPage() {
 
       {live ? (
         <div className="flex justify-end">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
-            <Icon name="check" size={13} />
-            Données en direct · API WUGAMS
-          </span>
+          <span className="size-1.5 rounded-full bg-emerald-400" />
         </div>
       ) : null}
 

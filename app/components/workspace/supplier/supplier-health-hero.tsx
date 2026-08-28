@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
-
 import { Icon, type IconName } from "@/app/components/ui/app-icon";
 import type { SupplierKpis } from "@/app/lib/supplier-data";
 
@@ -156,14 +154,7 @@ export function SupplierHealthHero({
         <span>
           Dernière actualisation : {formatUpdated(updatedAt)}
         </span>
-        <motion.span
-          animate={{ opacity: [1, 0.4, 1] }}
-          className="inline-flex items-center gap-1.5"
-          transition={{ duration: 2.4, repeat: Infinity }}
-        >
-          <span className="size-1.5 rounded-full bg-emerald-400" />
-          Connecté à l&apos;API
-        </motion.span>
+        <span className="size-1.5 rounded-full bg-emerald-400" />
       </div>
     </section>
   );
