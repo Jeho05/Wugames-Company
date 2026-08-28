@@ -5,6 +5,7 @@ import { MotionConfig } from "motion/react";
 
 import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { Icon } from "@/app/components/ui/app-icon";
+import { LiveIndicator } from "@/app/components/workspace/live-indicator";
 import { Reveal } from "@/app/components/workspace/executive/reveal";
 import { CommandPalette } from "@/app/components/workspace/resp-ouvriers/command/command-palette";
 import { MissionDetail } from "@/app/components/workspace/resp-ouvriers/missions/mission-detail";
@@ -97,12 +98,6 @@ export function RespOuvriersCommandCenter() {
     scrollToSection("parcours");
   };
 
-  const sourceLabel = data?.source === "api" ? "En direct" : "Démonstration";
-  const sourceTone =
-    data?.source === "api"
-      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-      : "border-sky-400/25 bg-sky-400/10 text-sky-300";
-
   return (
     <MotionConfig reducedMotion="user">
       <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0b1020] p-5 shadow-2xl shadow-slate-950/40 sm:p-6 lg:p-8">
@@ -113,10 +108,7 @@ export function RespOuvriersCommandCenter() {
           {/* Barre de commande */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <span className={"inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold " + sourceTone}>
-                <span className={"size-1.5 rounded-full " + (data?.source === "api" ? "bg-emerald-400" : "bg-sky-400")} />
-                {sourceLabel}
-              </span>
+              <LiveIndicator live={data?.source === "api"} />
               <span className="hidden font-mono text-[11px] font-bold tabular-nums text-[#5c6889] sm:inline">
                 {data ? formatUpdatedAt(data.updatedAt) : "…"}
               </span>

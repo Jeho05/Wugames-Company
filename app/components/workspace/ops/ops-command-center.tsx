@@ -6,6 +6,7 @@ import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { LiveIndicator } from "@/app/components/workspace/live-indicator";
 import { Reveal } from "@/app/components/workspace/executive/reveal";
 import { OpsAlerts } from "@/app/components/workspace/ops/ops-alerts";
 import { OpsCalendar } from "@/app/components/workspace/ops/ops-calendar";
@@ -80,12 +81,6 @@ useEffect(() => {
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 
-  const sourceLabel = data?.source === "api" ? "En direct" : "Démonstration";
-  const sourceTone =
-    data?.source === "api"
-      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-      : "border-sky-400/25 bg-sky-400/10 text-sky-300";
-
   return (
     <MotionConfig reducedMotion="user">
       <div className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0b1020] p-5 shadow-2xl shadow-slate-950/40 sm:p-6 lg:p-8">
@@ -102,27 +97,23 @@ useEffect(() => {
           {data ? (
             <>
               <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-semibold text-slate-400">
-                  Dernière mise à jour ·{" "}
-                  <span className="font-mono tabular-nums text-slate-200">{formatUpdatedAt(data.updatedAt)}</span>
-                </p>
                 <div className="flex items-center gap-2">
-                  <span className={"inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold " + sourceTone}>
-                    <span className={"size-1.5 rounded-full " + (data.source === "api" ? "bg-emerald-400" : "bg-sky-400")} />
-                    {sourceLabel}
-                    {data.source === "api" ? " · rafraîchi auto toutes les 60 s" : " · API indisponible"}
-                  </span>
-                  <button
-                    aria-label="Actualiser les données"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-slate-300 shadow-sm backdrop-blur transition hover:border-white/20 hover:text-white disabled:opacity-60"
-                    disabled={refreshing}
-                    onClick={() => void refresh()}
-                    type="button"
-                  >
-                    <Icon className={refreshing ? "animate-spin" : undefined} name="refresh" size={13} />
-                    Actualiser
-                  </button>
+                  <LiveIndicator live={data.source === "api"} />
+                  <p className="text-xs font-semibold text-slate-400">
+                    Dernière mise à jour ·{" "}
+                    <span className="font-mono tabular-nums text-slate-200">{formatUpdatedAt(data.updatedAt)}</span>
+                  </p>
                 </div>
+                <button
+                  aria-label="Actualiser les données"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-slate-300 shadow-sm backdrop-blur transition hover:border-white/20 hover:text-white disabled:opacity-60"
+                  disabled={refreshing}
+                  onClick={() => void refresh()}
+                  type="button"
+                >
+                  <Icon className={refreshing ? "animate-spin" : undefined} name="refresh" size={13} />
+                  Actualiser
+                </button>
               </div>
 
               <Reveal delay={0.01}>

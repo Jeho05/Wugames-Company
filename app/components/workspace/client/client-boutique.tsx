@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { LiveIndicator } from "@/app/components/workspace/live-indicator";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
 import { useAuth } from "@/app/lib/auth-context";
 import {
@@ -393,19 +394,7 @@ export function ClientBoutique({ sectionId = "portail-boutique", embedded = fals
 
   return (
     <ClientSection
-      action={
-        <span
-          className={
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold " +
-            (live
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"
-              : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300")
-          }
-        >
-          <span className={"size-1.5 animate-pulse rounded-full " + (live ? "bg-emerald-500" : "bg-amber-500")} />
-          {live ? "Espace Wu · données en direct" : "Espace Wu · démonstration"}
-        </span>
-      }
+      action={<LiveIndicator live={live} />}
       icon="shopping-bag"
       id={sectionId}
       subtitle="Entretien, matériaux, mobilier et outillage — commandez depuis votre espace"

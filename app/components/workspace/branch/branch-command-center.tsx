@@ -9,6 +9,7 @@ import * as notificationsApi from "@/app/lib/api/notifications";
 import * as usersApi from "@/app/lib/api/users";
 import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
+import { LiveIndicator } from "@/app/components/workspace/live-indicator";
 import { Reveal } from "@/app/components/workspace/executive/reveal";
 import { BranchActivity } from "@/app/components/workspace/branch/branch-activity";
 import { BranchAlerts } from "@/app/components/workspace/branch/branch-alerts";
@@ -90,12 +91,6 @@ useEffect(() => {
     });
   }
 
-  const sourceLabel = data?.source === "api" ? "En direct" : "Démonstration";
-  const sourceTone =
-    data?.source === "api"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : "border-sky-200 bg-sky-50 text-sky-700";
-
   return (
     <MotionConfig reducedMotion="user">
       <div className="relative rounded-3xl border border-slate-200/70 bg-gradient-to-b from-white via-[#f6fafd] to-[#f1f7fb] p-5 shadow-2xl shadow-slate-950/[0.06] sm:p-6 lg:p-8">
@@ -108,18 +103,16 @@ useEffect(() => {
           {data ? (
             <>
               <div aria-live="polite" className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-semibold text-slate-500">
-                  Dernière mise à jour ·{" "}
-                  <span className="font-mono tabular-nums text-[#0f2a52]">{formatUpdatedAt(data.updatedAt)}</span>
-                  <span className="ml-2 hidden text-slate-400 sm:inline">· données limitées à {data.filiale.nom}</span>
-                </p>
+                <div className="flex items-center gap-2">
+                  <LiveIndicator live={data.source === "api"} />
+                  <p className="text-xs font-semibold text-slate-500">
+                    Dernière mise à jour ·{" "}
+                    <span className="font-mono tabular-nums text-[#0f2a52]">{formatUpdatedAt(data.updatedAt)}</span>
+                    <span className="ml-2 hidden text-slate-400 sm:inline">· données limitées à {data.filiale.nom}</span>
+                  </p>
+                </div>
                 <div className="flex items-center gap-2">
                   <BranchCommandPalette data={data} />
-                  <span className={"inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold " + sourceTone}>
-                    <span className={"size-1.5 rounded-full " + (data.source === "api" ? "bg-emerald-500" : "bg-sky-500")} />
-                    {sourceLabel}
-                    {data.source === "api" ? " · rafraîchi auto toutes les 60 s" : " · API indisponible"}
-                  </span>
                   <button
                     aria-label="Actualiser les données"
                     className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600 shadow-sm backdrop-blur transition hover:border-[#0e9f9b]/60 hover:text-[#0e9f9b] disabled:opacity-60"
