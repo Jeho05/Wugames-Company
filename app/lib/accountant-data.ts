@@ -236,11 +236,6 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
   const consolidation =
     consolidationResult.status === "fulfilled" ? consolidationResult.value : null;
 
-  // Si l'API n'a pas répondu correctement, retourner null pour afficher le loader
-  if (facturesResult.status === "rejected") {
-    return null;
-  }
-
   if (factures.length === 0) {
     return {
       source: "api",

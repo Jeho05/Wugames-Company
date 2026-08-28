@@ -48,54 +48,16 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   const [data, setData] = useState<ModuleData | null>(null);
   const [source, setSource] = useState<ModuleDataSource | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    const role = user?.role;
-    if (!role) return;
-
-    loadModuleData(slug, role).then((result) => {
-      if (cancelled) return;
-      if (!result) return; // Ne rien faire si l'API a échoué
-      setData(result.data);
-      setSource(result.source);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [slug, user?.role, refreshKey]);
-
-  const mergedDefinition = useMemo<ModuleDefinition>(() => {
-    if (!data) {
-      // Si data est null, ne pas utiliser les rows hardcodées
-      return { ...definition, rows: [] };
-    }
-    if (source !== "api") return definition;
-    return {
-      ...definition,
-      rows: data.rows.length > 0 ? data.rows : [],
-      stats: data.stats,
-      insights: data.insights,
-    };
-  }, [data, definition, source]);
+  const [toastMsg, setToastMsg] = useState("");
+  const [affectMissionId, setAffectMissionId] = useState<string | null>(null);
+  const [affectOuvrierId, setAffectOuvrierId] = useState("");
+  const [affectLoading, setAffectLoading] = useState(false);
+  const [affectOuvriers, setAffectOuvriers] = useState<{ value: string; label: string }[]>([]);
 
   const refresh = useCallback(() => {
     resetApiCache();
     setRefreshKey((key) => key + 1);
   }, []);
-
-  // Afficher un loader pendant le chargement des données
-  if (data === null) {
-    return (
-      <div className="grid min-h-[60vh] place-items-center">
-        <div className="flex flex-col items-center gap-4">
-          <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
-          <p className="text-sm font-semibold text-slate-400">Chargement des données…</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleRowClick = useCallback(
     (row: ModuleRow) => {
@@ -120,31 +82,6 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     },
     [slug, refresh],
   );
-
-
-  const [toastMsg, setToastMsg] = useState("");
-  const [affectMissionId, setAffectMissionId] = useState<string | null>(null);
-  const [affectOuvrierId, setAffectOuvrierId] = useState("");
-  const [affectLoading, setAffectLoading] = useState(false);
-  const [affectOuvriers, setAffectOuvriers] = useState<{ value: string; label: string }[]>([]);
-
-  useEffect(() => {
-    if (!affectMissionId) return;
-    setAffectOuvriers([]);
-    listUsers()
-      .then((users) => {
-        const ouvriers = users
-          .filter((u) => u.role === "ROLE_OUVRIER")
-          .map((u) => ({
-            value: u.ouvrier_profile?.id ?? u.id,
-            label: `${[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email}${u.ouvrier_profile?.specialite ? ` · ${u.ouvrier_profile.specialite}` : ""}`,
-          }));
-        setAffectOuvriers(ouvriers);
-      })
-      .catch(() => {
-        /* API injoignable : liste vide. */
-      });
-  }, [affectMissionId]);
 
   const handleMissionRowClick = useCallback(
     (row: ModuleRow) => {
@@ -187,6 +124,71 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
       return <GenericCreateRenderer config={createConfig} {...props} onCreated={refresh} />;
     }
     return undefined;
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    const role = user?.role;
+    if (!role) return;
+
+    loadModuleData(slug, role).then((result) => {
+      if (cancelled) return;
+      if (!result) {
+        // API indisponible ou slug non géré : afficher un tableau vide plutôt qu'un loader infini
+        setData({ rows: [], stats: [], insights: [] });
+        setSource(null);
+        return;
+      }
+      setData(result.data);
+      setSource(result.source);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, user?.role, refreshKey]);
+
+  useEffect(() => {
+    if (!affectMissionId) return;
+    listUsers()
+      .then((users) => {
+        const ouvriers = users
+          .filter((u) => u.role === "ROLE_OUVRIER")
+          .map((u) => ({
+            value: u.ouvrier_profile?.id ?? u.id,
+            label: `${[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email}${u.ouvrier_profile?.specialite ? ` · ${u.ouvrier_profile.specialite}` : ""}`,
+          }));
+        setAffectOuvriers(ouvriers);
+      })
+      .catch(() => {
+        /* API injoignable : liste vide. */
+      });
+  }, [affectMissionId]);
+
+  const mergedDefinition = useMemo<ModuleDefinition>(() => {
+    if (!data) {
+      // Si data est null, ne pas utiliser les rows hardcodées
+      return { ...definition, rows: [] };
+    }
+    if (source !== "api") return definition;
+    return {
+      ...definition,
+      rows: data.rows.length > 0 ? data.rows : [],
+      stats: data.stats,
+      insights: data.insights,
+    };
+  }, [data, definition, source]);
+
+  // Afficher un loader pendant le chargement des données — APRÈS tous les hooks
+  if (data === null) {
+    return (
+      <div className="grid min-h-[60vh] place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
+          <p className="text-sm font-semibold text-slate-400">Chargement des données…</p>
+        </div>
+      </div>
+    );
   }
 
   return (

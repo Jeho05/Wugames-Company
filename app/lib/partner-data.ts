@@ -171,11 +171,6 @@ export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
     auditApi.listAuditLogs(),
   ]);
 
-  // Si l'API produits échoue, retourner null pour afficher le loader
-  if (produitsResult.status === "rejected") {
-    return null;
-  }
-
   const produits = produitsResult.status === "fulfilled" ? produitsResult.value : [];
   const fournisseurs = fournisseursResult.status === "fulfilled" ? fournisseursResult.value : [];
   const audits = auditResult.status === "fulfilled" ? auditResult.value : [];

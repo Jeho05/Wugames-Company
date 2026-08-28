@@ -225,11 +225,6 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
     unreadCount(),
   ]);
 
-  // Si les API principales échouent, retourner null pour afficher le loader
-  if (missionsRes.status === "rejected" && facturesListRes.status === "rejected") {
-    return null;
-  }
-
   const filiales = filialesRes.status === "fulfilled" ? filialesRes.value : null;
   const factures = facturesRes.status === "fulfilled" ? facturesRes.value : null;
   const factureList = facturesListRes.status === "fulfilled" ? facturesListRes.value : [];

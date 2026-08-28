@@ -193,16 +193,7 @@ export async function loadClientStdData(): Promise<ClientStdData | null> {
     getProjets(),
   ]);
 
-  // Si toutes les APIs échouent, retourner null pour afficher le loader
-  if (
-    missionsRes.status === "rejected" &&
-    commandesRes.status === "rejected" &&
-    devisRes.status === "rejected" &&
-    notificationsRes.status === "rejected" &&
-    projetsRes.status === "rejected"
-  ) {
-    return null;
-  }
+  // Si toutes les APIs échouent, retourner un objet vide plutôt qu'un loader infini
 
   const live =
     missionsRes.status === "fulfilled" ||

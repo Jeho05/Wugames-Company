@@ -179,11 +179,6 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
     auditApi.listAuditLogs(),
   ]);
 
-  // Si l'API principale échoue, retourner null pour afficher le loader
-  if (clientsRes.status === "rejected" && fournisseursRes.status === "rejected" && usersRes.status === "rejected") {
-    return null;
-  }
-
   const clients = clientsRes.status === "fulfilled" ? clientsRes.value : [];
   const fournisseurs = fournisseursRes.status === "fulfilled" ? fournisseursRes.value : [];
   const users = usersRes.status === "fulfilled" ? usersRes.value : [];

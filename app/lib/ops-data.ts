@@ -225,11 +225,6 @@ export async function loadOpsOverview(): Promise<OpsOverview | null> {
     clientsApi.listClients(),
   ]);
 
-  // Si l'API missions échoue, retourner null pour afficher le loader
-  if (missionsResult.status === "rejected") {
-    return null;
-  }
-
   const missions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
   const users = usersResult.status === "fulfilled" ? usersResult.value : [];
   const ranking = rankingResult.status === "fulfilled" ? rankingResult.value : null;
