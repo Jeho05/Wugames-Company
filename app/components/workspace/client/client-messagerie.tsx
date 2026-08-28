@@ -136,9 +136,9 @@ function ConversationItem({
 }
 
 export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessagerieProps) {
-  const [conversations, setConversations] = useState<Conversation[]>(demoConversations);
-  const [activeId, setActiveId] = useState<string>("conv-1");
-  const [messages, setMessages] = useState<Record<string, Message[]>>(demoMessages);
+  const [conversations, setConversations] = useState<Conversation[] | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [newConvOpen, setNewConvOpen] = useState(false);
@@ -153,17 +153,24 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
     let cancelled = false;
     listConversations()
       .then((result) => {
-        if (cancelled || result.length === 0) return;
+        if (cancelled) return;
         setConversations(result);
-        setActiveId(result[0].id);
+        if (result.length > 0) {
+          setActiveId(result[0].id);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        // En cas d'erreur, mettre un tableau vide
+        if (!cancelled) {
+          setConversations([]);
+        }
+      });
     return () => { cancelled = true; };
   }, []);
 
-  const active = useMemo(() => conversations.find((c) => c.id === activeId) ?? null, [conversations, activeId]);
-  const activeMessages = useMemo(() => messages[activeId] ?? [], [messages, activeId]);
-  const totalUnread = useMemo(() => conversations.reduce((sum, c) => sum + c.non_lus, 0), [conversations]);
+  const active = useMemo(() => conversations && activeId ? conversations.find((c) => c.id === activeId) ?? null : null, [conversations, activeId]);
+  const activeMessages = useMemo(() => activeId && messages[activeId] ? messages[activeId] : [], [messages, activeId]);
+  const totalUnread = useMemo(() => conversations ? conversations.reduce((sum, c) => sum + c.non_lus, 0) : 0, [conversations]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -184,7 +191,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
 
   const openConversation = useCallback((id: string) => {
     setActiveId(id);
-    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, non_lus: 0 } : c)));
+    setConversations((prev) => prev ? prev.map((c) => (c.id === id ? { ...c, non_lus: 0 } : c)) : null);
     setMobileView("chat");
   }, []);
 
@@ -222,7 +229,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
     setSendingNew(true);
     try {
       const conv = await createConversation({ sujet: newSujet.trim(), premier_message: newMessage.trim() });
-      setConversations((prev) => [conv, ...prev]);
+      setConversations((prev) => [conv, ...(prev ?? [])]);
       setActiveId(conv.id);
       setMobileView("chat");
       setMessages((prev) => ({
@@ -248,7 +255,7 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      setConversations((prev) => [conv, ...prev]);
+      setConversations((prev) => [conv, ...(prev ?? [])]);
       setActiveId(conv.id);
       setMobileView("chat");
       setMessages((prev) => ({
@@ -271,6 +278,25 @@ export function ClientMessagerie({ sectionId = "portail-messages" }: ClientMessa
   }, [newSujet, newMessage, sendingNew]);
 
   const wugamsMember = active?.participants[0];
+
+  // Afficher un loader pendant le chargement des conversations
+  if (conversations === null) {
+    return (
+      <ClientSection
+        icon="message"
+        id={sectionId}
+        subtitle="Échangez directement avec votre équipe WUGAMS"
+        title="Messagerie"
+      >
+        <div className="mt-2 grid min-h-[400px] place-items-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center gap-4">
+            <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
+            <p className="text-sm font-semibold text-slate-400">Chargement des conversations…</p>
+          </div>
+        </div>
+      </ClientSection>
+    );
+  }
 
   return (
     <ClientSection
