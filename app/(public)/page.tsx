@@ -112,9 +112,11 @@ export default function ClientBrandingPage() {
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.08] bg-gradient-to-b from-[#0a1420]/98 via-[#0d1829]/96 to-[#0b1526]/95 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl">
         <div className="absolute inset-0 bg-gradient-to-r from-[#e3a641]/[0.03] via-transparent to-sky-500/[0.02]" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#e3a641]/30 to-transparent" />
-        <div className="relative mx-auto flex h-[72px] w-full max-w-[1280px] items-center justify-between gap-4 px-5 xl:px-8">
-          <BrandMark inverse />
-          
+        <div className="relative mx-auto flex h-14 w-full max-w-[1280px] items-center justify-between gap-3 px-4 sm:h-[72px] sm:gap-4 sm:px-5 xl:px-8">
+          <div className="flex shrink-0 items-center gap-2">
+            <BrandMark inverse />
+          </div>
+
           <nav aria-label="Navigation principale" className="hidden items-center gap-0.5 text-[13px] font-semibold xl:flex">
             <a className="group relative rounded-lg px-3 py-2 text-white/75 transition hover:text-white" href="#solution">
               <span className="relative z-10">Solution</span>
@@ -132,7 +134,7 @@ export default function ClientBrandingPage() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
             {user ? (
               <>
                 <Link className="group relative hidden items-center gap-2 overflow-hidden rounded-xl border border-white/20 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white backdrop-blur-md transition hover:border-white/30 lg:inline-flex" href="/espace">
