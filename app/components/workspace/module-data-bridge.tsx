@@ -67,10 +67,14 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   }, [slug, user?.role, refreshKey]);
 
   const mergedDefinition = useMemo<ModuleDefinition>(() => {
-    if (source !== "api" || !data) return definition;
+    if (!data) {
+      // Si data est null, ne pas utiliser les rows hardcodées
+      return { ...definition, rows: [] };
+    }
+    if (source !== "api") return definition;
     return {
       ...definition,
-      rows: data.rows.length > 0 ? data.rows : definition.rows,
+      rows: data.rows.length > 0 ? data.rows : [],
       stats: data.stats,
       insights: data.insights,
     };
@@ -80,6 +84,18 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     resetApiCache();
     setRefreshKey((key) => key + 1);
   }, []);
+
+  // Afficher un loader pendant le chargement des données
+  if (data === null) {
+    return (
+      <div className="grid min-h-[60vh] place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
+          <p className="text-sm font-semibold text-slate-400">Chargement des données…</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleRowClick = useCallback(
     (row: ModuleRow) => {
