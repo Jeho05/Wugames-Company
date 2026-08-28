@@ -19,7 +19,6 @@ import {
   loadClientStdData,
 } from "@/app/lib/client-std-data";
 import type { ClientStdData } from "@/app/lib/client-std-data";
-import { demoCleansOverview } from "@/app/lib/cleans-data";
 import type { CleansOverview } from "@/app/lib/cleans-data";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 
