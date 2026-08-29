@@ -49,11 +49,7 @@ const fallbackGaranties = [
   { id: "fallback-g4", title: "Suivi en temps réel", text: "Nous maintenons une communication claire et continue pour vous permettre de suivre l'évolution de votre projet.", icon: "message" as const, order: 4 },
 ];
 
-const fallbackTemoignages = [
-  { id: "fallback-t1", name: "Koffi Amara", role: "Propriétaire, Résidence Cocody", text: "Après 3 mauvaises expériences avec des artisans, WUGAMS a tout changé. Le suivi en temps réel, la transparence sur les coûts. Pour la première fois, j'ai pu dormir tranquille pendant mes travaux.", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80", rating: 5 },
-  { id: "fallback-t2", name: "Ahoua Brigitte", role: "Directrice, SCI Les Palmiers", text: "On ne nous a rien vendu. On nous a écoutés, compris, puis proposé une solution adaptée. C'est ça la différence WUGAMS. Le résultat a dépassé nos attentes.", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80", rating: 5 },
-  { id: "fallback-t3", name: "Koné David", role: "Entrepreneur immobilier", text: "De la rénovation à la décoration, un seul interlocuteur. Zéro mauvaise surprise. Mon projet a été livré dans les temps et le budget était respecté à l'euro près.", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80", rating: 5 },
-];
+
 
 const fallbackMarquee = ["1 200+ projets livrés", "4,7/5 satisfaction", "Zéro surprise tarifaire", "Garantie décennale 10 ans", "5 filiales spécialisées", "Suivi en temps réel", "Consultation gratuite", "Devis transparent"];
 
@@ -101,8 +97,8 @@ export default function ClientBrandingPage() {
   const displayTemoignages = (() => {
     if (temoignagesLoading) return null;
     const dyn = temoignagesData ?? [];
-    // En dur + dynamique (dyn en premier pour mettre en avant les nouveaux avis)
-    return dyn.length > 0 ? [...dyn, ...fallbackTemoignages] : [...fallbackTemoignages];
+    // Témoignages : uniquement dynamique, sans fallback
+    return dyn;
   })();
 
   const displayMarquee = (() => {
@@ -338,26 +334,22 @@ export default function ClientBrandingPage() {
         </section>
       )}
 
-      {/* ═══ TÉMOIGNAGES — en dur + dynamique (avis + étoiles) */}
-      {displayTemoignages === null ? (
-        <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
-          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
-            <div className="grid gap-4 sm:grid-cols-3">
+      {/* ═══ TÉMOIGNAGES — uniquement dynamique */}
+      <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
+        <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
+          <Reveal>
+            <div className="text-center">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Preuve sociale</p>
+              <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Ils nous ont fait confiance. Ils ne le regrettent pas.</h2>
+            </div>
+          </Reveal>
+          {displayTemoignages === null ? (
+            <div className="mt-12 grid gap-4 sm:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-44 animate-pulse rounded-2xl bg-white" />
               ))}
             </div>
-          </div>
-        </section>
-      ) : (
-        <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
-          <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
-            <Reveal>
-              <div className="text-center">
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">Preuve sociale</p>
-                <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Ils nous ont fait confiance. Ils ne le regrettent pas.</h2>
-              </div>
-            </Reveal>
+          ) : displayTemoignages.length > 0 ? (
             <div className="mt-12 grid gap-4 sm:grid-cols-3">
               {displayTemoignages.map((t, i) => (
                 <Reveal delay={i * 120} key={t.id}>
@@ -383,9 +375,17 @@ export default function ClientBrandingPage() {
                 </Reveal>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          ) : (
+            <div className="mt-12 grid place-items-center rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center">
+              <span className="mx-auto grid size-12 place-items-center rounded-xl bg-slate-100 text-slate-400">
+                <Icon name="message" size={20} />
+              </span>
+              <p className="mt-3 text-sm font-semibold text-[#17294b]">Pas de témoignages pour l&apos;instant</p>
+              <p className="mt-1 max-w-md text-xs leading-5 text-slate-400">Les premiers avis clients apparaîtront ici dès que le Gérant les publiera depuis l&apos;espace vitrine.</p>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ═══ RENCONTRE ═══ */}
       <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="rencontre">
