@@ -22,10 +22,10 @@ type ClientEspacesWugamsProps = {
   sectionId?: string;
 };
 
-const subTabs: { id: TabId; label: string; icon: IconName; accent: string }[] = [
-  { id: "demandes", label: "Mes demandes", icon: "clipboard", accent: "from-[#17294b] to-[#2a4a7f]" },
-  { id: "clean", label: "Wugams Clean", icon: "sparkles", accent: "from-emerald-500 to-teal-600" },
-  { id: "boutique", label: "Espace Wu", icon: "shopping-bag", accent: "from-[#b47e1e] to-[#d4a029]" },
+const subTabs: { id: TabId; label: string; icon: IconName }[] = [
+  { id: "demandes", label: "Mes demandes", icon: "clipboard" },
+  { id: "clean", label: "Wugams Clean", icon: "sparkles" },
+  { id: "boutique", label: "Espace Wu", icon: "shopping-bag" },
 ];
 
 const typeIcon: Record<DemandeType, "sparkles" | "clipboard" | "warning"> = {
@@ -34,24 +34,19 @@ const typeIcon: Record<DemandeType, "sparkles" | "clipboard" | "warning"> = {
   RECLAMATION: "warning",
 };
 
-const typeColors: Record<DemandeType, { bg: string; text: string; ring: string }> = {
-  DEVIS: { bg: "bg-amber-50", text: "text-amber-600", ring: "ring-amber-200" },
-  SERVICE: { bg: "bg-blue-50", text: "text-blue-600", ring: "ring-blue-200" },
-  RECLAMATION: { bg: "bg-rose-50", text: "text-rose-600", ring: "ring-rose-200" },
-};
-
 const typeShortLabel: Record<DemandeType, string> = {
   DEVIS: "Devis",
   SERVICE: "Service",
   RECLAMATION: "Réclam.",
 };
 
+// Palette épurée : un seul doré WUGAMS + ardoise, plus de multicolore
 const statutAccent: Record<DemandeStatut, { dot: string; label: string }> = {
-  ENVOYEE: { dot: "bg-blue-400", label: "text-blue-600" },
-  ETUDIEE: { dot: "bg-amber-400", label: "text-amber-600" },
-  DEVIS_PROPOSE: { dot: "bg-orange-400", label: "text-orange-600" },
+  ENVOYEE: { dot: "bg-slate-300", label: "text-slate-500" },
+  ETUDIEE: { dot: "bg-slate-300", label: "text-slate-500" },
+  DEVIS_PROPOSE: { dot: "bg-[#e3a641]", label: "text-[#b47e1e]" },
   ACCEPTEE: { dot: "bg-emerald-400", label: "text-emerald-600" },
-  REFUSEE: { dot: "bg-rose-400", label: "text-rose-600" },
+  REFUSEE: { dot: "bg-slate-300", label: "text-slate-500" },
 };
 
 const demandeSteps: { label: string; from: DemandeStatut[] }[] = [
@@ -157,7 +152,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
       subtitle="Demandes, Wugams Clean et Espace Wu — tous vos services au même endroit"
       title="Espaces Wugams"
     >
-      {/* Sous-onglets */}
+      {/* Sous-onglets — palette épurée */}
       <div className="scrollbar-none -mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
         {subTabs.map((t) => {
           const active = tab === t.id;
@@ -165,23 +160,21 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
             <button
               aria-current={active ? "true" : undefined}
               className={
-                "group relative inline-flex shrink-0 items-center gap-2.5 overflow-hidden rounded-2xl border px-5 py-2.5 text-[11px] font-bold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 " +
+                "inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-bold transition " +
                 (active
-                  ? "border-transparent bg-gradient-to-br " + t.accent + " text-white shadow-lg shadow-[#17294b]/20"
-                  : "border-slate-200/80 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-[#17294b] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-white")
+                  ? "border-[#17294b] bg-[#17294b] text-white shadow-sm"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-[#17294b] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:text-white")
               }
               key={t.id}
               onClick={() => setTab(t.id)}
               type="button"
             >
-              <span className={"grid size-6 place-items-center rounded-lg " + (active ? "bg-white/20" : "bg-[#17294b]/[0.06] dark:bg-white/[0.06]")}>
-                <Icon name={t.icon} size={13} className={active ? "text-white" : "text-[#17294b] dark:text-slate-300"} />
-              </span>
+              <Icon name={t.icon} size={13} />
               {t.label}
             </button>
           );
         })}
-        <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#17294b]/15 bg-gradient-to-r from-[#17294b]/5 to-[#b47e1e]/5 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-[#17294b]">
+        <span className="ml-auto hidden shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-semibold text-slate-500 sm:inline-flex dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
           <Icon name="building" size={11} />
           Espace WUGAMS
         </span>
@@ -190,20 +183,20 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
       {/* Contenu Demandes */}
       {tab === "demandes" && (
         <div className="mt-3">
-          {/* Stats résumé */}
+          {/* Stats résumé — monochrome épuré */}
           {all.length > 0 ? (
-            <div className="mb-5 grid grid-cols-3 gap-2.5">
-              <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white p-3.5 text-center dark:border-blue-900/30 dark:from-blue-950/30 dark:to-transparent">
-                <p className="text-xl font-extrabold tracking-tight text-blue-600 dark:text-blue-400">{enAttente}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-blue-500/70 dark:text-blue-400/60">En attente</p>
+            <div className="mb-5 grid grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm dark:border-white/10 dark:bg-[#101c36]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">En attente</p>
+                <p className="mt-1 text-2xl font-bold tracking-[-0.03em] text-[#17294b] dark:text-white">{enAttente}</p>
               </div>
-              <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50/80 to-white p-3.5 text-center dark:border-amber-900/30 dark:from-amber-950/30 dark:to-transparent">
-                <p className="text-xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">{enCours}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-amber-500/70 dark:text-amber-400/60">Devis en cours</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm dark:border-white/10 dark:bg-[#101c36]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Devis en cours</p>
+                <p className="mt-1 text-2xl font-bold tracking-[-0.03em] text-[#17294b] dark:text-white">{enCours}</p>
               </div>
-              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white p-3.5 text-center dark:border-emerald-900/30 dark:from-emerald-950/30 dark:to-transparent">
-                <p className="text-xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">{terminees}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-emerald-500/70 dark:text-emerald-400/60">Terminées</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm dark:border-white/10 dark:bg-[#101c36]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-400">Terminées</p>
+                <p className="mt-1 text-2xl font-bold tracking-[-0.03em] text-[#17294b] dark:text-white">{terminees}</p>
               </div>
             </div>
           ) : null}
@@ -213,7 +206,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
               Devis, services et réclamations — chaque demande suit son cycle
             </p>
             <button
-              className="inline-flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-[#17294b] to-[#243a61] px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/20 transition hover:shadow-xl hover:shadow-[#17294b]/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17294b]"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b] px-4 py-2.5 text-[12px] font-bold text-white shadow-sm transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2"
               onClick={() => setCompose(true)}
               type="button"
             >
@@ -224,9 +217,9 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
 
           <div className="grid gap-3 md:grid-cols-2">
             {all.length === 0 ? (
-              <div className="col-span-full rounded-3xl border border-dashed border-slate-200 bg-gradient-to-br from-slate-50/80 to-white px-6 py-12 text-center dark:border-white/10 dark:from-white/[0.02] dark:to-transparent">
-                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#17294b]/10 to-[#b47e1e]/10 text-[#17294b]">
-                  <Icon name="clipboard" size={24} />
+              <div className="col-span-full rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center dark:border-white/10 dark:bg-[#101c36]">
+                <span className="mx-auto grid size-12 place-items-center rounded-xl bg-slate-100 text-slate-400 dark:bg-white/10 dark:text-slate-400">
+                  <Icon name="clipboard" size={20} />
                 </span>
                 <p className="mt-4 text-sm font-bold text-[#16233a] dark:text-slate-200">Aucune demande pour le moment</p>
                 <p className="mt-1.5 max-w-72 text-xs leading-5 text-slate-400">
@@ -244,23 +237,19 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
             ) : (
               all.map((demande, index) => {
                 const typeMeta = demandeTypeMeta[demande.type];
-                const colors = typeColors[demande.type];
                 const accent = statutAccent[demande.statut];
                 return (
                   <motion.article
-                    className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-xl hover:shadow-slate-950/[0.06] dark:border-white/10 dark:bg-[#101c36] dark:hover:border-white/20"
-                    initial={reduce ? undefined : { opacity: 0, y: 14 }}
+                    className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-white/10 dark:bg-[#101c36] dark:hover:border-white/20"
+                    initial={reduce ? undefined : { opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     key={demande.id}
-                    transition={{ duration: 0.45, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.3, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    {/* Accent gradient top */}
-                    <div className={"absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r " + (type === "DEVIS" ? "from-amber-400 to-orange-400" : type === "SERVICE" ? "from-blue-400 to-indigo-400" : "from-rose-400 to-pink-400")} />
-
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
-                        <span className={"grid size-9 shrink-0 place-items-center rounded-xl " + colors.bg + " " + colors.text}>
-                          <Icon name={typeIcon[demande.type]} size={16} />
+                        <span className="grid size-8 place-items-center rounded-xl bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
+                          <Icon name={typeIcon[demande.type]} size={14} />
                         </span>
                         <div>
                           <StatusBadge tone={typeMeta.tone}>{typeMeta.label}</StatusBadge>
@@ -273,14 +262,14 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                       <span className="text-[11px] font-semibold text-slate-400">{demande.date}</span>
                     </div>
 
-                    <h3 className="mt-3.5 text-[14px] font-bold leading-6 tracking-[-0.02em] text-[#16233a] group-hover:text-[#17294b] dark:text-slate-100 dark:group-hover:text-white">
+                    <h3 className="mt-3.5 text-[13px] font-bold leading-5 tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
                       {demande.objet}
                     </h3>
-                    <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{demande.detail}</p>
+                    <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{demande.detail}</p>
 
-                    <div className="mt-4 flex items-center justify-end border-t border-slate-100 pt-3.5 dark:border-white/5">
+                    <div className="mt-4 flex items-center justify-end border-t border-slate-100 pt-3 dark:border-white/5">
                       <button
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#17294b]/[0.06] px-3 py-2 text-[11px] font-bold text-[#17294b] transition group-hover:bg-[#17294b] group-hover:text-white dark:bg-white/10 dark:text-slate-300 dark:group-hover:bg-white/20"
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-[#17294b]/30 hover:text-[#17294b] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300 dark:hover:text-white"
                         onClick={() => setSelected(demande)}
                         type="button"
                       >
@@ -418,24 +407,23 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
               <div className="mt-4 space-y-3.5 sm:mt-5 sm:space-y-4">
                 <div>
                   <p className="mb-2 text-xs font-bold text-slate-500 dark:text-slate-400">Type de demande</p>
-                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                    {(["DEVIS", "SERVICE", "RECLAMATION"] as DemandeType[]).map((option) => {
-                      const c = typeColors[option];
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                     {(["DEVIS", "SERVICE", "RECLAMATION"] as DemandeType[]).map((option) => {
                       const isActive = type === option;
                       return (
                         <button
                           className={
                             "group flex flex-col items-center gap-1 rounded-2xl border px-2 py-3 text-[11px] font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 sm:gap-1.5 sm:px-3 sm:py-3.5 sm:text-[12px] " +
                             (isActive
-                              ? "border-[#17294b] bg-[#17294b] text-white shadow-lg shadow-[#17294b]/15"
+                              ? "border-[#17294b] bg-[#17294b] text-white shadow-sm"
                               : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400")
                           }
                           key={option}
                           onClick={() => setType(option)}
                           type="button"
                         >
-                          <span className={"grid size-8 shrink-0 place-items-center rounded-xl transition sm:size-9 " + (isActive ? "bg-white/20" : c.bg)}>
-                            <Icon name={typeIcon[option]} size={15} className={isActive ? "text-white" : c.text} />
+                          <span className={"grid size-8 shrink-0 place-items-center rounded-xl transition sm:size-9 " + (isActive ? "bg-white/15 text-white" : "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400")}>
+                            <Icon name={typeIcon[option]} size={15} />
                           </span>
                           <span className="hidden leading-tight sm:block">{demandeTypeMeta[option].label}</span>
                           <span className="block leading-tight sm:hidden">{typeShortLabel[option]}</span>
@@ -469,7 +457,7 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                   />
                 </div>
                 <button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17294b] to-[#243a61] px-4 py-3 text-[12px] font-bold text-white shadow-lg shadow-[#17294b]/15 transition hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:py-3.5 sm:text-[13px]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3 text-[12px] font-bold text-white shadow-sm transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:py-3.5 sm:text-[13px]"
                   disabled={!objet.trim() || envoi}
                   onClick={submit}
                   type="button"
