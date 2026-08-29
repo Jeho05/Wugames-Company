@@ -9,8 +9,11 @@ import {
   clientNavigationGroups,
   getModuleDefinition,
   navigationGroups,
+  supplierNavigationGroup,
 } from "@/app/lib/demo-data";
 import type { IconName } from "@/app/components/ui/app-icon";
+import { useAuth } from "@/app/lib/auth-context";
+import { canAccessHref } from "@/app/lib/permissions";
 
 type SearchEntry = {
   href: string;
@@ -24,14 +27,28 @@ export function WorkspaceCommandSearch() {
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
   const router = useRouter();
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const entries = useMemo<SearchEntry[]>(() => {
-    const groups = [...navigationGroups, ...clientNavigationGroups];
+    if (!user) return [];
+
+    // Construit la liste comme le shell mais filtrée par rôle
+    const isClient = user.role === "ROLE_CLIENT_STD" || user.role === "ROLE_CLIENT_MEMBRE";
+    const isSupplier = user.role === "ROLE_FOURNISSEUR";
+
+    let groups: Array<{ label: string; items: Array<{ href: string; icon: IconName; label: string }> }> = [];
+    if (isClient) groups = [...clientNavigationGroups];
+    else if (isSupplier) groups = [...supplierNavigationGroup];
+    else groups = [...navigationGroups];
+
+    // N'ajoute l'admin que si autorisé
+    const isAdminLike = user.role === "ROLE_GERANT" || user.role === "ROLE_DEV_DIGITAL";
+    if (isAdminLike) groups = [...groups, adminNavigationGroup];
+
     const nav: SearchEntry[] = groups.flatMap((group) =>
       group.items.map((item) => ({ href: item.href, icon: item.icon, label: item.label, section: group.label }))
     );
-    nav.push(...adminNavigationGroup.items.map((item) => ({ ...item, section: adminNavigationGroup.label })));
 
     const moduleSlugs = [
       "clients", "chantiers", "missions", "ouvriers", "devis", "stocks",
@@ -55,13 +72,27 @@ export function WorkspaceCommandSearch() {
       { href: "/espace/carte", icon: "map", label: "Carte terrain", section: "Modules" },
       { href: "/espace/administration", icon: "shield", label: "Administration", section: "Modules" },
       { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique matériaux", section: "Modules" },
+      // Vitrine édit : seulement si canManageVitrine
+      ...(canAccessHref("/espace/vitrine", user) ? [{ href: "/espace/vitrine", icon: "sparkles" as IconName, label: "Vitrine & Contenus", section: "Administration" }] : []),
       { href: "/realisations", icon: "camera", label: "Nos réalisations", section: "Site public" },
       { href: "/blog", icon: "newspaper", label: "Blog & conseils", section: "Site public" },
       { href: "/", icon: "building", label: "Vitrine WUGAMS", section: "Site public" },
     ];
 
-    return [...nav, ...modules, ...extra];
-  }, []);
+    const all: SearchEntry[] = [...nav, ...modules, ...extra];
+
+    // Filtrage RBAC strict : n'importe quel rôle ne voit que ses liens
+    const filtered = all.filter((entry) => canAccessHref(entry.href, user));
+
+    // Déduplication par href+label
+    const seen = new Set<string>();
+    return filtered.filter((e) => {
+      const key = e.href + "|" + e.label;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [user]);
 
   const results = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("fr");
