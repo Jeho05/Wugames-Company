@@ -5,6 +5,9 @@ import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/app/components/ui/app-icon";
 import type { Notification } from "@/app/lib/contracts";
 import { relativeTime } from "@/app/lib/supplier-data";
+import { resolveNotificationHref } from "@/app/lib/notification-target";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/lib/auth-context";
 
 type SupplierNotificationsProps = {
   notifications: Notification[];
@@ -39,6 +42,8 @@ const categoryIcon: Record<string, IconName> = {
 export function SupplierNotifications({ notifications, onMarkRead, onMarkAllRead, onOpenProduct }: SupplierNotificationsProps) {
   const [category, setCategory] = useState<CategoryKey>("toutes");
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
 
   const counts = useMemo(() => {
     const map = new Map<string, number>();
@@ -138,12 +143,24 @@ export function SupplierNotifications({ notifications, onMarkRead, onMarkAllRead
             return (
               <li
                 className={
-                  "flex items-start gap-3 rounded-2xl border bg-white px-4 py-3.5 shadow-sm transition " +
+                  "group flex cursor-pointer items-start gap-3 rounded-2xl border bg-white px-4 py-3.5 shadow-sm transition " +
                   (item.lu
                     ? "border-slate-200/70 dark:border-slate-800 dark:bg-slate-900"
-                    : "border-[#1e40af]/25 bg-[#1e40af]/[0.04] dark:border-sky-500/25 dark:bg-sky-500/[0.06]")
+                    : "border-[#1e40af]/25 bg-[#1e40af]/[0.04] hover:bg-[#1e40af]/[0.08] dark:border-sky-500/25 dark:bg-sky-500/[0.06]")
                 }
                 key={item.id}
+                onClick={() => {
+                  const href = resolveNotificationHref(item, user?.role ?? null);
+                  if (href) router.push(href);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const href = resolveNotificationHref(item, user?.role ?? null);
+                    if (href) router.push(href);
+                  }
+                }}
               >
                 <span className={"mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl ring-1 " + levelMeta[niveau ?? "info"]}>
                   <Icon name={icon} size={15} />
@@ -163,7 +180,10 @@ export function SupplierNotifications({ notifications, onMarkRead, onMarkAllRead
                     {produitId ? (
                       <button
                         className="inline-flex min-h-7 items-center gap-1 text-[10px] font-extrabold text-[#1e40af] transition hover:underline dark:text-sky-400"
-                        onClick={() => onOpenProduct(produitId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenProduct(produitId);
+                        }}
                         type="button"
                       >
                         <Icon name="eye" size={11} />
@@ -173,7 +193,10 @@ export function SupplierNotifications({ notifications, onMarkRead, onMarkAllRead
                     {!item.lu ? (
                       <button
                         className="inline-flex min-h-7 items-center gap-1 text-[10px] font-extrabold text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
-                        onClick={() => onMarkRead(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMarkRead(item.id);
+                        }}
                         type="button"
                       >
                         <Icon name="check" size={11} />

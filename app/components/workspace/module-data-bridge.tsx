@@ -15,6 +15,7 @@ import { getModuleCreateConfig } from "@/app/lib/module-create";
 import { loadModuleData, type ModuleDataSource, type ModuleData } from "@/app/lib/module-data";
 import { affecterMission } from "@/app/lib/api/missions";
 import { listUsers } from "@/app/lib/api/users";
+import { resolveNotificationHref } from "@/app/lib/notification-target";
 
 type ModuleDataBridgeProps = {
   definition: ModuleDefinition;
@@ -73,6 +74,26 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
             }
           : current,
       );
+      // Navigation vers la page d'origine de la notification
+      try {
+        const fakeNotif: Record<string, unknown> = {
+          id,
+          type: row.module as string,
+          message: row.notification as string,
+          // Certaines APIs renvoient table_cible/entite_id dans la row
+          table_cible: (row as Record<string, unknown>).table_cible,
+          entite_id: id,
+        };
+        const href = resolveNotificationHref(fakeNotif as unknown as import("@/app/lib/contracts").Notification, user?.role ?? null);
+        if (href && href !== "/espace/notifications") {
+          // Laisse le temps au markAsRead de partir, puis navigue
+          window.setTimeout(() => {
+            window.location.assign(href);
+          }, 250);
+        }
+      } catch {
+        /* navigation optionnelle */
+      }
       markAsRead(id)
         .then(() => undefined)
         .catch(() => {
@@ -80,7 +101,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
           refresh();
         });
     },
-    [slug, refresh],
+    [slug, refresh, user?.role],
   );
 
   const handleMissionRowClick = useCallback(

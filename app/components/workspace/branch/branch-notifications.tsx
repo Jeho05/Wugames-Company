@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ExecutivePanel } from "@/app/components/workspace/executive/executive-panel";
 import type { BranchNotification } from "@/app/lib/branch-data";
+import { resolveNotificationHref } from "@/app/lib/notification-target";
+import { useAuth } from "@/app/lib/auth-context";
 
 type BranchNotificationsProps = {
   notifications: BranchNotification[];
@@ -26,6 +29,8 @@ const typeMeta: Record<string, { label: string; badge: string }> = {
 export function BranchNotifications({ notifications, unread, onMarkRead }: BranchNotificationsProps) {
   const [filter, setFilter] = useState<"toutes" | "non_lues">("toutes");
   const filtered = filter === "toutes" ? notifications : notifications.filter((notification) => !notification.lu);
+  const router = useRouter();
+  const { user } = useAuth();
 
   return (
     <ExecutivePanel
@@ -70,15 +75,27 @@ export function BranchNotifications({ notifications, unread, onMarkRead }: Branc
             return (
               <motion.li
                 animate={{ opacity: 1, x: 0 }}
-                className={"rounded-2xl border p-3.5 transition " + (notification.lu ? "border-slate-100 bg-slate-50/40" : "border-[#0e9f9b]/25 bg-teal-50/50 hover:bg-teal-50/80")}
+                className={"group rounded-2xl border p-3.5 transition " + (notification.lu ? "border-slate-100 bg-slate-50/40" : "cursor-pointer border-[#0e9f9b]/25 bg-teal-50/50 hover:bg-teal-50/80")}
                 initial={{ opacity: 0, x: -14 }}
                 key={notification.id}
                 transition={{ delay: index * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                onClick={() => {
+                  const href = resolveNotificationHref({ id: notification.id, type: notification.type, message: notification.message } as unknown as import("@/app/lib/contracts").Notification, user?.role ?? null);
+                  if (href) router.push(href);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const href = resolveNotificationHref({ id: notification.id, type: notification.type, message: notification.message } as unknown as import("@/app/lib/contracts").Notification, user?.role ?? null);
+                    if (href) router.push(href);
+                  }
+                }}
               >
                 <div className="flex items-start gap-3">
                   {!notification.lu ? <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#0e9f9b]" aria-label="Non lue" /> : <span className="mt-1.5 size-2 shrink-0 rounded-full bg-slate-200" aria-hidden="true" />}
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-bold leading-5 text-[#16233a]">{notification.message}</p>
+                    <p className="text-[11px] font-bold leading-5 text-[#16233a] group-hover:underline">{notification.message}</p>
                     <p className="mt-1 text-[10px] font-semibold text-slate-400">{notification.createdAt}</p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -88,7 +105,10 @@ export function BranchNotifications({ notifications, unread, onMarkRead }: Branc
                     {!notification.lu ? (
                       <button
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[9px] font-bold text-slate-600 transition hover:border-[#0e9f9b]/50 hover:text-[#0e9f9b]"
-                        onClick={() => onMarkRead(notification.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMarkRead(notification.id);
+                        }}
                         type="button"
                       >
                         <Icon name="check" size={10} />

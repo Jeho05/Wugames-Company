@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ExecutivePanel } from "@/app/components/workspace/executive/executive-panel";
 import type { SecretaryNotificationItem } from "@/app/lib/secretary-data";
+import { resolveNotificationHref } from "@/app/lib/notification-target";
+import { useAuth } from "@/app/lib/auth-context";
 
 type SecretaryNotificationsProps = {
   items: SecretaryNotificationItem[];
@@ -20,13 +23,22 @@ const kindMeta: Record<SecretaryNotificationItem["kind"], { icon: "user-plus" | 
 
 export function SecretaryNotifications({ items }: SecretaryNotificationsProps) {
   const [readIds, setReadIds] = useState<Set<string>>(() => new Set());
+  const router = useRouter();
+  const { user } = useAuth();
 
-  function markRead(id: string) {
+  function markRead(id: string, kind?: string, title?: string) {
     setReadIds((prev) => {
       const next = new Set(prev);
       next.add(id);
       return next;
     });
+    // Navigation vers la page d'origine
+    try {
+      const href = resolveNotificationHref({ id, type: kind ?? "", message: title ?? "" } as unknown as import("@/app/lib/contracts").Notification, user?.role ?? null);
+      if (href && href !== "/espace/notifications") router.push(href);
+    } catch {
+      /* ignore */
+    }
   }
 
   const unreadCount = items.filter((item) => item.unread && !readIds.has(item.id)).length;
@@ -66,7 +78,7 @@ export function SecretaryNotifications({ items }: SecretaryNotificationsProps) {
                     "flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition " +
                     (read ? "border-slate-100 bg-slate-50/40" : "border-amber-100/80 bg-amber-50/50 hover:bg-amber-50/80")
                   }
-                  onClick={() => markRead(item.id)}
+                  onClick={() => markRead(item.id, item.kind, item.title)}
                   type="button"
                 >
                   <span className={"grid size-8 shrink-0 place-items-center rounded-xl " + meta.tile}>

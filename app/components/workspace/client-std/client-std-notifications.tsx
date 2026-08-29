@@ -8,6 +8,9 @@ import type { IconName } from "@/app/components/ui/app-icon";
 import type { ClientStdNotificationKind, ClientStdNotificationView } from "@/app/lib/client-std-data";
 import { markAsRead } from "@/app/lib/api/notifications";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
+import { resolveNotificationHref } from "@/app/lib/notification-target";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/lib/auth-context";
 
 const kindMeta: Record<ClientStdNotificationKind, { icon: IconName; tone: string }> = {
   mission: { icon: "hardhat", tone: "bg-sky-500/[0.12] text-sky-600" },
@@ -24,10 +27,19 @@ type ClientStdNotificationsProps = {
 export function ClientStdNotifications({ notifications, live = false }: ClientStdNotificationsProps) {
   const [items, setItems] = useState(notifications);
   const reduce = useReducedMotion();
+  const router = useRouter();
+  const { user } = useAuth();
   const nonLues = items.filter((n) => !n.lu).length;
 
-  function markRead(id: string) {
+  function markRead(id: string, kind?: string, titre?: string) {
     setItems((current) => current.map((n) => (n.id === id ? { ...n, lu: true } : n)));
+    try {
+      const notif = { id, type: kind ?? "", message: titre ?? "" } as unknown as import("@/app/lib/contracts").Notification;
+      const href = resolveNotificationHref(notif, user?.role ?? null);
+      if (href) router.push(href);
+    } catch {
+      /* navigation optionnelle */
+    }
     if (!live) return;
     markAsRead(id).catch(() => {
       /* API injoignable : l'état local reste cohérent. */
@@ -81,7 +93,7 @@ export function ClientStdNotifications({ notifications, live = false }: ClientSt
                     "group flex w-full items-start gap-4 rounded-2xl p-3.5 text-left transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:bg-white/[0.03] " +
                     (notification.lu ? "" : "bg-[#f7f9fc] dark:bg-white/[0.04]")
                   }
-                  onClick={() => markRead(notification.id)}
+                  onClick={() => markRead(notification.id, notification.kind, notification.titre)}
                   type="button"
                 >
                   <div className="relative flex flex-col items-center self-stretch">

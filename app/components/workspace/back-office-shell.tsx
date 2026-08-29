@@ -23,6 +23,8 @@ import {
   supplierNavigationGroup,
 } from "@/app/lib/demo-data";
 import { canManageVitrine } from "@/app/lib/vitrine-store";
+import { NotificationToaster } from "@/app/components/workspace/notification-toaster";
+import { resolveNotificationTarget } from "@/app/lib/notification-target";
 
 type BackOfficeShellProps = {
   children: ReactNode;
@@ -75,6 +77,25 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const streamEnabled = user !== null && !clientRoles.has(user.role);
   const streamState = useNotificationsStream(streamEnabled, (notification: Notification) => {
     if (!notification.lu) setLiveUnread((count) => count + 1);
+    // Notif vraiment vraiment : toast in-app + navigateur + deep-link
+    try {
+      const target = resolveNotificationTarget(notification, user?.role ?? null);
+      window.dispatchEvent(
+        new CustomEvent("wugams:notify", {
+          detail: { notification, href: target?.href ?? null, label: target?.label ?? null },
+        })
+      );
+      // Son discret (optionnel) — vibration si supporté
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try {
+          (navigator as unknown as { vibrate: (n: number[]) => void }).vibrate([80, 40, 80]);
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch {
+      /* ignore */
+    }
   });
 
   const [lastPath, setLastPath] = useState(pathname);
@@ -377,6 +398,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
       {showTwoFa ? <TwoFaForm onClose={() => setShowTwoFa(false)} /> : null}
 
       {showCoffre ? <CoffreDuGerant onClose={() => setShowCoffre(false)} streamState={streamState} /> : null}
+      <NotificationToaster />
     </div>
   );
 }
