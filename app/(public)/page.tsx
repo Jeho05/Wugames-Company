@@ -32,8 +32,32 @@ const siteLinks = [
   { label: "Blog", href: "/blog" },
 ];
 
+// Fallbacks en dur — conservés, et enrichis dynamiquement via la vitrine
+// La section des 5 filiales/missions reste visible même sans données dynamiques
+const fallbackServices = [
+  { id: "fallback-1", title: "Rénovation & Construction", description: "Rénovation intérieure et extérieure, construction neuve, aménagement complet.", icon: "folder" as const, order: 1 },
+  { id: "fallback-2", title: "Nettoyage & Entretien", description: "Nettoyage professionnel pour résidences, bureaux, complexes médicaux et espaces verts.", icon: "sparkles" as const, order: 2 },
+  { id: "fallback-3", title: "Matériaux & Fournitures", description: "Vente de matériaux de bricolage, de construction et d'entretien, livraison rapide et conseil technique.", icon: "boxes" as const, order: 3 },
+  { id: "fallback-4", title: "Mobilier & Design", description: "Achat, création, conception et restauration de mobilier sur mesure.", icon: "hardhat" as const, order: 4 },
+  { id: "fallback-5", title: "Diriger & Créer d'entreprises", description: "Partenariat et Communauté", icon: "building" as const, order: 5 },
+];
+
+const fallbackGaranties = [
+  { id: "fallback-g1", title: "Garantie de suivi et d'accompagnement", text: "Notre engagement ne s'arrête pas à la fin des travaux. Nous assurons un suivi et restons disponibles pour vous accompagner après la réalisation de votre projet.", icon: "shield" as const, order: 1 },
+  { id: "fallback-g2", title: "Le devis qui vous convient", text: "Nous vous proposons différentes options et vous accompagnons dans la validation de la solution retenue.", icon: "check" as const, order: 2 },
+  { id: "fallback-g3", title: "Respect du calendrier", text: "Nous définissons un calendrier réaliste avec vous. Si vous avez des contraintes de temps, nous pouvons proposer une réalisation express.", icon: "clock" as const, order: 3 },
+  { id: "fallback-g4", title: "Suivi en temps réel", text: "Nous maintenons une communication claire et continue pour vous permettre de suivre l'évolution de votre projet.", icon: "message" as const, order: 4 },
+];
+
+const fallbackTemoignages = [
+  { id: "fallback-t1", name: "Koffi Amara", role: "Propriétaire, Résidence Cocody", text: "Après 3 mauvaises expériences avec des artisans, WUGAMS a tout changé. Le suivi en temps réel, la transparence sur les coûts. Pour la première fois, j'ai pu dormir tranquille pendant mes travaux.", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80", rating: 5 },
+  { id: "fallback-t2", name: "Ahoua Brigitte", role: "Directrice, SCI Les Palmiers", text: "On ne nous a rien vendu. On nous a écoutés, compris, puis proposé une solution adaptée. C'est ça la différence WUGAMS. Le résultat a dépassé nos attentes.", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80", rating: 5 },
+  { id: "fallback-t3", name: "Koné David", role: "Entrepreneur immobilier", text: "De la rénovation à la décoration, un seul interlocuteur. Zéro mauvaise surprise. Mon projet a été livré dans les temps et le budget était respecté à l'euro près.", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80", rating: 5 },
+];
+
+const fallbackMarquee = ["1 200+ projets livrés", "4,7/5 satisfaction", "Zéro surprise tarifaire", "Garantie décennale 10 ans", "5 filiales spécialisées", "Suivi en temps réel", "Consultation gratuite", "Devis transparent"];
+
 // Contenu éditorial statique (gardé car rédactionnel, non métier)
-// Les sections métier (services, garanties, témoignages, marquee) sont désormais dynamiques
 const painPoints = [
   "Vous avez déjà fait appel à un artisan qui n'a pas tenu ses promesses ?",
   "Vos travaux prennent du retard, vos devis augmentent, et personne ne vous rassure ?",
@@ -51,10 +75,41 @@ const mobileNavLinks = [...navLinks, ...siteLinks];
 
 export default function ClientBrandingPage() {
   const { user } = useAuth();
-  const { data: temoignages, loading: temoignagesLoading } = useTemoignages();
-  const { data: services, loading: servicesLoading } = useServices();
-  const { data: garanties, loading: garantiesLoading } = useGaranties();
+  const { data: temoignagesData, loading: temoignagesLoading } = useTemoignages();
+  const { data: servicesData, loading: servicesLoading } = useServices();
+  const { data: garantiesData, loading: garantiesLoading } = useGaranties();
   const { data: marqueeItems, loading: marqueeLoading } = useMarquee();
+
+  // Section des 5 missions/filiales : en dur + dynamique (merge)
+  const displayServices = (() => {
+    if (servicesLoading) return null;
+    const dyn = servicesData ?? [];
+    // En dur toujours présent, dynamique s'ajoute après (évite les doublons sur le titre)
+    const titles = new Set(dyn.map((s) => s.title));
+    const base = fallbackServices.filter((f) => !titles.has(f.title));
+    return [...base, ...dyn].sort((a, b) => a.order - b.order);
+  })();
+
+  const displayGaranties = (() => {
+    if (garantiesLoading) return null;
+    const dyn = garantiesData ?? [];
+    const titles = new Set(dyn.map((g) => g.title));
+    const base = fallbackGaranties.filter((f) => !titles.has(f.title));
+    return [...base, ...dyn].sort((a, b) => a.order - b.order);
+  })();
+
+  const displayTemoignages = (() => {
+    if (temoignagesLoading) return null;
+    const dyn = temoignagesData ?? [];
+    // En dur + dynamique (dyn en premier pour mettre en avant les nouveaux avis)
+    return dyn.length > 0 ? [...dyn, ...fallbackTemoignages] : [...fallbackTemoignages];
+  })();
+
+  const displayMarquee = (() => {
+    if (marqueeLoading) return null;
+    const dyn = marqueeItems ?? [];
+    return dyn.length > 0 ? dyn.map((m) => m.label) : fallbackMarquee;
+  })();
 
   return (
     <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
@@ -121,16 +176,16 @@ export default function ClientBrandingPage() {
         }}
       />
 
-      {/* ═══ MARQUEE — dynamique, masquée si aucune donnée */}
-      {!marqueeLoading && marqueeItems && marqueeItems.length > 0 ? (
-        <Marquee className="border-y border-slate-200/60 bg-[#f0f4f8] py-3" items={marqueeItems.map((m) => m.label)} />
-      ) : marqueeLoading ? (
+      {/* ═══ MARQUEE — en dur + dynamique */}
+      {displayMarquee === null ? (
         <div className="border-y border-slate-200/60 bg-[#f0f4f8] py-3">
           <div className="mx-auto max-w-[1240px] px-5">
             <div className="h-5 w-full animate-pulse rounded bg-slate-200/60" />
           </div>
         </div>
-      ) : null}
+      ) : (
+        <Marquee className="border-y border-slate-200/60 bg-[#f0f4f8] py-3" items={displayMarquee} />
+      )}
 
       {/* ═══ PROBLÈME ═══ */}
       <section className="bg-white" id="probleme">
@@ -189,8 +244,8 @@ export default function ClientBrandingPage() {
         </div>
       </section>
 
-      {/* ═══ FILIALES — dynamique, masquée si aucune donnée */}
-      {servicesLoading ? (
+      {/* ═══ FILIALES — 5 missions en dur + dynamique (restaurée) */}
+      {displayServices === null ? (
         <section className="relative border-y border-slate-200 bg-[#eef4fa]" id="solution">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -200,7 +255,7 @@ export default function ClientBrandingPage() {
             </div>
           </div>
         </section>
-      ) : services && services.length > 0 ? (
+      ) : (
         <section className="relative border-y border-slate-200 bg-[#eef4fa]" id="solution">
           <GradientMesh />
           <div className="relative z-10 mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
@@ -228,7 +283,7 @@ export default function ClientBrandingPage() {
               </div>
             </Reveal>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              {services.map((service, i) => (
+              {displayServices.map((service, i) => (
                 <Reveal delay={i * 100} key={service.id}>
                   <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5">
                     <div className="p-5">
@@ -244,10 +299,10 @@ export default function ClientBrandingPage() {
             </div>
           </div>
         </section>
-      ) : null}
+      )}
 
-      {/* ═══ ENGAGEMENTS — dynamique, masquée si aucune donnée */}
-      {garantiesLoading ? (
+      {/* ═══ ENGAGEMENTS — en dur + dynamique */}
+      {displayGaranties === null ? (
         <section className="bg-white">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -257,7 +312,7 @@ export default function ClientBrandingPage() {
             </div>
           </div>
         </section>
-      ) : garanties && garanties.length > 0 ? (
+      ) : (
         <section className="bg-white">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
             <Reveal>
@@ -267,7 +322,7 @@ export default function ClientBrandingPage() {
               </div>
             </Reveal>
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {garanties.map((item, i) => (
+              {displayGaranties.map((item, i) => (
                 <Reveal delay={i * 100} key={item.id}>
                   <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
                     <div className="p-5">
@@ -281,10 +336,10 @@ export default function ClientBrandingPage() {
             </div>
           </div>
         </section>
-      ) : null}
+      )}
 
-      {/* ═══ TÉMOIGNAGES — dynamique, masquée si aucune donnée (avis + étoiles) */}
-      {temoignagesLoading ? (
+      {/* ═══ TÉMOIGNAGES — en dur + dynamique (avis + étoiles) */}
+      {displayTemoignages === null ? (
         <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
             <div className="grid gap-4 sm:grid-cols-3">
@@ -294,7 +349,7 @@ export default function ClientBrandingPage() {
             </div>
           </div>
         </section>
-      ) : temoignages && temoignages.length > 0 ? (
+      ) : (
         <section className="border-y border-slate-200 bg-[#f7f9fc]" id="temoignages">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
             <Reveal>
@@ -304,7 +359,7 @@ export default function ClientBrandingPage() {
               </div>
             </Reveal>
             <div className="mt-12 grid gap-4 sm:grid-cols-3">
-              {temoignages.map((t, i) => (
+              {displayTemoignages.map((t, i) => (
                 <Reveal delay={i * 120} key={t.id}>
                   <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5">
                     <div className="p-6">
@@ -328,10 +383,9 @@ export default function ClientBrandingPage() {
                 </Reveal>
               ))}
             </div>
-            {/* Stats masquées si aucun témoignage (évite chiffre mocké) */}
           </div>
         </section>
-      ) : null}
+      )}
 
       {/* ═══ RENCONTRE ═══ */}
       <section className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24" id="rencontre">
