@@ -65,6 +65,19 @@ if (typeof window !== "undefined") {
   });
 }
 
+function isValidSession(obj: unknown): obj is SessionTokens {
+  if (!obj || typeof obj !== "object") return false;
+  const o = obj as Record<string, unknown>;
+  return (
+    typeof o.accessToken === "string" &&
+    o.accessToken.length > 20 &&
+    typeof o.refreshToken === "string" &&
+    o.refreshToken.length > 10 &&
+    typeof o.expiresAt === "number" &&
+    Number.isFinite(o.expiresAt)
+  );
+}
+
 export function getSession(): SessionTokens | null {
   if (cachedSession !== undefined) return cachedSession;
   if (typeof window === "undefined") {
@@ -73,8 +86,14 @@ export function getSession(): SessionTokens | null {
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    cachedSession = raw ? (JSON.parse(raw) as SessionTokens) : null;
-    if (cachedSession && isExpired(cachedSession)) {
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    if (!isValidSession(parsed)) {
+      if (raw) window.localStorage.removeItem(STORAGE_KEY);
+      cachedSession = null;
+      return null;
+    }
+    cachedSession = parsed;
+    if (isExpired(cachedSession)) {
       cachedSession = null;
       window.localStorage.removeItem(STORAGE_KEY);
     }
@@ -221,8 +240,9 @@ type CacheEntry = {
 const responseCache = new Map<string, CacheEntry>();
 const inflightRequests = new Map<string, Promise<unknown>>();
 
-function cacheKey(method: string, url: string): string {
-  return `${method} ${url}`;
+function cacheKey(method: string, url: string, auth: boolean): string {
+  const tokenPart = auth ? (getSession()?.accessToken?.slice(-12) ?? "anon") : "public";
+  return `${method} ${url} :: ${tokenPart}`;
 }
 
 /** Vide le cache GET (appelé lors des mutations pour garantir la fraîcheur appliquée). */
@@ -247,7 +267,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const { method = "GET", body, query, auth = true, retry = true, signal, cacheTtlMs = DEFAULT_CACHE_TTL_MS } = options;
 
   const url = buildUrl(path, query);
-  const key = cacheKey(method, url);
+  const key = cacheKey(method, url, auth);
 
   if (method === "GET" && cacheTtlMs > 0) {
     const cached = responseCache.get(key);

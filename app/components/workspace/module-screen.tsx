@@ -181,10 +181,6 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                   <Icon name="download" size={16} />
                   Exporter en CSV
                 </button>
-                <button className="inline-flex items-center gap-1.5 font-bold text-[#426b95] hover:text-[#17294b]" type="button">
-                  <Icon name="dots" size={16} />
-                  Filtres
-                </button>
               </div>
             </div>
           </div>

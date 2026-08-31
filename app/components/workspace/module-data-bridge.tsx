@@ -8,6 +8,8 @@ import { ModuleScreen } from "@/app/components/workspace/module-screen";
 import { Icon } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
 import { resetApiCache } from "@/app/lib/api-client";
+import { useRouter } from "next/navigation";
+
 import { markAsRead } from "@/app/lib/api/notifications";
 import type { ModuleDefinition, ModuleRow } from "@/app/lib/demo-data";
 import type { ModuleCreateConfig } from "@/app/lib/module-create";
@@ -46,6 +48,7 @@ function GenericCreateRenderer({ config, onClose, onSubmit, onCreated }: CreateR
 
 export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }: ModuleDataBridgeProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [data, setData] = useState<ModuleData | null>(null);
   const [source, setSource] = useState<ModuleDataSource | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -65,7 +68,6 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
       if (slug !== "notifications") return;
       const id = (row.id as string) ?? "";
       if (!id) return;
-      // Mise à jour optimiste : la ligne passe « Lu » immédiatement, sans attendre le réseau.
       setData((current) =>
         current
           ? {
@@ -74,22 +76,17 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
             }
           : current,
       );
-      // Navigation vers la page d'origine de la notification
       try {
         const fakeNotif: Record<string, unknown> = {
           id,
           type: row.module as string,
           message: row.notification as string,
-          // Certaines APIs renvoient table_cible/entite_id dans la row
           table_cible: (row as Record<string, unknown>).table_cible,
           entite_id: id,
         };
         const href = resolveNotificationHref(fakeNotif as unknown as import("@/app/lib/contracts").Notification, user?.role ?? null);
         if (href && href !== "/espace/notifications") {
-          // Laisse le temps au markAsRead de partir, puis navigue
-          window.setTimeout(() => {
-            window.location.assign(href);
-          }, 250);
+          window.setTimeout(() => router.push(href), 250);
         }
       } catch {
         /* navigation optionnelle */
@@ -101,7 +98,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
           refresh();
         });
     },
-    [slug, refresh, user?.role],
+    [slug, refresh, user?.role, router],
   );
 
   const handleMissionRowClick = useCallback(
@@ -175,6 +172,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
       .then((users) => {
         const ouvriers = users
           .filter((u) => u.role === "ROLE_OUVRIER")
+          .slice(0, 50)
           .map((u) => ({
             value: u.ouvrier_profile?.id ?? u.id,
             label: `${[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email}${u.ouvrier_profile?.specialite ? ` · ${u.ouvrier_profile.specialite}` : ""}`,
@@ -187,18 +185,15 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   }, [affectMissionId]);
 
   const mergedDefinition = useMemo<ModuleDefinition>(() => {
-    if (!data) {
-      // Si data est null, ne pas utiliser les rows hardcodées
-      return { ...definition, rows: [] };
-    }
-    if (source !== "api") return definition;
+    if (!data) return { ...definition, rows: [], stats: [], insights: [] };
+    // Ne jamais ré-afficher les mocks si l'API a répondu (même vide)
     return {
       ...definition,
-      rows: data.rows.length > 0 ? data.rows : [],
+      rows: data.rows,
       stats: data.stats,
       insights: data.insights,
     };
-  }, [data, definition, source]);
+  }, [data, definition]);
 
   // Afficher un loader pendant le chargement des données — APRÈS tous les hooks
   if (data === null) {

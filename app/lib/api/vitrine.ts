@@ -100,10 +100,9 @@ export type VitrineMarqueeItem = {
 async function tryApi<T>(path: string, fallback: () => T): Promise<T> {
   try {
     const data = await apiFetch<T>(path, { auth: false, cacheTtlMs: 0 });
-    // Si l'API répond avec un tableau vide, on le respecte (hide-if-empty)
-    // On synchronise aussi le cache local pour offline
     return data;
-  } catch {
+  } catch (err) {
+    if (typeof console !== "undefined") console.warn(`[vitrine] API ${path} indisponible, fallback local`, err);
     return fallback();
   }
 }

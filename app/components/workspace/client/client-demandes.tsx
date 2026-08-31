@@ -117,31 +117,33 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
   const enCours = all.filter((d) => d.statut === "DEVIS_PROPOSE").length;
   const terminees = all.filter((d) => d.statut === "ACCEPTEE" || d.statut === "REFUSEE").length;
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   async function submit() {
-    if (!objet.trim() || envoi) return;
+    if (objet.trim().length < 8) {
+      setErrorMsg("L'objet doit contenir au moins 8 caractères.");
+      return;
+    }
+    if (envoi) return;
     setEnvoi(true);
+    setErrorMsg(null);
     try {
       const demande = await createDemande({
         libelle: objet.trim(),
         service: detail.trim() || "Détails à préciser lors de l'échange avec votre chargé de projet.",
       });
-      setCreated((prev) => [demandeView(demande), ...prev]);
-    } catch {
-      const nouvelle: ClientDemandeView = {
-        id: "new-" + Date.now(),
-        type,
-        objet: objet.trim(),
-        detail: detail.trim() || "Détails à préciser lors de l'échange avec votre chargé de projet.",
-        date: "Aujourd'hui",
-        statut: "ENVOYEE",
-        piecesJointes: 0,
-      };
-      setCreated((prev) => [nouvelle, ...prev]);
-    } finally {
-      setEnvoi(false);
+      // Le type est conservé côté UI (le back ne le persiste pas encore)
+      const view = demandeView(demande);
+      view.type = type;
+      setCreated((prev) => [view, ...prev]);
+      setCompose(false);
       setObjet("");
       setDetail("");
-      setCompose(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Échec de l'envoi. Vérifiez votre connexion.";
+      setErrorMsg(msg);
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -456,9 +458,14 @@ export function ClientEspacesWugams({ demandes, cleans, sectionId = "portail-esp
                     value={detail}
                   />
                 </div>
+                {errorMsg ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs font-semibold text-red-700 dark:border-red-900/30 dark:bg-red-950/30 dark:text-red-300">
+                    {errorMsg}
+                  </div>
+                ) : null}
                 <button
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3 text-[12px] font-bold text-white shadow-sm transition hover:bg-[#243a61] focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-2xl sm:py-3.5 sm:text-[13px]"
-                  disabled={!objet.trim() || envoi}
+                  disabled={objet.trim().length < 8 || envoi}
                   onClick={submit}
                   type="button"
                 >
