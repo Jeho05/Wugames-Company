@@ -112,12 +112,34 @@ export function setSession(session: SessionTokens | null): void {
     } catch {
       /* stockage indisponible : la session reste en mémoire */
     }
+    // Miroir httpOnly pour le middleware (défense en profondeur)
+    try {
+      if (session) {
+        void fetch("/api/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(session),
+          cache: "no-store",
+        }).catch(() => undefined);
+      } else {
+        void fetch("/api/session", { method: "DELETE", cache: "no-store" }).catch(() => undefined);
+      }
+    } catch {
+      /* ignore */
+    }
   }
   notifyAuthChange();
 }
 
 export function clearSession(): void {
   setSession(null);
+  if (typeof window !== "undefined") {
+    try {
+      void fetch("/api/session", { method: "DELETE", cache: "no-store" }).catch(() => undefined);
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 /* ------------------------------------------------------------------ */
