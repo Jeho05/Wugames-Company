@@ -606,9 +606,8 @@ function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
   }, []);
 
   const submit = async () => {
-    if (!form.slug.trim() || !form.title.trim()) return onToast("Slug et titre requis.");
-    const payload = {
-      slug: form.slug,
+    if (!form.title.trim()) return onToast("Titre requis.");
+    const payload: Record<string, unknown> = {
       title: form.title,
       category: form.category,
       author: form.author,
@@ -619,11 +618,12 @@ function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
       content: form.content.split("\n").filter(Boolean),
       is_published: true,
     };
+    if (form.slug.trim()) (payload as Record<string, unknown>).slug = form.slug.trim();
     if (editing) {
-      await vitrineApi.updateBlogPost(editing.id, payload);
+      await vitrineApi.updateBlogPost(editing.id, payload as unknown as Partial<VitrineBlogPost>);
       onToast("Article modifié.");
     } else {
-      await vitrineApi.createBlogPost(payload);
+      await vitrineApi.createBlogPost(payload as unknown as Omit<VitrineBlogPost, "id" | "created_at">);
       onToast("Article créé.");
     }
     setOpen(false);
@@ -713,18 +713,48 @@ function PermissionsPanel({ isGerant, onToast, currentUser }: { isGerant: boolea
   const [delegated, setDelegated] = useState<string[]>([]);
 
   useEffect(() => {
-    setDelegated(getDelegatedIds());
+    let cancelled = false;
+    // Tente d'abord l'API (source de vérité), fallback local
+    import("@/app/lib/api/vitrine").then(({ listVitrinePermissions }) =>
+      listVitrinePermissions()
+        .then((ids) => {
+          if (!cancelled) {
+            setDelegated(ids);
+            // Sync local cache
+            try {
+              const { writeLocal } = require("@/app/lib/vitrine-store");
+              writeLocal("wugams:vitrine:permissions", ids);
+            } catch {}
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setDelegated(getDelegatedIds());
+        })
+    );
     listUsers()
       .then(setUsers)
       .catch(() => setUsers([]));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const toggle = (userId: string) => {
+  const toggle = async (userId: string) => {
     if (!isGerant) return onToast("Seul le Gérant peut déléguer.");
-    const next = delegated.includes(userId) ? delegated.filter((id) => id !== userId) : [...delegated, userId];
+    const isAdding = !delegated.includes(userId);
+    const next = isAdding ? [...delegated, userId] : delegated.filter((id) => id !== userId);
+    // Optimiste UI
     setDelegated(next);
     setDelegatedIds(next);
-    onToast(next.includes(userId) ? "Permission accordée." : "Permission retirée.");
+    try {
+      const { grantVitrinePermission, revokeVitrinePermission } = await import("@/app/lib/api/vitrine");
+      if (isAdding) await grantVitrinePermission(userId);
+      else await revokeVitrinePermission(userId);
+      onToast(isAdding ? "Permission accordée (API)." : "Permission retirée (API).");
+    } catch {
+      // Fallback local déjà fait, on informe
+      onToast(isAdding ? "Permission accordée (local, API indisponible)." : "Permission retirée (local).");
+    }
   };
 
   return (

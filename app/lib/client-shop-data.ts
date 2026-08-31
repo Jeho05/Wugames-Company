@@ -110,10 +110,19 @@ export async function loadBoutiqueData(filialeId: string | null): Promise<Boutiq
   };
 }
 
+type PaymentUi = "mtn" | "moov" | "wave" | "carte";
+
+function mapPaymentMode(ui: PaymentUi): "MTN_MOMO" | "MOOV_MONEY" | "CARTE" {
+  if (ui === "moov" || ui === "wave") return "MOOV_MONEY";
+  if (ui === "carte") return "CARTE";
+  return "MTN_MOMO";
+}
+
 export async function passerCommandeApi(
   filialeId: string,
   lignes: { produit: BoutiqueProduit; quantite: number }[],
   telephone: string,
+  paymentUi: PaymentUi = "mtn",
 ): Promise<Commande> {
   const commande = await commandesApi.createCommande({
     filiale_id: filialeId,
@@ -124,7 +133,16 @@ export async function passerCommandeApi(
       prix_unitaire: ligne.produit.prix,
     })),
   });
-  const paiement = await commandesApi.payerCommande(commande.id, { mode: "MTN_MOMO", telephone });
-  await commandesApi.confirmerPaiement(commande.id, paiement.reference);
+  const mode = mapPaymentMode(paymentUi);
+  // CARTE ne nécessite pas de téléphone, les autres oui (optionnel côté back désormais)
+  const paiement = await commandesApi.payerCommande(commande.id, { mode, telephone: telephone || undefined } as unknown as { mode: "MTN_MOMO" | "MOOV_MONEY" | "CARTE"; telephone?: string });
+  // En mode demo, confirmerPaiement simule le callback
+  if (mode !== "CARTE") {
+    try {
+      await commandesApi.confirmerPaiement(commande.id, paiement.reference);
+    } catch {
+      /* best-effort */
+    }
+  }
   return commande;
 }

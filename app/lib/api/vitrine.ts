@@ -1,14 +1,10 @@
 /**
  * API Vitrine — couche dynamique pour tout le contenu public.
  *
- * Tant que le backend n'expose pas les routes /vitrine/*, chaque fonction
- * tente d'abord l'API (apiFetch). En cas d'échec (404/500/offline), elle
+ * Chaque fonction tente d'abord l'API (apiFetch). En cas d'échec (404/500/offline), elle
  * retombe sur le store localStorage (vitrine-store). Ainsi le Gérant peut
  * déjà créer du contenu sans attendre le back, et la vitrine reste
  * parfaitement dynamique : si aucune donnée n'existe, la section est masquée.
- *
- * Quand le back sera prêt, il suffira qu'il réponde 200 sur les mêmes
- * routes — aucune modif front nécessaire.
  */
 
 import { apiFetch } from "@/app/lib/api-client";
@@ -93,13 +89,27 @@ export type VitrineMarqueeItem = {
   is_published: boolean;
 };
 
+export type VitrineProduitPublic = {
+  id: string;
+  nom: string;
+  reference: string;
+  description?: string | null;
+  prix_unitaire: number | string;
+  quantite_actuelle: number;
+  stock_minimum: number;
+  statut: string;
+  filiale?: { id: string; nom: string; code: string } | null;
+  image?: string | null;
+  created_at?: string;
+};
+
 // ------------------------------------------------------------------
 // Helpers — try API then fallback to local
 // ------------------------------------------------------------------
 
-async function tryApi<T>(path: string, fallback: () => T): Promise<T> {
+async function tryApi<T>(path: string, fallback: () => T, query?: Record<string, string>): Promise<T> {
   try {
-    const data = await apiFetch<T>(path, { auth: false, cacheTtlMs: 0 });
+    const data = await apiFetch<T>(path, { auth: false, cacheTtlMs: 0, query: query as unknown as import("@/app/lib/api-client").ApiQuery });
     return data;
   } catch (err) {
     if (typeof console !== "undefined") console.warn(`[vitrine] API ${path} indisponible, fallback local`, err);
@@ -112,7 +122,6 @@ async function tryApiMutation<T>(path: string, method: "POST" | "PATCH" | "DELET
     const data = await apiFetch<T>(path, { method, body, cacheTtlMs: 0 });
     return data;
   } catch {
-    // Pas de backend → persistance locale
     return localMutate();
   }
 }
@@ -122,9 +131,7 @@ async function tryApiMutation<T>(path: string, method: "POST" | "PATCH" | "DELET
 // ------------------------------------------------------------------
 
 export async function listTemoignages(): Promise<VitrineTemoignage[]> {
-  return tryApi<VitrineTemoignage[]>("/vitrine/temoignages", () =>
-    readLocal<VitrineTemoignage[]>(VITRINE_KEYS.temoignages, [])
-  );
+  return tryApi<VitrineTemoignage[]>("/vitrine/temoignages", () => readLocal<VitrineTemoignage[]>(VITRINE_KEYS.temoignages, []), { published: "true" });
 }
 
 export async function createTemoignage(input: Omit<VitrineTemoignage, "id" | "created_at" | "updated_at">): Promise<VitrineTemoignage> {
@@ -156,10 +163,7 @@ export async function updateTemoignage(id: string, patch: Partial<VitrineTemoign
 export async function deleteTemoignage(id: string): Promise<void> {
   return tryApiMutation(`/vitrine/temoignages/${id}`, "DELETE", undefined, () => {
     const all = readLocal<VitrineTemoignage[]>(VITRINE_KEYS.temoignages, []);
-    writeLocal(
-      VITRINE_KEYS.temoignages,
-      all.filter((x) => x.id !== id)
-    );
+    writeLocal(VITRINE_KEYS.temoignages, all.filter((x) => x.id !== id));
   });
 }
 
@@ -168,9 +172,7 @@ export async function deleteTemoignage(id: string): Promise<void> {
 // ------------------------------------------------------------------
 
 export async function listServices(): Promise<VitrineService[]> {
-  return tryApi<VitrineService[]>("/vitrine/services", () =>
-    readLocal<VitrineService[]>(VITRINE_KEYS.services, [])
-  );
+  return tryApi<VitrineService[]>("/vitrine/services", () => readLocal<VitrineService[]>(VITRINE_KEYS.services, []), { published: "true" });
 }
 
 export async function createService(input: Omit<VitrineService, "id" | "created_at">): Promise<VitrineService> {
@@ -196,10 +198,7 @@ export async function updateService(id: string, patch: Partial<VitrineService>):
 export async function deleteService(id: string): Promise<void> {
   return tryApiMutation(`/vitrine/services/${id}`, "DELETE", undefined, () => {
     const all = readLocal<VitrineService[]>(VITRINE_KEYS.services, []);
-    writeLocal(
-      VITRINE_KEYS.services,
-      all.filter((x) => x.id !== id)
-    );
+    writeLocal(VITRINE_KEYS.services, all.filter((x) => x.id !== id));
   });
 }
 
@@ -208,9 +207,7 @@ export async function deleteService(id: string): Promise<void> {
 // ------------------------------------------------------------------
 
 export async function listGaranties(): Promise<VitrineGarantie[]> {
-  return tryApi<VitrineGarantie[]>("/vitrine/garanties", () =>
-    readLocal<VitrineGarantie[]>(VITRINE_KEYS.garanties, [])
-  );
+  return tryApi<VitrineGarantie[]>("/vitrine/garanties", () => readLocal<VitrineGarantie[]>(VITRINE_KEYS.garanties, []), { published: "true" });
 }
 
 export async function createGarantie(input: Omit<VitrineGarantie, "id" | "created_at">): Promise<VitrineGarantie> {
@@ -236,10 +233,7 @@ export async function updateGarantie(id: string, patch: Partial<VitrineGarantie>
 export async function deleteGarantie(id: string): Promise<void> {
   return tryApiMutation(`/vitrine/garanties/${id}`, "DELETE", undefined, () => {
     const all = readLocal<VitrineGarantie[]>(VITRINE_KEYS.garanties, []);
-    writeLocal(
-      VITRINE_KEYS.garanties,
-      all.filter((x) => x.id !== id)
-    );
+    writeLocal(VITRINE_KEYS.garanties, all.filter((x) => x.id !== id));
   });
 }
 
@@ -248,9 +242,7 @@ export async function deleteGarantie(id: string): Promise<void> {
 // ------------------------------------------------------------------
 
 export async function listRealisations(): Promise<VitrineRealisation[]> {
-  return tryApi<VitrineRealisation[]>("/vitrine/realisations", () =>
-    readLocal<VitrineRealisation[]>(VITRINE_KEYS.realisations, [])
-  );
+  return tryApi<VitrineRealisation[]>("/vitrine/realisations", () => readLocal<VitrineRealisation[]>(VITRINE_KEYS.realisations, []), { published: "true" });
 }
 
 export async function createRealisation(input: Omit<VitrineRealisation, "id" | "created_at">): Promise<VitrineRealisation> {
@@ -276,10 +268,7 @@ export async function updateRealisation(id: string, patch: Partial<VitrineRealis
 export async function deleteRealisation(id: string): Promise<void> {
   return tryApiMutation(`/vitrine/realisations/${id}`, "DELETE", undefined, () => {
     const all = readLocal<VitrineRealisation[]>(VITRINE_KEYS.realisations, []);
-    writeLocal(
-      VITRINE_KEYS.realisations,
-      all.filter((x) => x.id !== id)
-    );
+    writeLocal(VITRINE_KEYS.realisations, all.filter((x) => x.id !== id));
   });
 }
 
@@ -288,9 +277,7 @@ export async function deleteRealisation(id: string): Promise<void> {
 // ------------------------------------------------------------------
 
 export async function listBlogPosts(): Promise<VitrineBlogPost[]> {
-  return tryApi<VitrineBlogPost[]>("/vitrine/blog", () =>
-    readLocal<VitrineBlogPost[]>(VITRINE_KEYS.blog, [])
-  );
+  return tryApi<VitrineBlogPost[]>("/vitrine/blog", () => readLocal<VitrineBlogPost[]>(VITRINE_KEYS.blog, []), { published: "true" });
 }
 
 export async function getBlogPost(slug: string): Promise<VitrineBlogPost | null> {
@@ -326,10 +313,7 @@ export async function updateBlogPost(id: string, patch: Partial<VitrineBlogPost>
 export async function deleteBlogPost(id: string): Promise<void> {
   return tryApiMutation(`/vitrine/blog/${id}`, "DELETE", undefined, () => {
     const all = readLocal<VitrineBlogPost[]>(VITRINE_KEYS.blog, []);
-    writeLocal(
-      VITRINE_KEYS.blog,
-      all.filter((x) => x.id !== id)
-    );
+    writeLocal(VITRINE_KEYS.blog, all.filter((x) => x.id !== id));
   });
 }
 
@@ -338,9 +322,7 @@ export async function deleteBlogPost(id: string): Promise<void> {
 // ------------------------------------------------------------------
 
 export async function listMarquee(): Promise<VitrineMarqueeItem[]> {
-  return tryApi<VitrineMarqueeItem[]>("/vitrine/marquee", () =>
-    readLocal<VitrineMarqueeItem[]>(VITRINE_KEYS.marquee, [])
-  );
+  return tryApi<VitrineMarqueeItem[]>("/vitrine/marquee", () => readLocal<VitrineMarqueeItem[]>(VITRINE_KEYS.marquee, []), { published: "true" });
 }
 
 export async function createMarqueeItem(input: Omit<VitrineMarqueeItem, "id">): Promise<VitrineMarqueeItem> {
@@ -352,12 +334,65 @@ export async function createMarqueeItem(input: Omit<VitrineMarqueeItem, "id">): 
   });
 }
 
+export async function updateMarqueeItem(id: string, patch: Partial<VitrineMarqueeItem>): Promise<VitrineMarqueeItem> {
+  return tryApiMutation(`/vitrine/marquee/${id}`, "PATCH", patch, () => {
+    const all = readLocal<VitrineMarqueeItem[]>(VITRINE_KEYS.marquee, []);
+    const idx = all.findIndex((x) => x.id === id);
+    if (idx === -1) throw new Error("Marquee introuvable");
+    all[idx] = { ...all[idx], ...patch };
+    writeLocal(VITRINE_KEYS.marquee, all);
+    return all[idx];
+  });
+}
+
 export async function deleteMarqueeItem(id: string): Promise<void> {
   return tryApiMutation(`/vitrine/marquee/${id}`, "DELETE", undefined, () => {
     const all = readLocal<VitrineMarqueeItem[]>(VITRINE_KEYS.marquee, []);
-    writeLocal(
-      VITRINE_KEYS.marquee,
-      all.filter((x) => x.id !== id)
-    );
+    writeLocal(VITRINE_KEYS.marquee, all.filter((x) => x.id !== id));
   });
+}
+
+// ------------------------------------------------------------------
+// Boutique publique — catalogue vitrine
+// ------------------------------------------------------------------
+
+export async function listProduitsPublic(): Promise<VitrineProduitPublic[]> {
+  return tryApi<VitrineProduitPublic[]>("/vitrine/produits", () => [], undefined);
+}
+
+// ------------------------------------------------------------------
+// Permissions vitrine (Gérant uniquement)
+// ------------------------------------------------------------------
+
+export async function listVitrinePermissions(): Promise<string[]> {
+  try {
+    const data = await apiFetch<{ user_ids: string[] } | string[]>("/vitrine/permissions", { cacheTtlMs: 0 });
+    if (Array.isArray(data)) return data as string[];
+    if (data && typeof data === "object" && "user_ids" in data) return (data as { user_ids: string[] }).user_ids;
+    return [];
+  } catch {
+    // Fallback local (interim)
+    const ids = readLocal<string[]>("wugams:vitrine:permissions", []);
+    return ids;
+  }
+}
+
+export async function grantVitrinePermission(userId: string): Promise<void> {
+  try {
+    await apiFetch("/vitrine/permissions", { method: "POST", body: { user_id: userId }, cacheTtlMs: 0 });
+  } catch {
+    const ids = readLocal<string[]>("wugams:vitrine:permissions", []);
+    if (!ids.includes(userId)) writeLocal("wugams:vitrine:permissions", [...ids, userId]);
+    throw new Error("API permissions indisponible, fallback local appliqué");
+  }
+}
+
+export async function revokeVitrinePermission(userId: string): Promise<void> {
+  try {
+    await apiFetch(`/vitrine/permissions/${userId}`, { method: "DELETE", cacheTtlMs: 0 });
+  } catch {
+    const ids = readLocal<string[]>("wugams:vitrine:permissions", []);
+    writeLocal("wugams:vitrine:permissions", ids.filter((id) => id !== userId));
+    throw new Error("API permissions indisponible, fallback local appliqué");
+  }
 }

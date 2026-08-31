@@ -18,6 +18,11 @@ export type CreateUserPayload = {
   role: RoleCode;
   filiale_id?: string | null;
   is_active?: boolean;
+  localisation?: string;
+  adresse?: string;
+  ville?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export async function createUser(payload: CreateUserPayload): Promise<User> {

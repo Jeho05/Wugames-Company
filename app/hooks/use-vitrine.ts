@@ -73,18 +73,54 @@ export function useBoutiqueProduits() {
         setError("Timeout");
       }
     }, 5000);
-    import("@/app/lib/api/stocks")
-      .then(({ listProduits }) => listProduits())
+    // Public catalogue via /vitrine/produits (auth:false), fallback to /stocks/produits si vide
+    import("@/app/lib/api/vitrine")
+      .then(({ listProduitsPublic }) => listProduitsPublic())
       .then((produits) => {
-        if (!cancelled) {
-          setData(produits.filter((p) => p.statut !== "ARCHIVE"));
+        if (cancelled) return;
+        if (produits.length > 0) {
+          // Map VitrineProduitPublic -> Produit minimal
+          const mapped = produits.map((p) => ({
+            id: p.id,
+            nom: p.nom,
+            description: p.description ?? null,
+            reference: p.reference,
+            prix_unitaire: p.prix_unitaire,
+            quantite_actuelle: p.quantite_actuelle,
+            stock_minimum: p.stock_minimum,
+            statut: (p.statut as import("@/app/lib/contracts").ProduitStatut) ?? "DISPONIBLE",
+            adresse_reference_lat: null,
+            adresse_reference_lng: null,
+            filiale_id: p.filiale?.id ?? "",
+            fournisseur_id: null,
+            created_at: p.created_at ?? new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            filiale: p.filiale ?? undefined,
+          })) as import("@/app/lib/contracts").Produit[];
+          setData(mapped.filter((p) => p.statut !== "ARCHIVE"));
           setError(null);
+        } else {
+          // Fallback vers stocks (nécessite auth, pour les sessions connectées)
+          return import("@/app/lib/api/stocks").then(({ listProduits }) => listProduits()).then((produits2) => {
+            if (!cancelled) {
+              setData(produits2.filter((p) => p.statut !== "ARCHIVE"));
+              setError(null);
+            }
+          });
         }
       })
       .catch((e) => {
         if (!cancelled) {
           console.error("[boutique]", e);
-          setData([]);
+          // Dernier fallback : stocks
+          import("@/app/lib/api/stocks")
+            .then(({ listProduits }) => listProduits())
+            .then((produits2) => {
+              if (!cancelled) setData(produits2.filter((p) => p.statut !== "ARCHIVE"));
+            })
+            .catch(() => {
+              if (!cancelled) setData([]);
+            });
           setError(e instanceof Error ? e.message : "Erreur");
         }
       });

@@ -123,7 +123,7 @@ export default function WorkspaceBoutiquePage() {
         } as BoutiqueProduit,
         quantite: item.quantity,
       }));
-      await passerCommandeApi(user.filialeId ?? "", lignes, phone);
+      await passerCommandeApi(user.filialeId ?? "", lignes, phone, payment as "mtn" | "moov" | "wave" | "carte");
       setCheckoutOpen(false);
       setCartOpen(false);
       setOrderDone(true);

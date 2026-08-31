@@ -39,6 +39,11 @@ export async function createDemande(payload: {
   libelle: string;
   service: string;
   type?: string;
+  titre?: string;
+  description?: string;
+  filiale_id?: string | null;
+  budget_estime?: number | null;
+  date_souhaitee?: string | null;
 }): Promise<DemandeDevis> {
   return apiFetch<DemandeDevis>("/client-space/demandes", { method: "POST", body: payload });
 }

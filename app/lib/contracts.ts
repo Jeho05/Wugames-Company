@@ -96,6 +96,12 @@ export type RegisterPayload = {
   phone?: string;
   role?: RoleCode;
   filiale_id?: string | null;
+  localisation?: string;
+  adresse?: string;
+  ville?: string;
+  latitude?: number;
+  longitude?: number;
+  type_client?: "STANDARD" | "MEMBRE";
 };
 
 /** Réponse de `POST /auth/register` : le compte est créé ET connecté. */
@@ -195,6 +201,10 @@ export type CreateClientPayload = {
   last_name: string;
   phone?: string;
   adresse?: string;
+  ville?: string;
+  localisation?: string;
+  latitude?: number;
+  longitude?: number;
   type_client?: ClientType;
 };
 
@@ -218,6 +228,10 @@ export type CreateFournisseurPayload = {
   raison_sociale: string;
   siret?: string;
   adresse?: string;
+  ville?: string;
+  localisation?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 export type ProduitStatut =
@@ -375,7 +389,8 @@ export type CreateFacturePayload = {
   mission_id?: string | null;
   devis_id?: string | null;
   montant_ht: number;
-  montant_ttc: number;
+  montant_ttc?: number;
+  taux_tva?: number;
   date_echeance?: string;
 };
 
@@ -517,6 +532,7 @@ export type CreateDevisPayload = {
   client_id?: string | null;
   description?: string;
   date_validite?: string;
+  taux_tva?: number;
   lignes: CreateDevisLignePayload[];
 };
 
@@ -650,8 +666,8 @@ export type CreateCommandePayload = {
 };
 
 export type PayerCommandePayload = {
-  mode: "MTN_MOMO" | "MOOV_MONEY";
-  telephone: string;
+  mode: "MTN_MOMO" | "MOOV_MONEY" | "CARTE" | "A_LA_LIVRAISON";
+  telephone?: string;
 };
 
 export type PaiementMobile = { reference: string; statut: "EN_ATTENTE" };
@@ -793,7 +809,13 @@ export type DemandeDevisStatut = "RECUE" | "EN_COURS" | "A_CONFIRMER" | "TERMINE
 export type DemandeDevis = {
   id: string;
   libelle: string;
+  titre?: string | null;
+  type?: string | null;
   service: string;
+  description?: string | null;
+  filiale_id?: string | null;
+  budget_estime?: number | null;
+  date_souhaitee?: string | null;
   statut: DemandeDevisStatut;
   created_at: string;
 };
