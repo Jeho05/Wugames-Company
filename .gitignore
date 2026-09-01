@@ -44,3 +44,9 @@ next-env.d.ts
 
 .vercel
 vercel-page.html
+
+# android keystore — ne jamais committer la clé de prod
+android.keystore
+android-sha256.txt
+*.jks
+*.p12
