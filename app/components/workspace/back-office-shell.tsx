@@ -391,6 +391,23 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
               </div>
             </div>
           ) : null}
+          {(user?.role === "ROLE_GERANT" || user?.role === "ROLE_DEV_DIGITAL") && (
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <Icon className="text-sky-600" name="shield" size={18} />
+                <p className="text-sm font-semibold text-sky-800">
+                  Sécurité renforcée : activez la double authentification (2FA) pour protéger votre accès Gérant.
+                </p>
+              </div>
+              <button
+                className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-sky-700"
+                onClick={() => setShowTwoFa(true)}
+                type="button"
+              >
+                Activer la 2FA
+              </button>
+            </div>
+          )}
           {children}
         </main>
       </div>

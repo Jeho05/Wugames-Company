@@ -33,6 +33,20 @@ export function RegisterForm() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const passwordStrength = (() => {
+    if (!password) return { score: 0, label: "", color: "bg-slate-200", width: "0%" };
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    if (score <= 2) return { score, label: "Faible", color: "bg-red-500", width: "25%" };
+    if (score === 3) return { score, label: "Moyen", color: "bg-amber-500", width: "50%" };
+    if (score === 4) return { score, label: "Fort", color: "bg-sky-500", width: "75%" };
+    return { score, label: "Très fort", color: "bg-emerald-500", width: "100%" };
+  })();
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -167,6 +181,18 @@ export function RegisterForm() {
             <Icon name={showPassword ? "close" : "shield"} size={16} />
           </button>
         </div>
+        {password ? (
+          <div className="mt-2">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+              <div className={"h-full rounded-full transition-all duration-300 " + passwordStrength.color} style={{ width: passwordStrength.width }} />
+            </div>
+            <p className="mt-1 text-[10px] font-semibold text-slate-500">
+              Force : <span className={passwordStrength.score <= 2 ? "text-red-600" : passwordStrength.score === 3 ? "text-amber-600" : "text-emerald-600"}>{passwordStrength.label}</span>
+              {password.length < 8 ? " · 8 caractères minimum" : ""}
+              {passwordStrength.score <= 2 && password.length >= 8 ? " · ajoutez majuscules, chiffres et symboles" : ""}
+            </p>
+          </div>
+        ) : null}
       </div>
       <div>
         <label className="mb-1.5 block text-xs font-bold text-slate-700" htmlFor="register-confirm-password">

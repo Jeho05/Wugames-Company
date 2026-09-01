@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { AuthProvider } from "@/app/lib/auth-context";
 import { ChatWidget } from "@/app/components/ui/chat-widget";
+import { PwaRegister } from "@/app/components/pwa-register";
 
 import "./globals.css";
 
@@ -22,6 +23,22 @@ export const metadata: Metadata = {
     default: "WUGAMS | Pilotage multi-filiales",
     template: "%s | WUGAMS",
   },
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "WUGAMS" },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "WUGAMS",
+    title: "WUGAMS | Pilotage multi-filiales",
+    description: "Bâtir, rénover, entreprendre. Avec la bonne équipe.",
+  },
+};
+
+export const viewport = {
+  themeColor: "#17294b",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -38,6 +55,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <ChatWidget />
+          <PwaRegister />
         </AuthProvider>
       </body>
     </html>
