@@ -1,0 +1,36 @@
+{
+  "packageId": "com.wugams.erp",
+  "host": "wugams.vercel.app",
+  "name": "WUGAMS",
+  "launcherName": "WUGAMS",
+  "display": "standalone",
+  "themeColor": "#17294b",
+  "navigationColor": "#0a1420",
+  "backgroundColor": "#0a1420",
+  "startUrl": "/?source=twa",
+  "iconUrl": "https://wugams.vercel.app/icon-512.png",
+  "maskableIconUrl": "https://wugams.vercel.app/icon-512-maskable.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "wugams"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Mon espace",
+      "shortName": "Espace",
+      "url": "/espace",
+      "iconUrl": "https://wugams.vercel.app/icon-192.png"
+    }
+  ],
+  "features": {
+    "locationDelegation": { "enabled": true },
+    "playBilling": { "enabled": false }
+  },
+  "alphaDependencies": { "enabled": false },
+  "enableNotifications": true,
+  "isChromeOsOnly": false,
+  "isMetaQuest": false
+}

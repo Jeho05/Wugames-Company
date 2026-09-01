@@ -1,12 +1,18 @@
 {
+  "id": "/",
   "name": "WUGAMS Holding Inc.",
   "short_name": "WUGAMS",
-  "description": "Plateforme web de pilotage multi-filiales de WUGAMS Holding Inc.",
-  "start_url": "/",
+  "description": "Plateforme web de pilotage multi-filiales de WUGAMS Holding Inc. — Bâtir, rénover, entreprendre.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#0a1420",
   "theme_color": "#17294b",
   "orientation": "portrait-primary",
+  "handle_links": "preferred",
+  "launch_handler": { "client_mode": "navigate-existing" },
+  "edge_side_panel": { "preferred_width": 400 },
   "icons": [
     {
       "src": "/favicon.ico",
@@ -17,15 +23,47 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "WUGAMS — Pilotage multi-filiales"
     }
   ],
   "categories": ["business", "productivity"],
-  "lang": "fr"
+  "lang": "fr",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Mon espace",
+      "short_name": "Espace",
+      "description": "Accéder à mon espace WUGAMS",
+      "url": "/espace?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Boutique",
+      "short_name": "Boutique",
+      "description": "Boutique matériaux WUGAMS",
+      "url": "/boutique?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }
