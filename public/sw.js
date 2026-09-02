@@ -1,4 +1,4 @@
-const CACHE_NAME = "wugams-v2";
+const CACHE_NAME = "wugams-v3";
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
@@ -27,31 +27,26 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // Ne jamais intercepter les requêtes cross-origin d'images Unsplash en cache-first avec fallback HTML
-  // On laisse le navigateur gérer, ou on fait network-only
+  // FIX v3: ne JAMAIS intercepter le cross-origin (Unsplash, fonts, CDN)
+  // Laisser le navigateur gérer directement = images s'affichent, pas de latence SW, pas de fallback HTML corrompu
   const isCrossOrigin = url.origin !== self.location.origin;
+  if (isCrossOrigin) return;
+
   const isApi = url.pathname.startsWith("/api/");
   const isNextStatic = url.pathname.startsWith("/_next/");
+  const isNextImage = url.pathname === "/_next/image";
   const isNavigate = request.mode === "navigate" || request.destination === "document";
 
-  // API : network-only, pas de fallback HTML
-  if (isApi) {
-    event.respondWith(fetch(request).catch(() => Response.error()));
-    return;
-  }
+  // API : network-only, jamais de cache/fallback HTML
+  if (isApi) return;
 
-  // Cross-origin (images Unsplash, fonts) : network-first, pas de cache HTML
-  if (isCrossOrigin) {
-    event.respondWith(fetch(request).catch(() => Response.error()));
-    return;
-  }
-
-  // Navigation (pages) : network-first avec fallback offline
+  // Navigation (pages) : network-first avec fallback offline propre
   if (isNavigate) {
     event.respondWith(
       fetch(request)
         .then((res) => {
-          if (res.ok) {
+          // Ne cacher que les HTML 200 réels, pas les redirects/erreurs
+          if (res.ok && res.headers.get("content-type")?.includes("text/html")) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then((c) => c.put(request, clone)).catch(() => undefined);
           }
@@ -62,7 +57,26 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Assets statiques Next : cache-first avec network fallback
+  // _next/image (optimisation Next) : stale-while-revalidate, pas de blocage
+  if (isNextImage) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const network = fetch(request)
+          .then((res) => {
+            if (res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE_NAME).then((c) => c.put(request, clone)).catch(() => undefined);
+            }
+            return res;
+          })
+          .catch(() => cached || Response.error());
+        return cached || network;
+      })
+    );
+    return;
+  }
+
+  // Assets statiques Next : cache-first (immutable)
   if (isNextStatic || url.pathname.match(/\.(?:js|css|woff2?|png|jpg|jpeg|gif|webp|avif|svg|ico)$/)) {
     event.respondWith(
       caches.match(request).then((cached) => {
@@ -81,6 +95,5 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Par défaut : network-first sans fallback HTML
-  event.respondWith(fetch(request).catch(() => Response.error()));
+  // Par défaut : network-only, pas de fallback HTML (évite de servir HTML à la place d'images/JS)
 });

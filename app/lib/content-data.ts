@@ -19,7 +19,7 @@ export const blogPosts: BlogPost[] = [
     date: "28 juillet 2026",
     readTime: "6 min",
     excerpt: "Avant de lancer un chantier, quelques vérifications simples évitent 90 % des mauvaises surprises. Guide pratique pour les particuliers.",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=75&auto=format&fit=crop",
     content: [
       "Un chantier réussi commence bien avant la première pelleteuse. La différence entre une rénovation qui se passe bien et une qui tourne au cauchemar tient souvent à quelques réflexes simples, pris au bon moment.",
       "1. Vérifiez la garantie décennale de l'entreprise. Elle est obligatoire pour les travaux de construction et de rénovation lourde, et couvre dix ans les dommages qui compromettent la solidité de l'ouvrage.",
@@ -40,7 +40,7 @@ export const blogPosts: BlogPost[] = [
     date: "21 juillet 2026",
     readTime: "4 min",
     excerpt: "Photos d'avancement, pointage des équipes, rapport quotidien : la digitalisation du chantier redonne la main au client.",
-    image: "https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=1200&q=75&auto=format&fit=crop",
     content: [
       "Pendant longtemps, suivre un chantier signifiait une seule chose : attendre. Attendre un appel, attendre une visite, attendre la surprise. La digitalisation du terrain a mis fin à cette époque.",
       "Chez WUGAMS, chaque mission est suivie depuis la plateforme : l'équipe pointe son arrivée et sa sortie en géolocalisation, le rapport de fin de mission est transmis avec photos, et le client voit l'avancement de ses travaux à tout moment depuis son téléphone.",
@@ -57,7 +57,7 @@ export const blogPosts: BlogPost[] = [
     date: "14 juillet 2026",
     readTime: "3 min",
     excerpt: "Ciment, peinture, outillage : commandez en ligne et faites-vous livrer sur votre chantier, même en urgence.",
-    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&q=75&auto=format&fit=crop",
     content: [
       "Un chantier qui s'arrête parce qu'il manque un sac de ciment coûte cher. C'est pour cette raison que la centrale d'achat WUGAMS Matériaux ouvre sa boutique en ligne à tous les professionnels et particuliers.",
       "Le catalogue couvre le gros œuvre, l'électricité, la plomberie, la peinture et la quincaillerie. Chaque fiche produit affiche le prix réel, le stock disponible en dépôt et un délai de livraison.",
@@ -74,7 +74,7 @@ export const blogPosts: BlogPost[] = [
     date: "07 juillet 2026",
     readTime: "5 min",
     excerpt: "Produits, fréquences, protocoles : ce que les professionnels savent et que les particuliers découvrent souvent trop tard.",
-    image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=1200&q=75&auto=format&fit=crop",
     content: [
       "Un nettoyage professionnel ne se résume pas à passer un chiffon. Il repose sur trois piliers : les bons produits, les bonnes fréquences, et un protocole documenté.",
       "D'abord les produits. Tous les sols ne se nettoient pas de la même manière : un traitement adapté prolonge la durée de vie des revêtements et réduit les coûts d'entretien sur le long terme.",
@@ -91,7 +91,7 @@ export const blogPosts: BlogPost[] = [
     date: "30 juin 2026",
     readTime: "4 min",
     excerpt: "Un meuble qui épouse votre espace, vos usages et votre budget : retour sur la méthode de l'atelier WUGAMS.",
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&q=75&auto=format&fit=crop",
     content: [
       "Un salon standard est conçu pour un salon standard. Or, aucun espace n'est standard : les angles, les hauteurs, les usages, tout diffère.",
       "Notre atelier commence toujours par l'écoute : quels objets vivront dans ce meuble, qui s'en sert, comment circule-t-on dans la pièce ? À partir de là, nous dessinons, chiffrons, et fabriquons.",
@@ -107,7 +107,7 @@ export const blogPosts: BlogPost[] = [
     date: "22 juin 2026",
     readTime: "5 min",
     excerpt: "Rénovation complète d'une villa, 3 équipes, 0 dépassement de délai : la chronique d'un chantier bien mené.",
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=80",
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=75&auto=format&fit=crop",
     content: [
       "Quand les propriétaires de cette villa de Cocody nous ont confié leur rénovation complète, le bâtiment était en l'état depuis huit ans : toiture à refaire, électricité aux normes, finitions entièrement reprises.",
       "La première semaine a été consacrée au diagnostic technique et à l'état des lieux photographié. Le devis a été figé ligne par ligne, avec un calendrier de 14 semaines engagé.",
@@ -133,13 +133,13 @@ export type Realisation = {
 };
 
 export const realisations: Realisation[] = [
-  { title: "Rénovation complète — Villa Cocody", filiale: "Rénovation", client: "Particulier", location: "Cocody, Abidjan", value: "38,5 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1400&q=80", tags: ["Rénovation", "Finitions", "14 semaines"], description: "Toiture, second œuvre, finitions et mobilier sur mesure. Livré sans réserve, dans les délais." },
-  { title: "Immeuble de bureaux — Façade & étanchéité", filiale: "Construction", client: "SCI Les Palmiers", location: "Marcory, Abidjan", value: "96,0 M FCFA", year: "2025", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1400&q=80", tags: ["Construction", "Façade", "Étanchéité"], description: "Reprise complète de la façade, étanchéité des toitures-terrasses et mise aux normes électriques." },
-  { title: "Entretien — Résidence Les Palmiers", filiale: "Entretien", client: "SCI Les Palmiers", location: "Treichville, Abidjan", value: "Contrat annuel", year: "2026", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=1400&q=80", tags: ["Entretien", "Résidentiel", "Quotidien"], description: "Plan d'entretien quotidien des parties communes, espaces verts et hall d'accueil, rapporté chaque semaine." },
-  { title: "Aménagement — Boutique de matériaux", filiale: "Construction", client: "WUGAMS Matériaux", location: "Cocody, Abidjan", value: "24,0 M FCFA", year: "2025", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1400&q=80", tags: ["Aménagement", "Commerce", "Logistique"], description: "Réception des flux logistiques, rayonnage industriel et espace d'accueil clients." },
-  { title: "Mobilier sur mesure — Salle de conférence", filiale: "Mobilier", client: "Groupe Ahoua", location: "Plateau, Abidjan", value: "12,4 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=80", tags: ["Mobilier", "Bois massif", "Sur mesure"], description: "Table de réunion 12 places en bois massif local, création et restauration de l'assise existante." },
-  { title: "Nettoyage — Complexe médical", filiale: "Entretien", client: "Centre de santé", location: "Yopougon, Abidjan", value: "Contrat annuel", year: "2025", image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=1400&q=80", tags: ["Entretien", "Santé", "Protocole"], description: "Protocole d'hygiène adapté aux espaces médicaux, personnel formé et rapport de passage systématique." },
-  { title: "Réhabilitation — Maison familiale", filiale: "Rénovation", client: "Particulier", location: "Bingerville", value: "17,8 M FCFA", year: "2025", image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1400&q=80", tags: ["Rénovation", "Mobilier", "Peinture"], description: "Reprise des peintures, menuiseries et aménagement extérieur, en site occupé." },
-  { title: "Équipement — Dépôt Treichville", filiale: "Matériaux", client: "WUGAMS Matériaux", location: "Treichville, Abidjan", value: "9,6 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1553413077-190dd305871c?w=1400&q=80", tags: ["Stocks", "Rayonnage", "Logistique"], description: "Réorganisation du dépôt, création de zones de stockage par famille produit et signalétique." },
-  { title: "Villa moderne — Construction neuve", filiale: "Construction", client: "Villa Koné", location: "Bingerville", value: "112,0 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1400&q=80", tags: ["Construction", "Neuf", "Clé en main"], description: "Construction neuve clé en main : structure, corps d'état, finitions et aménagement extérieur." },
+  { title: "Rénovation complète — Villa Cocody", filiale: "Rénovation", client: "Particulier", location: "Cocody, Abidjan", value: "38,5 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=75&auto=format&fit=crop", tags: ["Rénovation", "Finitions", "14 semaines"], description: "Toiture, second œuvre, finitions et mobilier sur mesure. Livré sans réserve, dans les délais." },
+  { title: "Immeuble de bureaux — Façade & étanchéité", filiale: "Construction", client: "SCI Les Palmiers", location: "Marcory, Abidjan", value: "96,0 M FCFA", year: "2025", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=75&auto=format&fit=crop", tags: ["Construction", "Façade", "Étanchéité"], description: "Reprise complète de la façade, étanchéité des toitures-terrasses et mise aux normes électriques." },
+  { title: "Entretien — Résidence Les Palmiers", filiale: "Entretien", client: "SCI Les Palmiers", location: "Treichville, Abidjan", value: "Contrat annuel", year: "2026", image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=800&q=75&auto=format&fit=crop", tags: ["Entretien", "Résidentiel", "Quotidien"], description: "Plan d'entretien quotidien des parties communes, espaces verts et hall d'accueil, rapporté chaque semaine." },
+  { title: "Aménagement — Boutique de matériaux", filiale: "Construction", client: "WUGAMS Matériaux", location: "Cocody, Abidjan", value: "24,0 M FCFA", year: "2025", image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=75&auto=format&fit=crop", tags: ["Aménagement", "Commerce", "Logistique"], description: "Réception des flux logistiques, rayonnage industriel et espace d'accueil clients." },
+  { title: "Mobilier sur mesure — Salle de conférence", filiale: "Mobilier", client: "Groupe Ahoua", location: "Plateau, Abidjan", value: "12,4 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=75&auto=format&fit=crop", tags: ["Mobilier", "Bois massif", "Sur mesure"], description: "Table de réunion 12 places en bois massif local, création et restauration de l'assise existante." },
+  { title: "Nettoyage — Complexe médical", filiale: "Entretien", client: "Centre de santé", location: "Yopougon, Abidjan", value: "Contrat annuel", year: "2025", image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=800&q=75&auto=format&fit=crop", tags: ["Entretien", "Santé", "Protocole"], description: "Protocole d'hygiène adapté aux espaces médicaux, personnel formé et rapport de passage systématique." },
+  { title: "Réhabilitation — Maison familiale", filiale: "Rénovation", client: "Particulier", location: "Bingerville", value: "17,8 M FCFA", year: "2025", image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=75&auto=format&fit=crop", tags: ["Rénovation", "Mobilier", "Peinture"], description: "Reprise des peintures, menuiseries et aménagement extérieur, en site occupé." },
+  { title: "Équipement — Dépôt Treichville", filiale: "Matériaux", client: "WUGAMS Matériaux", location: "Treichville, Abidjan", value: "9,6 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&q=75&auto=format&fit=crop", tags: ["Stocks", "Rayonnage", "Logistique"], description: "Réorganisation du dépôt, création de zones de stockage par famille produit et signalétique." },
+  { title: "Villa moderne — Construction neuve", filiale: "Construction", client: "Villa Koné", location: "Bingerville", value: "112,0 M FCFA", year: "2026", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=75&auto=format&fit=crop", tags: ["Construction", "Neuf", "Clé en main"], description: "Construction neuve clé en main : structure, corps d'état, finitions et aménagement extérieur." },
 ];

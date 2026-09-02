@@ -5,14 +5,25 @@ const BACKEND_URL = process.env.BACKEND_URL ?? "https://wugames-holding-inc.verc
 /** @type {NextConfig} */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  compress: true,
+  poweredByHeader: false,
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "plus.unsplash.com" },
+      { protocol: "https", hostname: "**.unsplash.com" },
+      { protocol: "https", hostname: "**.vercel.app" },
+      { protocol: "https", hostname: "**.vercel-storage.com" },
+      { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "**.cloudinary.com" },
+      { protocol: "https", hostname: "**.amazonaws.com" },
+      // Fallback permissif : toute image https (vitrine administrable, témoignages, réalisations)
+      { protocol: "https", hostname: "**" },
     ],
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   experimental: {
     optimizePackageImports: ["recharts", "gsap", "three", "motion", "lenis"],
@@ -28,8 +39,9 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: https://images.unsplash.com https://*.vercel.app",
-              "connect-src 'self' https://wugames-holding-inc.vercel.app https://vercel.live wss://*.vercel.app",
+              // FIX: élargi à https: blob: pour permettre tout hébergeur d'image (vitrine dynamique, témoignages, blog, réalisations)
+              "img-src 'self' data: blob: https: https://images.unsplash.com https://*.vercel.app",
+              "connect-src 'self' https://wugames-holding-inc.vercel.app https://vercel.live wss://*.vercel.app https://images.unsplash.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "frame-ancestors 'none'",
               "base-uri 'self'",
@@ -42,7 +54,8 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
           { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+          // same-site bloquait certains embeds cross-origin sur Vercel preview; same-origin plus safe pour images
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
         ],
       },
       {

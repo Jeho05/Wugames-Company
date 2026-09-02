@@ -522,7 +522,7 @@ function RealisationsPanel({ onToast }: { onToast: (m: string) => void }) {
           <div key={r.id} className="overflow-hidden rounded-xl border border-slate-200">
             <div className="aspect-[16/10] bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={r.image} alt={r.title} className="size-full object-cover" />
+              <img loading="lazy" decoding="async" src={r.image} alt={r.title} className="size-full object-cover" />
             </div>
             <div className="p-3">
               <p className="text-xs font-bold text-[#233856]">{r.title}</p>

@@ -92,7 +92,7 @@ export default function BlogPage() {
               >
                 <div className="aspect-[16/10] overflow-hidden bg-slate-100 lg:aspect-auto lg:h-full">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt={featured.title} className="h-full w-full object-cover transition duration-500 hover:scale-105" src={featured.image} />
+                  <img loading="lazy" decoding="async" alt={featured.title} className="h-full w-full object-cover transition duration-500 hover:scale-105" src={featured.image} />
                 </div>
                 <div className="flex flex-col justify-center p-6 sm:p-8">
                   <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400">
@@ -122,7 +122,7 @@ export default function BlogPage() {
                 >
                   <div className="aspect-[16/9] overflow-hidden bg-slate-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt={post.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={post.image} />
+                    <img loading="lazy" decoding="async" alt={post.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={post.image} />
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400">

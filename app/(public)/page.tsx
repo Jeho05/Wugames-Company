@@ -165,10 +165,10 @@ export default function ClientBrandingPage() {
       {/* ═══ HERO ═══ */}
       <ScrollChoreography
         images={{
-          topLeft: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=1200&fm=webp&auto=format&fit=crop",
-          topRight: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=80&w=1200&fm=webp&auto=format&fit=crop",
-          bottomLeft: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=1200&fm=webp&auto=format&fit=crop",
-          bottomRight: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=1200&fm=webp&auto=format&fit=crop",
+          topLeft: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=75&w=1200&fm=webp&auto=format&fit=crop",
+          topRight: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=75&w=1200&fm=webp&auto=format&fit=crop",
+          bottomLeft: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=75&w=1200&fm=webp&auto=format&fit=crop",
+          bottomRight: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=75&w=1200&fm=webp&auto=format&fit=crop",
         }}
       />
 
@@ -262,7 +262,10 @@ export default function ClientBrandingPage() {
                     alt="Chantier WUGAMS"
                     className="size-full object-cover"
                     height={400}
-                    src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+                    quality={75}
+                    sizes="288px"
+                    loading="lazy"
+                    src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=75&auto=format&fit=crop"
                     width={600}
                   />
                 </div>

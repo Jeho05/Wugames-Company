@@ -87,7 +87,7 @@ export default function RealisationsPage() {
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img alt={realisation.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={realisation.image} />
+                    <img loading="lazy" decoding="async" alt={realisation.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" src={realisation.image} />
                     <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">{realisation.filiale}</span>
                     <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-[#17294b] backdrop-blur">{realisation.value}</span>
                   </div>

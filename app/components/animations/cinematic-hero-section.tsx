@@ -46,19 +46,14 @@ const GRAIN_CSS = `
 @media (prefers-reduced-motion: reduce){.cinematic-grain{animation:none}.cinematic-particle{animation:none}.cinematic-cue-dot{animation:none}}
 `;
 
+// Perf: réduit de 12 à 6 particules (-50% DOM + animations) — suffisant visuellement, beaucoup plus léger en compositor
 const PARTICLES = [
-  { left: "8%", top: "18%", size: 3, duration: "14s", delay: "0s" },
-  { left: "16%", top: "62%", size: 2, duration: "18s", delay: "2s" },
-  { left: "24%", top: "30%", size: 4, duration: "12s", delay: "5s" },
-  { left: "33%", top: "78%", size: 2, duration: "20s", delay: "1s" },
-  { left: "42%", top: "12%", size: 3, duration: "15s", delay: "7s" },
-  { left: "51%", top: "52%", size: 2, duration: "17s", delay: "3s" },
-  { left: "60%", top: "26%", size: 4, duration: "13s", delay: "9s" },
-  { left: "68%", top: "70%", size: 3, duration: "16s", delay: "0s" },
-  { left: "76%", top: "40%", size: 2, duration: "19s", delay: "6s" },
-  { left: "84%", top: "84%", size: 3, duration: "14s", delay: "4s" },
-  { left: "90%", top: "16%", size: 4, duration: "12s", delay: "8s" },
-  { left: "6%", top: "88%", size: 2, duration: "18s", delay: "10s" },
+  { left: "12%", top: "22%", size: 3, duration: "16s", delay: "0s" },
+  { left: "28%", top: "68%", size: 2, duration: "20s", delay: "3s" },
+  { left: "48%", top: "18%", size: 3, duration: "15s", delay: "6s" },
+  { left: "64%", top: "72%", size: 2, duration: "18s", delay: "1s" },
+  { left: "82%", top: "32%", size: 3, duration: "17s", delay: "4s" },
+  { left: "6%", top: "88%", size: 2, duration: "19s", delay: "8s" },
 ];
 
 const DISPLAY_CLASS =
@@ -126,6 +121,10 @@ function CinematicSceneLayer({
             fill
             priority={index === 0}
             sizes="100vw"
+            quality={75}
+            // @ts-ignore Next 16: fetchPriority pour la première image critique
+            fetchPriority={index === 0 ? "high" : "low"}
+            loading={index === 0 ? "eager" : "lazy"}
             src={scene.image}
           />
         </motion.div>

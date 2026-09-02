@@ -233,7 +233,7 @@ export default function WorkspaceBoutiquePage() {
                   <button className="block w-full text-left" onClick={() => setSelectedProduit(produit)} type="button">
                     <div className="relative aspect-square overflow-hidden bg-slate-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img alt={produit.nom} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=80" />
+                      <img loading="lazy" decoding="async" alt={produit.nom} className="h-full w-full object-cover transition duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=75" />
                       <span className="absolute left-3 top-3 rounded-lg bg-[#101a2d]/90 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">{produit.filiale?.nom ?? produit.reference}</span>
                       <span className={"absolute right-3 top-3 rounded-lg px-2.5 py-1 text-[10px] font-bold shadow-sm " + stock.tone}>{stock.label}</span>
                     </div>
@@ -322,7 +322,7 @@ export default function WorkspaceBoutiquePage() {
                         <div className="flex gap-3">
                           <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img alt={item.produit.nom} className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=80" />
+                            <img loading="lazy" decoding="async" alt={item.produit.nom} className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=75" />
                           </div>
                           <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                             <div className="flex items-start justify-between gap-2">
@@ -461,7 +461,7 @@ export default function WorkspaceBoutiquePage() {
           <div aria-labelledby="product-detail-title" aria-modal="true" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl" role="dialog">
             <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt={selectedProduit.nom} className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=80" />
+              <img loading="lazy" decoding="async" alt={selectedProduit.nom} className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=75" />
               <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">{selectedProduit.filiale?.nom ?? selectedProduit.reference}</span>
               <span className={"absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " + stockLabel(selectedProduit).tone}>{stockLabel(selectedProduit).label}</span>
               <button aria-label="Fermer" className="absolute right-3 top-14 grid size-8 place-items-center rounded-full bg-white/90 text-slate-600" onClick={() => setSelectedProduit(null)} type="button">

@@ -146,7 +146,7 @@ export default function VitrinePage() {
       <CinematicHeroSection
         scenes={[
           {
-            image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=100&w=2832&fm=webp&auto=format&fit=crop",
+            image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=75&w=1920&fm=webp&auto=format&fit=crop",
             imageAlt: "Villa moderne livrée par WUGAMS au crépuscule",
             chapter: dateLabel,
             kicker: `${greeting}, l'équipe`,
@@ -162,7 +162,7 @@ export default function VitrinePage() {
             ),
           },
           {
-            image: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=100&w=2832&fm=webp&auto=format&fit=crop",
+            image: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=75&w=1920&fm=webp&auto=format&fit=crop",
             imageAlt: "Chantier de construction WUGAMS en cours",
             chapter: "Prise d'action",
             kicker: "Moteur n°1 — La foi",
@@ -170,7 +170,7 @@ export default function VitrinePage() {
             text: "Colossiens 3:23. Qui veut, trouve les solutions — et qui a la foi les sert jusqu'au bout.",
           },
           {
-            image: "https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?q=100&w=2832&fm=webp&auto=format&fit=crop",
+            image: "https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?q=75&w=1920&fm=webp&auto=format&fit=crop",
             imageAlt: "Équipes WUGAMS sur le terrain",
             chapter: "Le focus",
             kicker: "Moteur n°2 — La concentration",

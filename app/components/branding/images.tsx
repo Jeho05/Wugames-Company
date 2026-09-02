@@ -10,7 +10,10 @@ export function HeroImage() {
           className="size-full object-cover"
           height={600}
           priority
-          src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=80"
+          fetchPriority="high"
+          quality={75}
+          sizes="(max-width: 768px) 90vw, 560px"
+          src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=75&auto=format&fit=crop"
           style={{ aspectRatio: "4/3" }}
           width={800}
         />
@@ -30,6 +33,8 @@ export function FilialeImage({ src, label }: { src: string; label: string }) {
       alt={label}
       className="size-full object-cover"
       height={200}
+      quality={75}
+      sizes="(max-width: 768px) 100vw, 320px"
       src={src}
       style={{ aspectRatio: "16/9" }}
       width={320}
@@ -43,6 +48,8 @@ export function TestimonialImage({ src, name }: { src: string; name: string }) {
       alt={name}
       className="rounded-full object-cover"
       height={48}
+      quality={75}
+      sizes="48px"
       src={src}
       width={48}
     />

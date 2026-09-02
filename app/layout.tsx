@@ -51,6 +51,12 @@ export default function RootLayout({
       className={[geistSans.variable, geistMono.variable, "h-full", "antialiased"].join(" ")}
       lang="fr"
     >
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full bg-background text-foreground">
         <AuthProvider>
           {children}

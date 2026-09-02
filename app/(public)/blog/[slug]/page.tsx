@@ -68,7 +68,7 @@ export default async function BlogArticlePage({
 
         <div className="mt-8 aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt={post.title} className="h-full w-full object-cover" src={post.image} />
+          <img loading="lazy" decoding="async" alt={post.title} className="h-full w-full object-cover" src={post.image} />
         </div>
 
         <div className="mt-10 space-y-6">
@@ -116,7 +116,7 @@ export default async function BlogArticlePage({
             >
               <div className="aspect-[16/9] overflow-hidden bg-slate-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <img loading="lazy" decoding="async"
                   alt={candidate.title}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   src={candidate.image}

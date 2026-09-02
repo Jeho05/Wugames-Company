@@ -23,19 +23,15 @@ function detectPerformanceMode(): PerformanceMode {
   const canvas = document.createElement("canvas");
   const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 
-  if (!gl) {
-    return "fallback";
-  }
-
+  if (!gl) return "fallback";
+  // Perf: respecte reduced-motion et low-end mobile → fallback (pas de WebGL = beaucoup plus rapide)
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return "fallback";
   const cores = navigator.hardwareConcurrency || 2;
-
-  if (cores >= 8) {
-    return "high";
-  } else if (cores >= 4) {
-    return "medium";
-  } else {
-    return "low";
-  }
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  // Seuils plus stricts : 8 coeurs + desktop = high seulement, 6+ = medium, sinon low
+  if (cores >= 8 && !isMobile) return "high";
+  if (cores >= 5) return "medium";
+  return "low";
 }
 
 export interface HorizonSceneCallbacks {
@@ -65,9 +61,9 @@ export function createHorizonScene(
   let composer: EffectComposer | null = null;
 
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: performanceMode === "high", alpha: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, performanceMode === "high" ? 1.5 : 1.2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.5;
   } catch {
@@ -92,7 +88,7 @@ export function createHorizonScene(
   let nebula: THREE.Mesh | null = null;
   let atmosphere: THREE.Mesh | null = null;
 
-  const starMultiplier = performanceMode === "high" ? 1 : performanceMode === "medium" ? 0.6 : 0.3;
+  const starMultiplier = performanceMode === "high" ? 0.6 : performanceMode === "medium" ? 0.35 : 0.18;
   createStarField(scene, stars, starMultiplier);
   createNebula(scene, (m) => (nebula = m));
   createMountains(scene, mountains);
@@ -104,8 +100,22 @@ export function createHorizonScene(
   const mountainBaseZ = mountains.map((m) => m.position.z);
   const smoothCameraPos = { x: 0, y: 30, z: 100 };
   let animationId: number | null = null;
+  let isVisible = true;
+  let lastFrame = 0;
 
-  const animate = () => {
+  const animate = (now?: number) => {
+    if (!isVisible) {
+      animationId = requestAnimationFrame(animate);
+      return;
+    }
+    // Throttle à ~45fps sur low/medium pour économiser batterie
+    const targetFps = performanceMode === "high" ? 60 : 45;
+    const frameInterval = 1000 / targetFps;
+    if (now !== undefined && now - lastFrame < frameInterval) {
+      animationId = requestAnimationFrame(animate);
+      return;
+    }
+    lastFrame = now ?? performance.now();
     animationId = requestAnimationFrame(animate);
     const time = Date.now() * 0.001;
 
@@ -183,6 +193,20 @@ export function createHorizonScene(
     }
   };
 
+  // Pause le rendu quand le canvas n'est pas visible ou onglet en arrière-plan (énorme gain perf)
+  const io = new IntersectionObserver(
+    (entries) => {
+      isVisible = entries[0]?.isIntersecting ?? true;
+    },
+    { threshold: 0 }
+  );
+  io.observe(canvas);
+  const onVisibility = () => {
+    isVisible = document.visibilityState === "visible" && (io ? true : true);
+    if (!document.hidden) lastFrame = performance.now();
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+
   animate();
 
   window.addEventListener("resize", handleResize);
@@ -193,6 +217,8 @@ export function createHorizonScene(
 
   return () => {
     if (animationId !== null) cancelAnimationFrame(animationId);
+    io.disconnect();
+    document.removeEventListener("visibilitychange", onVisibility);
     window.removeEventListener("resize", handleResize);
     window.removeEventListener("scroll", handleScroll);
 
@@ -237,7 +263,7 @@ export function createHorizonScene(
 }
 
 function createStarField(scene: THREE.Scene, stars: THREE.Points[], multiplier: number = 1) {
-  const starCount = Math.floor(5000 * multiplier);
+  const starCount = Math.floor(3000 * multiplier);
 
   for (let i = 0; i < 3; i++) {
     const geometry = new THREE.BufferGeometry();
@@ -303,7 +329,7 @@ function createStarField(scene: THREE.Scene, stars: THREE.Points[], multiplier: 
 }
 
 function createNebula(scene: THREE.Scene, setNebula: (mesh: THREE.Mesh) => void) {
-  const geometry = new THREE.PlaneGeometry(8000, 4000, 100, 100);
+  const geometry = new THREE.PlaneGeometry(8000, 4000, 32, 32);
   const material = new THREE.ShaderMaterial({
     uniforms: {
       time: { value: 0 },
@@ -343,7 +369,7 @@ function createNebula(scene: THREE.Scene, setNebula: (mesh: THREE.Mesh) => void)
 function createMountains(scene: THREE.Scene, mountains: THREE.Mesh[]) {
   MOUNTAIN_LAYERS.forEach((layer) => {
     const points: THREE.Vector2[] = [];
-    const segments = 50;
+    const segments = 22;
     for (let i = 0; i <= segments; i++) {
       const x = (i / segments - 0.5) * 1000;
       const y = Math.sin(i * 0.1) * layer.height +
