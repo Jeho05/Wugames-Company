@@ -51,6 +51,19 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-store, max-age=0" },
         ],
       },
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+      {
+        source: "/offline",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+        ],
+      },
     ];
   },
   async rewrites() {
