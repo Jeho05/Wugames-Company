@@ -38,28 +38,28 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
       <span
         className={
           inverse
-            ? "relative grid size-12 place-items-center overflow-hidden rounded-2xl bg-[#090A0C] shadow-lg shadow-black/20 ring-1 ring-white/10"
-            : "relative grid size-12 place-items-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5"
+            ? "relative grid size-14 place-items-center overflow-hidden rounded-2xl bg-[#090A0C] shadow-xl shadow-black/25 ring-1 ring-white/10 lg:size-16"
+            : "relative grid size-14 place-items-center overflow-hidden rounded-2xl bg-white shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 lg:size-16"
         }
       >
         {/* lueur dorée subtile derrière l'emblème */}
-        <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D79A35]/12 via-transparent to-[#8A5A18]/12" />
-        {/* Emblème bien cadré : le fichier exact est 1600 carré, on l'affiche en cover parfaitement contenu sans débordement */}
+        <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D79A35]/14 via-transparent to-[#8A5A18]/14" />
+        {/* Fichier EXACT 1600 carré, bien contenu, bien grand et net — plus de débordement */}
         <Image
           src={logoSrc}
-          alt=""
-          width={160}
-          height={160}
-          className="relative size-12 rounded-2xl object-contain p-1"
+          alt="WUGAMS Holding Inc."
+          width={400}
+          height={400}
+          className="relative size-14 rounded-2xl object-contain p-1.5 lg:size-16 lg:p-2"
           priority
         />
       </span>
-      <span className="leading-none">
+      <span className="hidden leading-none sm:block">
         <span
           className={
             inverse
-              ? "block font-[var(--font-cormorant)] text-[17px] font-semibold tracking-[0.14em] text-[#FFF0C2]"
-              : "block font-[var(--font-cormorant)] text-[17px] font-semibold tracking-[0.14em] text-[#15191E]"
+              ? "block font-[var(--font-cormorant)] text-[18px] font-semibold tracking-[0.14em] text-[#FFF0C2] lg:text-[19px]"
+              : "block font-[var(--font-cormorant)] text-[18px] font-semibold tracking-[0.14em] text-[#15191E] lg:text-[19px]"
           }
         >
           WUGAMS
@@ -67,8 +67,8 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
         <span
           className={
             inverse
-              ? "mt-0.5 block font-[var(--font-montserrat)] text-[9px] font-semibold uppercase tracking-[0.22em] text-[#F0D99C]/90"
-              : "mt-0.5 block font-[var(--font-montserrat)] text-[9px] font-semibold uppercase tracking-[0.22em] text-slate-500"
+              ? "mt-0.5 block font-[var(--font-montserrat)] text-[10px] font-semibold uppercase tracking-[0.22em] text-[#F0D99C]/90"
+              : "mt-0.5 block font-[var(--font-montserrat)] text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500"
           }
         >
           Holding Inc.

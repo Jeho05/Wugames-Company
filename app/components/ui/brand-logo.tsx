@@ -10,9 +10,9 @@ type BrandLogoProps = {
 };
 
 const sizeClasses = {
-  sm: "h-14",
-  md: "h-20",
-  lg: "h-28",
+  sm: "h-20",
+  md: "h-28",
+  lg: "h-40",
 };
 
 // Logo officiel exact 1600×1600 fourni à la racine — utilisé tel quel, sans retouche
