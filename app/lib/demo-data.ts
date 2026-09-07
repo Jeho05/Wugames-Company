@@ -125,6 +125,12 @@ export const clientNavigationGroups: {
       { href: "/espace/boutique", icon: "shopping-bag", label: "Boutique en ligne" },
     ],
   },
+  {
+    label: "Mode2Vie",
+    items: [
+      { href: "/espace/mode2vie", icon: "newspaper", label: "Mode2Vie [Lifestyle]" },
+    ],
+  },
 ];
 
 export const supplierNavigationGroup: {
