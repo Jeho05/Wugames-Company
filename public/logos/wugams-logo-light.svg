@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600" role="img" aria-labelledby="title desc">
   <title id="title">WUGAMS HOLDING INC</title>
-  <desc id="desc">Embleme dore representant un livre ouvert et la lettre W au-dessus du mot-symbole WUGAMS, sur fond noir profond.</desc>
+  <desc id="desc">Emblème doré représentant un livre ouvert et la lettre W au-dessus du mot-symbole WUGAMS, sur fond noir profond.</desc>
   <defs>
     <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#9A671F"/>
@@ -21,7 +21,9 @@
       <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  
+
+  <rect width="1600" height="1600" fill="#090A0C"/>
+
   <g fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
     <path d="M438 264 C548 285 640 345 684 425 C704 462 708 510 708 574 L708 724 C638 662 552 620 454 600 L454 276 Z" stroke-width="18"/>
     <path d="M1162 264 C1052 285 960 345 916 425 C896 462 892 510 892 574 L892 724 C962 662 1048 620 1146 600 L1146 276 Z" stroke-width="18"/>
@@ -29,6 +31,7 @@
     <path d="M454 600 C548 620 638 662 708 724" stroke="url(#goldSoft)" stroke-width="8" opacity=".95"/>
     <path d="M1146 600 C1052 620 962 662 892 724" stroke="url(#goldSoft)" stroke-width="8" opacity=".95"/>
   </g>
+
   <g text-anchor="middle">
     <text x="800" y="960" fill="#FFF0C2" font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="176" font-weight="600" letter-spacing="18">WUGAMS</text>
     <text x="800" y="1068" fill="#F0D99C" font-family="Montserrat, Arial, Helvetica, sans-serif" font-size="52" font-weight="500" letter-spacing="22">HOLDING INC</text>

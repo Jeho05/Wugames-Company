@@ -27,48 +27,20 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
     }
   }
 
-  // Emblème officiel WUGAMS — or champagne (édition sombre avec glow pour fonds sombres)
-  const emblemSrc = "/logos/wugams-emblem.svg";
+  // Logo officiel exact fourni à la racine — blanc #FFFFFF pour fonds clairs, noir #090A0C pour fonds sombres
+  const logoSrc = inverse
+    ? "/logos/wugams-logo-light.svg"
+    : "/logos/wugams-logo-dark.svg";
 
   const content = (
-    <>
-      <span
-        className={
-          inverse
-            ? "grid size-9 place-items-center overflow-hidden rounded-xl bg-white/[0.08] ring-1 ring-white/10 backdrop-blur-sm"
-            : "grid size-9 place-items-center overflow-hidden rounded-xl bg-[#0a1420] shadow-lg shadow-slate-900/20 ring-1 ring-slate-900/5"
-        }
-      >
-        <Image
-          src={emblemSrc}
-          alt=""
-          width={36}
-          height={36}
-          className="size-[28px] object-contain"
-          priority
-        />
-      </span>
-      <span className="leading-none">
-        <span
-          className={
-            inverse
-              ? "block font-['Cormorant_Garamond',Georgia,serif] text-[15px] font-semibold tracking-[0.14em] text-[#FFF0C2]"
-              : "block font-['Cormorant_Garamond',Georgia,serif] text-[15px] font-semibold tracking-[0.14em] text-[#15191E]"
-          }
-        >
-          WUGAMS
-        </span>
-        <span
-          className={
-            inverse
-              ? "mt-0.5 block font-['Montserrat',Arial,sans-serif] text-[8px] font-semibold uppercase tracking-[0.22em] text-[#F0D99C]/90"
-              : "mt-0.5 block font-['Montserrat',Arial,sans-serif] text-[8px] font-semibold uppercase tracking-[0.22em] text-slate-500"
-          }
-        >
-          Holding Inc.
-        </span>
-      </span>
-    </>
+    <Image
+      src={logoSrc}
+      alt="WUGAMS Holding Inc."
+      width={160}
+      height={160}
+      className="h-10 w-10 rounded-xl object-contain"
+      priority
+    />
   );
 
   return (
