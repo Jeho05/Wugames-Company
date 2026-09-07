@@ -10,9 +10,9 @@ type BrandLogoProps = {
 };
 
 const sizeClasses = {
-  sm: "h-8",
-  md: "h-10",
-  lg: "h-14",
+  sm: "h-14",
+  md: "h-20",
+  lg: "h-28",
 };
 
 // Logo officiel exact 1600×1600 fourni à la racine — utilisé tel quel, sans retouche
@@ -25,13 +25,24 @@ export function BrandLogo({ href = "/", variant = "dark", size = "md" }: BrandLo
       : "/logos/wugams-logo-light.svg";
 
   const content = (
-    <div className="relative flex items-center gap-0 transition-opacity hover:opacity-90">
+    <div
+      className={
+        "relative flex items-center justify-center overflow-hidden rounded-3xl transition hover:opacity-95 " +
+        (variant === "dark"
+          ? "bg-white shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5"
+          : "bg-[#090A0C] shadow-xl shadow-black/20 ring-1 ring-white/10") +
+        " " +
+        sizeClasses[size] +
+        " aspect-square p-2"
+      }
+    >
+      <span className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#D79A35]/8 via-transparent to-[#8A5A18]/8" />
       <Image
         src={logoSrc}
         alt="WUGAMS Holding Inc."
-        width={160}
-        height={160}
-        className={sizeClasses[size] + " w-auto object-contain rounded-xl"}
+        width={400}
+        height={400}
+        className="relative h-full w-full object-contain"
         priority
       />
     </div>
