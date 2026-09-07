@@ -34,7 +34,7 @@ export function NotificationToaster() {
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
           const n = new Notification(String(notification.message ?? "Nouvelle notification WUGAMS"), {
             body: label ? `${label} · Cliquez pour ouvrir` : String(notification.message ?? ""),
-            icon: "/favicon.ico",
+            icon: "/icon-192.png",
           });
           n.onclick = () => {
             window.focus();

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 type BrandMarkProps = {
@@ -26,23 +27,33 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
     }
   }
 
+  // Emblème officiel WUGAMS — or champagne (édition sombre avec glow pour fonds sombres)
+  const emblemSrc = "/logos/wugams-emblem.svg";
+
   const content = (
     <>
       <span
         className={
           inverse
-            ? "grid size-9 place-items-center rounded-xl bg-[#e6ac49] text-[15px] font-black tracking-[-0.12em] text-[#101827]"
-            : "grid size-9 place-items-center rounded-xl bg-[#17294b] text-[15px] font-black tracking-[-0.12em] text-white shadow-lg shadow-slate-900/15"
+            ? "grid size-9 place-items-center overflow-hidden rounded-xl bg-white/[0.08] ring-1 ring-white/10 backdrop-blur-sm"
+            : "grid size-9 place-items-center overflow-hidden rounded-xl bg-[#0a1420] shadow-lg shadow-slate-900/20 ring-1 ring-slate-900/5"
         }
       >
-        W
+        <Image
+          src={emblemSrc}
+          alt=""
+          width={36}
+          height={36}
+          className="size-[28px] object-contain"
+          priority
+        />
       </span>
       <span className="leading-none">
         <span
           className={
             inverse
-              ? "block text-[15px] font-bold tracking-[-0.04em] text-white"
-              : "block text-[15px] font-bold tracking-[-0.04em] text-[#17294b]"
+              ? "block font-['Cormorant_Garamond',Georgia,serif] text-[15px] font-semibold tracking-[0.14em] text-[#FFF0C2]"
+              : "block font-['Cormorant_Garamond',Georgia,serif] text-[15px] font-semibold tracking-[0.14em] text-[#15191E]"
           }
         >
           WUGAMS
@@ -50,8 +61,8 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
         <span
           className={
             inverse
-              ? "mt-1 block text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400"
-              : "mt-1 block text-[8px] font-bold uppercase tracking-[0.2em] text-slate-500"
+              ? "mt-0.5 block font-['Montserrat',Arial,sans-serif] text-[8px] font-semibold uppercase tracking-[0.22em] text-[#F0D99C]/90"
+              : "mt-0.5 block font-['Montserrat',Arial,sans-serif] text-[8px] font-semibold uppercase tracking-[0.22em] text-slate-500"
           }
         >
           Holding Inc.

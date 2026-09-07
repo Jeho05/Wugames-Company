@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Cormorant_Garamond, Montserrat } from "next/font/google";
 
 import { AuthProvider } from "@/app/lib/auth-context";
 import { ChatWidget } from "@/app/components/ui/chat-widget";
@@ -17,6 +17,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   description: "Plateforme web de pilotage multi-filiales de WUGAMS Holding Inc.",
   title: {
@@ -24,6 +38,15 @@ export const metadata: Metadata = {
     template: "%s | WUGAMS",
   },
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "WUGAMS" },
   openGraph: {
     type: "website",
@@ -31,11 +54,25 @@ export const metadata: Metadata = {
     siteName: "WUGAMS",
     title: "WUGAMS | Pilotage multi-filiales",
     description: "Bâtir, rénover, entreprendre. Avec la bonne équipe.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "WUGAMS Holding Inc. — emblème livre ouvert et W doré",
+      },
+      {
+        url: "/icon-512.png",
+        width: 512,
+        height: 512,
+        alt: "WUGAMS emblem",
+      },
+    ],
   },
 };
 
 export const viewport = {
-  themeColor: "#17294b",
+  themeColor: "#090A0C",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -48,7 +85,14 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      className={[geistSans.variable, geistMono.variable, "h-full", "antialiased"].join(" ")}
+      className={[
+        geistSans.variable,
+        geistMono.variable,
+        cormorant.variable,
+        montserrat.variable,
+        "h-full",
+        "antialiased",
+      ].join(" ")}
       lang="fr"
     >
       <head>

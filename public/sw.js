@@ -1,4 +1,4 @@
-const CACHE_NAME = "wugams-v3";
+const CACHE_NAME = "wugams-v4";
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240" role="img" aria-label="WUGAMS HOLDING INC">
+  <defs>
+    <linearGradient id="goldH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8A5A18"/>
+      <stop offset="22%" stop-color="#D79A35"/>
+      <stop offset="48%" stop-color="#FFE29A"/>
+      <stop offset="72%" stop-color="#B97720"/>
+      <stop offset="100%" stop-color="#754812"/>
+    </linearGradient>
+    <linearGradient id="goldSoftH" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#A66C1B"/>
+      <stop offset="50%" stop-color="#EABF67"/>
+      <stop offset="100%" stop-color="#A66C1B"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#goldH)" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(-380, -220) scale(0.58)">
+      <path d="M438 264 C548 285 640 345 684 425 C704 462 708 510 708 574 L708 724 C638 662 552 620 454 600 L454 276 Z" stroke-width="22"/>
+      <path d="M1162 264 C1052 285 960 345 916 425 C896 462 892 510 892 574 L892 724 C962 662 1048 620 1146 600 L1146 276 Z" stroke-width="22"/>
+      <path d="M708 426 C704 520 705 623 708 724 L760 594 L800 730 L840 594 L892 724 C895 623 896 520 892 426" stroke-width="22"/>
+      <path d="M454 600 C548 620 638 662 708 724" stroke="url(#goldSoftH)" stroke-width="10" opacity=".95"/>
+      <path d="M1146 600 C1052 620 962 662 892 724" stroke="url(#goldSoftH)" stroke-width="10" opacity=".95"/>
+    </g>
+  </g>
+  <g>
+    <text x="260" y="102" fill="#15191E" font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="88" font-weight="600" letter-spacing="10">WUGAMS</text>
+    <text x="260" y="146" fill="#15191E" font-family="Montserrat, Arial, Helvetica, sans-serif" font-size="26" font-weight="600" letter-spacing="11">HOLDING INC</text>
+  </g>
+</svg>
