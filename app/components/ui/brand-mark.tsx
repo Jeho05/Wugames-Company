@@ -44,14 +44,13 @@ export function BrandMark({ href = "/", inverse = false }: BrandMarkProps) {
       >
         {/* lueur dorée subtile derrière l'emblème */}
         <span className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D79A35]/12 via-transparent to-[#8A5A18]/12" />
-        {/* On zoome sur l'emblème (haut du fichier exact) pour que le W doré soit grand et lisible — le texte reste lisible via le HTML à côté */}
+        {/* Emblème bien cadré : le fichier exact est 1600 carré, on l'affiche en cover parfaitement contenu sans débordement */}
         <Image
           src={logoSrc}
           alt=""
-          width={400}
-          height={400}
-          className="relative size-[72px] max-w-none object-cover object-top"
-          style={{ objectPosition: "50% 32%" }}
+          width={160}
+          height={160}
+          className="relative size-12 rounded-2xl object-contain p-1"
           priority
         />
       </span>
