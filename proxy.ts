@@ -34,12 +34,15 @@ function decodeJwtPayload(token: string): { exp?: number; role?: string } | null
   }
 }
 
-// Rate limit: 5 req / 60s per IP for auth endpoints
+// Rate limit : anti brute-force sur login/register uniquement.
+// Les endpoints de maintenance de session (me/refresh/logout) sont exclus :
+// les limiter cassait les restaurations multi-onglets (429 → boutons "qui ne marchent pas").
 const authRateLimit = new Map<string, number[]>();
+const BRUTE_FORCE_PATHS = ["/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/2fa/verify"];
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const windowMs = 60_000;
-  const max = 5;
+  const max = 20;
   const hits = authRateLimit.get(ip) ?? [];
   const recent = hits.filter((t) => now - t < windowMs);
   recent.push(now);
@@ -68,8 +71,8 @@ export default function proxy(request: NextRequest) {
     response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
 
-  // Rate limit auth endpoints
-  if (pathname.startsWith("/api/v1/auth/")) {
+  // Rate limit auth endpoints (brute-force uniquement)
+  if (BRUTE_FORCE_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? request.headers.get("x-real-ip") ?? "unknown";
     if (isRateLimited(ip)) {
       return new NextResponse("Too Many Requests", { status: 429, headers: { "Retry-After": "60" } });

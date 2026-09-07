@@ -109,7 +109,14 @@ export type VitrineProduitPublic = {
 
 async function tryApi<T>(path: string, fallback: () => T, query?: Record<string, string>): Promise<T> {
   try {
-    const data = await apiFetch<T>(path, { auth: false, cacheTtlMs: 0, query: query as unknown as import("@/app/lib/api-client").ApiQuery });
+    // Contenu public quasi-statique : cache mémoire 5 min + déduplication.
+    // Sans cache, l'accueil tirait 4 requêtes réseau à chaque rendu (cold start → lenteurs).
+    const data = await apiFetch<T>(path, {
+      auth: false,
+      cacheTtlMs: 5 * 60_000,
+      timeoutMs: 12_000,
+      query: query as unknown as import("@/app/lib/api-client").ApiQuery,
+    });
     return data;
   } catch (err) {
     if (typeof console !== "undefined") console.warn(`[vitrine] API ${path} indisponible, fallback local`, err);
@@ -119,10 +126,13 @@ async function tryApi<T>(path: string, fallback: () => T, query?: Record<string,
 
 async function tryApiMutation<T>(path: string, method: "POST" | "PATCH" | "DELETE", body: unknown, localMutate: () => T): Promise<T> {
   try {
-    const data = await apiFetch<T>(path, { method, body, cacheTtlMs: 0 });
+    const data = await apiFetch<T>(path, { method, body, cacheTtlMs: 0, timeoutMs: 15_000 });
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("wugams:vitrine:change"));
     return data;
   } catch {
-    return localMutate();
+    const result = localMutate();
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("wugams:vitrine:change"));
+    return result;
   }
 }
 
@@ -282,7 +292,7 @@ export async function listBlogPosts(): Promise<VitrineBlogPost[]> {
 
 export async function getBlogPost(slug: string): Promise<VitrineBlogPost | null> {
   try {
-    const post = await apiFetch<VitrineBlogPost>(`/vitrine/blog/${slug}`, { auth: false, cacheTtlMs: 0 });
+    const post = await apiFetch<VitrineBlogPost>(`/vitrine/blog/${slug}`, { auth: false, cacheTtlMs: 5 * 60_000, timeoutMs: 12_000 });
     return post;
   } catch {
     const all = readLocal<VitrineBlogPost[]>(VITRINE_KEYS.blog, []);

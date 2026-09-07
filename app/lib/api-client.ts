@@ -113,22 +113,31 @@ export function setSession(session: SessionTokens | null): void {
       /* stockage indisponible : la session reste en mémoire */
     }
     // Miroir httpOnly pour le middleware (défense en profondeur)
-    try {
-      if (session) {
-        void fetch("/api/session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(session),
-          cache: "no-store",
-        }).catch(() => undefined);
-      } else {
-        void fetch("/api/session", { method: "DELETE", cache: "no-store" }).catch(() => undefined);
-      }
-    } catch {
-      /* ignore */
-    }
+    void syncSessionCookie(session);
   }
   notifyAuthChange();
+}
+
+/** Synchronise le cookie httpOnly lu par le middleware. À await avant de naviguer vers /espace. */
+export function syncSessionCookie(session: SessionTokens | null): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  try {
+    if (session) {
+      return fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(session),
+        cache: "no-store",
+      })
+        .then(() => undefined)
+        .catch(() => undefined);
+    }
+    return fetch("/api/session", { method: "DELETE", cache: "no-store" })
+      .then(() => undefined)
+      .catch(() => undefined);
+  } catch {
+    return Promise.resolve();
+  }
 }
 
 export function clearSession(): void {
@@ -190,15 +199,21 @@ let refreshInFlight: Promise<boolean> | null = null;
 async function doRefreshTokens(): Promise<boolean> {
   const session = getSession();
   if (!session?.refreshToken) return false;
+  const controller = new AbortController();
+  const timeout =
+    typeof setTimeout !== "undefined" ? setTimeout(() => controller.abort(), 15_000) : null;
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ refresh_token: session.refreshToken }),
       cache: "no-store",
+      signal: controller.signal,
     });
     if (!response.ok) {
-      clearSession();
+      // 401/403 = refresh révoqué/expiré → déconnexion. Autres statuts (429, 5xx)
+      // = problème transitoire → on garde la session pour réessayer plus tard.
+      if (response.status === 401 || response.status === 403) clearSession();
       return false;
     }
     const data = (await response.json()) as {
@@ -217,8 +232,10 @@ async function doRefreshTokens(): Promise<boolean> {
     });
     return true;
   } catch {
-    clearSession();
+    // Erreur réseau/timeout : on ne purge PAS la session (transitoire).
     return false;
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -246,6 +263,8 @@ export type ApiFetchOptions = {
   signal?: AbortSignal;
   /** Durée de vie du cache mémoire pour les GET (ms). Défaut : 30_000. Mettre 0 pour forcer le réseau. */
   cacheTtlMs?: number;
+  /** Timeout réseau (ms). Défaut : 20_000. Mettre 0 pour désactiver. */
+  timeoutMs?: number;
 };
 
 /* ------------------------------------------------------------------ */
@@ -286,7 +305,7 @@ function buildUrl(path: string, query?: ApiQuery): string {
 }
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
-  const { method = "GET", body, query, auth = true, retry = true, signal, cacheTtlMs = DEFAULT_CACHE_TTL_MS } = options;
+  const { method = "GET", body, query, auth = true, retry = true, signal, cacheTtlMs = DEFAULT_CACHE_TTL_MS, timeoutMs = 20_000 } = options;
 
   const url = buildUrl(path, query);
   const key = cacheKey(method, url, auth);
@@ -302,7 +321,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     }
   }
 
-  const promise = performFetch<T>(url, { method, body, auth, retry, signal });
+  const promise = performFetch<T>(url, { method, body, auth, retry, signal, timeoutMs });
 
   if (method === "GET") {
     inflightRequests.set(key, promise);
@@ -322,12 +341,19 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
 }
 
 async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T> {
-  const { method = "GET", body, auth = true, retry = true, signal } = options;
+  const { method = "GET", body, auth = true, retry = true, signal, timeoutMs = 20_000 } = options;
 
   const session = auth ? getSession() : null;
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
+
+  // Timeout : le back serverless peut être lent (cold start), mais on ne veut
+  // jamais bloquer l'UI indéfiniment. Le signal externe reste prioritaire.
+  const controller = new AbortController();
+  const onAbort = () => controller.abort(signal?.reason);
+  signal?.addEventListener("abort", onAbort, { once: true });
+  const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort(new Error("timeout")), timeoutMs) : null;
 
   let response: Response;
   try {
@@ -335,13 +361,19 @@ async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
+      signal: controller.signal,
       cache: "no-store",
     });
   } catch (error) {
     if (signal?.aborted) throw error;
-    responseCache.clear();
+    if (controller.signal.aborted && !signal?.aborted) {
+      throw new ApiError(0, "Le serveur met trop de temps à répondre. Réessayez.");
+    }
+    // Erreur réseau : on conserve le cache (transitoire), l'UI garde ses données.
     throw error;
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
+    if (timeout) clearTimeout(timeout);
   }
 
   if (response.status === 401 && auth && retry && session?.refreshToken) {
@@ -366,4 +398,45 @@ async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T
 /** Variante sans token (login, 2FA, refresh, santé). */
 export function apiFetchPublic<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   return apiFetch<T>(path, { ...options, auth: false, retry: false });
+}
+
+/* ------------------------------------------------------------------ */
+/* Refresh proactif — évite le 401 + retry qui double la latence       */
+/* ------------------------------------------------------------------ */
+
+function decodeJwtExp(token: string): number | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3 || !parts[1]) return null;
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = typeof atob !== "undefined" ? atob(base64) : Buffer.from(base64, "base64").toString("utf8");
+    const payload = JSON.parse(json) as { exp?: number };
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Timestamp d'expiration réel : le plus tôt entre le JWT et expiresAt. */
+export function sessionExpiryMs(session: SessionTokens | null = getSession()): number | null {
+  if (!session) return null;
+  const jwtExp = decodeJwtExp(session.accessToken);
+  return jwtExp ? Math.min(jwtExp, session.expiresAt) : session.expiresAt;
+}
+
+/** true si la session expire dans moins de `marginMs` (défaut 60s). */
+export function isSessionExpiringSoon(marginMs = 60_000): boolean {
+  const exp = sessionExpiryMs();
+  return exp !== null && exp - marginMs <= Date.now();
+}
+
+/**
+ * Rafraîchit le token avant expiration (appelable au focus/avant une action).
+ * Retourne true si la session est utilisable après l'appel.
+ */
+export async function ensureFreshSession(marginMs = 60_000): Promise<boolean> {
+  const session = getSession();
+  if (!session) return false;
+  if (!isSessionExpiringSoon(marginMs)) return true;
+  return refreshTokens();
 }

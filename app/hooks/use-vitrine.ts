@@ -1,38 +1,59 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import * as vitrineApi from "@/app/lib/api/vitrine";
 
 function useVitrineResource<T>(fetcher: () => Promise<T[]>, filter?: (items: T[]) => T[]) {
   const [data, setData] = useState<T[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Stabilise fetcher/filter (les appelants passent des closures inline recréées
+  // à chaque rendu — les mettre en deps provoquerait une boucle de refetch qui
+  // martèle le back et fige l'UI).
+  const fetcherRef = useRef(fetcher);
+  const filterRef = useRef(filter);
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+    filterRef.current = filter;
+  });
+
   const refresh = useCallback(async () => {
     try {
-      const list = await fetcher();
-      setData(filter ? filter(list) : list);
+      const list = await fetcherRef.current();
+      const f = filterRef.current;
+      setData(f ? f(list) : list);
       setError(null);
     } catch (e) {
       console.error("[vitrine]", e);
       setData([]);
       setError(e instanceof Error ? e.message : "Erreur");
     }
-  }, [fetcher, filter]);
+  }, []);
 
   useEffect(() => {
+    let cancelled = false;
     void refresh();
-    const onChange = () => void refresh();
+    const onChange = () => {
+      if (!cancelled) void refresh();
+    };
     window.addEventListener("wugams:vitrine:change", onChange);
+    // Garde-fou : le back serverless peut mettre ~10s à sortir d'un cold start.
+    // On ne force le fallback local qu'après 12s pour laisser une chance au réseau.
     const t = setTimeout(() => {
-      if (data === null) {
-        setData([]);
-        setError("Timeout");
+      if (!cancelled) {
+        setData((prev) => {
+          if (prev === null) {
+            setError("Timeout");
+            return [];
+          }
+          return prev;
+        });
       }
-    }, 5000);
+    }, 12_000);
     return () => {
+      cancelled = true;
       clearTimeout(t);
       window.removeEventListener("wugams:vitrine:change", onChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refresh]);
 
   return { data, refresh, loading: data === null, error };
@@ -67,19 +88,23 @@ export function useBoutiqueProduits() {
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
+    let settled = false;
+    const markSettled = () => {
+      settled = true;
+    };
     const t = setTimeout(() => {
-      if (!cancelled && data === null) {
+      if (!cancelled && !settled) {
+        settled = true;
         setData([]);
         setError("Timeout");
       }
-    }, 5000);
+    }, 12_000);
     // Public catalogue via /vitrine/produits (auth:false), fallback to /stocks/produits si vide
     import("@/app/lib/api/vitrine")
       .then(({ listProduitsPublic }) => listProduitsPublic())
       .then((produits) => {
         if (cancelled) return;
-        if (produits.length > 0) {
-          // Map VitrineProduitPublic -> Produit minimal
+        if (produits.length > 0) {          // Map VitrineProduitPublic -> Produit minimal
           const mapped = produits.map((p) => ({
             id: p.id,
             nom: p.nom,
@@ -98,12 +123,14 @@ export function useBoutiqueProduits() {
             filiale: p.filiale ?? undefined,
           })) as import("@/app/lib/contracts").Produit[];
           setData(mapped.filter((p) => p.statut !== "ARCHIVE"));
+          markSettled();
           setError(null);
         } else {
           // Fallback vers stocks (nécessite auth, pour les sessions connectées)
           return import("@/app/lib/api/stocks").then(({ listProduits }) => listProduits()).then((produits2) => {
             if (!cancelled) {
               setData(produits2.filter((p) => p.statut !== "ARCHIVE"));
+              markSettled();
               setError(null);
             }
           });
@@ -116,10 +143,16 @@ export function useBoutiqueProduits() {
           import("@/app/lib/api/stocks")
             .then(({ listProduits }) => listProduits())
             .then((produits2) => {
-              if (!cancelled) setData(produits2.filter((p) => p.statut !== "ARCHIVE"));
+              if (!cancelled) {
+                setData(produits2.filter((p) => p.statut !== "ARCHIVE"));
+                markSettled();
+              }
             })
             .catch(() => {
-              if (!cancelled) setData([]);
+              if (!cancelled) {
+                setData([]);
+                markSettled();
+              }
             });
           setError(e instanceof Error ? e.message : "Erreur");
         }

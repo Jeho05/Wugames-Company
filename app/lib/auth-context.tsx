@@ -7,7 +7,7 @@ import * as authApi from "@/app/lib/api/auth";
 import * as clientSpaceApi from "@/app/lib/api/client-space";
 import * as filialesApi from "@/app/lib/api/filiales";
 import * as usersApi from "@/app/lib/api/users";
-import { ApiError, clearSession, computeExpiry, getSession, setSession, subscribeAuth } from "@/app/lib/api-client";
+import { ApiError, clearSession, computeExpiry, ensureFreshSession, getSession, sessionExpiryMs, setSession, subscribeAuth, syncSessionCookie } from "@/app/lib/api-client";
 import type { AuthUserDto, RoleCode } from "@/app/lib/contracts";
 
 export type AuthUser = {
@@ -81,16 +81,58 @@ function initialsOf(name: string): string {
 
 /** Cache léger des filiales (nom de filiale affiché dans la coquille). */
 let filialesCache: { nom: string; code: string; id: string }[] | null = null;
+let filialesInFlight: Promise<{ nom: string; code: string; id: string }[]> | null = null;
 
 async function resolveFilialeName(filialeId: string | null): Promise<string> {
   if (!filialeId) return "Siège";
   try {
-    filialesCache ??= await filialesApi.listFiliales();
-    const found = filialesCache.find((filiale) => filiale.id === filialeId);
+    filialesInFlight ??= filialesApi.listFiliales().then(
+      (list) => {
+        filialesCache = list;
+        return list;
+      },
+      (err) => {
+        filialesInFlight = null;
+        throw err;
+      },
+    );
+    const list = filialesCache ?? (await filialesInFlight);
+    filialesInFlight = null;
+    const found = list.find((filiale) => filiale.id === filialeId);
     return found?.nom ?? "Filiale";
   } catch {
+    filialesInFlight = null;
     return "Filiale";
   }
+}
+
+/** Hydratation instantanée depuis le payload (zéro appel réseau) pour une UI immédiate. */
+function instantAuthUser(dto: AuthUserDto): AuthUser {
+  const fallbackName = dto.email.split("@")[0] || dto.email;
+  return {
+    id: dto.id,
+    email: dto.email,
+    filiale: dto.filiale_id ? "Filiale" : "Siège",
+    filialeId: dto.filiale_id,
+    initials: initialsOf(fallbackName),
+    name: fallbackName,
+    role: dto.role,
+    profileId: dto.profile_id,
+  };
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timeout`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
+function isExpiringSoonLocal(session: { expiresAt: number }, marginMs = 90_000): boolean {
+  return session.expiresAt - marginMs <= Date.now();
 }
 
 async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
@@ -109,12 +151,16 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
 
   try {
     if (clientRoles.has(dto.role)) {
-      const profil = await clientSpaceApi.getProfil();
+      const profil = await withTimeout(clientSpaceApi.getProfil(), 8_000, "profil");
       const name = [profil.user?.first_name, profil.user?.last_name].filter(Boolean).join(" ") || fallbackName;
       return fallback(name, "Espace client", dto.role, null);
     }
 
-    const [full, filiale] = await Promise.all([usersApi.getUser(dto.id), resolveFilialeName(dto.filiale_id)]);
+    const [full, filiale] = await withTimeout(
+      Promise.all([usersApi.getUser(dto.id), resolveFilialeName(dto.filiale_id)]),
+      8_000,
+      "profil",
+    );
     const name = [full.first_name, full.last_name].filter(Boolean).join(" ") || fallbackName;
     return {
       id: full.id,
@@ -140,28 +186,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pending2faRef = useRef<Pending2fa>(null);
   const restoreStarted = useRef(false);
   const userRef = useRef<AuthUser | null>(user);
+  /** true pendant un logout volontaire (évite le flash "session expirée"). */
+  const loggingOutRef = useRef(false);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     userRef.current = user;
   }, [user]);
 
-  const persistTokens = useCallback((tokens: authApi.AuthTokensLike) => {
-    setSession({
+  const persistTokens = useCallback(async (tokens: authApi.AuthTokensLike) => {
+    const session = {
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresAt: computeExpiry(tokens.expires_in),
-    });
+    };
+    setSession(session);
+    // Le middleware lit le cookie httpOnly : on l'attend AVANT de naviguer vers
+    // /espace, sinon la navigation est rejetée vers /connexion (bouton "qui ne marche pas").
+    await syncSessionCookie(session);
   }, []);
+
+  /** Planifie un refresh proactif ~60s avant l'expiration réelle (JWT ou expiresAt). */
+  const scheduleRef = useRef<() => void>(() => undefined);
+  const scheduleProactiveRefresh = useCallback(() => scheduleRef.current(), []);
+  useEffect(() => {
+    scheduleRef.current = () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+      const exp = sessionExpiryMs();
+      if (!exp) return;
+      const delay = Math.max(exp - Date.now() - 60_000, 5_000);
+      refreshTimerRef.current = setTimeout(() => {
+        void ensureFreshSession().then((ok) => {
+          if (ok) scheduleRef.current();
+        });
+      }, delay);
+    };
+  });
 
   const hydrate = useCallback(
     async (tokens: authApi.AuthTokensLike) => {
-      persistTokens(tokens);
-      const authUser = await buildAuthUser(tokens.user);
-      cacheAuthUser(authUser);
-      setUser(authUser);
+      // 1. UI instantanée (zéro appel réseau) + cookie attendu → navigation immédiate.
+      const instant = instantAuthUser(tokens.user);
+      cacheAuthUser(instant);
+      setUser(instant);
       setSessionExpired(false);
+      await persistTokens(tokens);
+      scheduleProactiveRefresh();
+      // 2. Enrichissement en arrière-plan (nom réel, filiale) sans bloquer.
+      try {
+        const authUser = await buildAuthUser(tokens.user);
+        cacheAuthUser(authUser);
+        setUser(authUser);
+      } catch {
+        /* le profil instantané reste affiché */
+      }
     },
-    [persistTokens],
+    [persistTokens, scheduleProactiveRefresh],
   );
 
   const clearSessionExpired = useCallback(() => setSessionExpired(false), []);
@@ -172,10 +252,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     restoreStarted.current = true;
 
     let cancelled = false;
-    const initialSession = getSession();
 
     async function restore() {
+      const initialSession = getSession();
+      // Affichage immédiat du dernier profil connu (pas d'écran vide).
       if (!initialSession) return;
+      // Session bientôt expirée → on tente le refresh d'abord (évite un 401 lent).
+      if (isExpiringSoonLocal(initialSession)) {
+        const ok = await ensureFreshSession().catch(() => false);
+        if (!ok && getSession() === null) {
+          if (!cancelled) {
+            clearCachedUser();
+            setSessionExpired(true);
+          }
+          return;
+        }
+      }
+      // Profil instantané immédiat, puis vérification réseau en arrière-plan.
       try {
         const payload = await authApi.me();
         const dto: AuthUserDto = {
@@ -187,15 +280,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profile_id: payload.profile_id,
         };
         if (cancelled) return;
-        const refreshed = await buildAuthUser(dto);
-        cacheAuthUser(refreshed);
-        setUser(refreshed);
+        const instant = instantAuthUser(dto);
+        cacheAuthUser(instant);
+        setUser(instant);
+        scheduleProactiveRefresh();
+        try {
+          const refreshed = await buildAuthUser(dto);
+          if (cancelled) return;
+          cacheAuthUser(refreshed);
+          setUser(refreshed);
+        } catch {
+          /* profil instantané conservé */
+        }
       } catch (error) {
+        if (cancelled) return;
         if (error instanceof ApiError && error.statusCode === 401) {
           clearCachedUser();
-          setSessionExpired(true);
+          // Refresh déjà tenté par api-client : si toujours 401, session morte.
+          if (getSession() === null) setSessionExpired(true);
         }
-        clearSession();
+        // Erreur réseau/serveur : on garde le profil en cache (mode dégradé),
+        // on ne purge que le token si le refresh a confirmé l'expiration.
       }
     }
 
@@ -206,17 +311,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = subscribeAuth(() => {
       const session = getSession();
       if (session === null) {
+        if (loggingOutRef.current) return;
         if (userRef.current) setSessionExpired(true);
         clearCachedUser();
         setUser(null);
       }
     });
 
+    // Refresh proactif au retour sur l'onglet (évite le 401 au premier clic).
+    const onVisible = () => {
+      if (!document.hidden) void ensureFreshSession().then((ok) => ok && scheduleProactiveRefresh());
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       cancelled = true;
       unsubscribe();
+      document.removeEventListener("visibilitychange", onVisible);
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, []);
+  }, [scheduleProactiveRefresh]);
 
   const login = useCallback(
     async (email: string, password: string): Promise<LoginOutcome> => {
@@ -250,16 +364,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    loggingOutRef.current = true;
     try {
       await authApi.logout();
     } catch {
       /* révocation best-effort : la session locale est purgée quoi qu'il arrive */
     }
     pending2faRef.current = null;
+    clearCachedUser();
     clearSession();
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     setUser(null);
     setPending2fa(null);
     setSessionExpired(false);
+    // Laisse le subscriber ignorer cette purge volontaire, puis réarme.
+    setTimeout(() => {
+      loggingOutRef.current = false;
+    }, 0);
   }, []);
 
   const value = useMemo(

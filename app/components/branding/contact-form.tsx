@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { LoadingButton } from "@/app/components/ui/loading-button";
 
 const subjects = [
   "Construction",
@@ -17,6 +19,31 @@ const subjects = [
 export function ContactForm() {
   const router = useRouter();
   const [subject, setSubject] = useState(subjects[0]);
+  const [submitting, setSubmitting] = useState(false);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+    setSubmitting(true);
+    // Sauvegarde du brouillon (le message n'est pas perdu après redirection).
+    try {
+      const data = new FormData(event.currentTarget);
+      window.sessionStorage.setItem(
+        "wugams-contact-draft",
+        JSON.stringify({
+          name: data.get("name"),
+          phone: data.get("phone"),
+          email: data.get("email"),
+          subject,
+          message: data.get("message"),
+          at: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      /* stockage indisponible : on redirige quand même */
+    }
+    router.push("/connexion");
+  }
 
   return (
     <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -30,10 +57,7 @@ export function ContactForm() {
 
         <form
           className="mt-6 space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            router.push("/connexion");
-          }}
+          onSubmit={handleSubmit}
         >
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
@@ -99,12 +123,14 @@ export function ContactForm() {
                 type="file"
               />
             </label>
-            <button
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#2c4370] to-[#17294b] px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_28px_-12px_rgba(23,41,75,0.9),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:brightness-110 sm:w-auto"
+            <LoadingButton
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#2c4370] to-[#17294b] px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_28px_-12px_rgba(23,41,75,0.9),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:brightness-110 sm:w-auto disabled:cursor-not-allowed disabled:opacity-70"
+              loading={submitting}
+              loadingLabel="Redirection vers la connexion…"
               type="submit"
             >
               Envoyer le message <Icon className="transition-transform duration-200 group-hover:translate-x-0.5" name="arrow-right" size={17} />
-            </button>
+            </LoadingButton>
             <p className="text-[11px] text-slate-400">
               Connectez-vous ou créez un compte pour envoyer votre message.
             </p>
