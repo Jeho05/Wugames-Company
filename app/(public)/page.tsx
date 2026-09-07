@@ -30,6 +30,7 @@ const siteLinks = [
   { label: "Boutique", href: "/boutique" },
   { label: "Réalisations", href: "/realisations" },
   { label: "Blog", href: "/blog" },
+  { label: "Mode2Vie", href: "/mode2vie" },
 ];
 
 // Fallbacks en dur — conservés, et enrichis dynamiquement via la vitrine
@@ -520,6 +521,7 @@ export default function ClientBrandingPage() {
                 <li><Link className="transition hover:text-[#17294b]" href="/boutique">Boutique matériaux</Link></li>
                 <li><Link className="transition hover:text-[#17294b]" href="/realisations">Nos réalisations</Link></li>
                 <li><Link className="transition hover:text-[#17294b]" href="/blog">Blog &amp; conseils</Link></li>
+                <li><Link className="transition hover:text-[#17294b]" href="/mode2vie">Mode2Vie [Lifestyle]</Link></li>
               </ul>
             </div>
             <div>

@@ -13,14 +13,6 @@ type ClientIndexProps = {
 
 const indexEntries: { id: string; label: string; subtitle: string; icon: IconName; section: string; color: string }[] = [
   {
-    id: "mode2vie",
-    label: "Mode2Vie [Lifestyle]",
-    subtitle: "Foi, travail et famille — notre vie chrétienne au quotidien",
-    icon: "newspaper",
-    section: "portail-mode2vie",
-    color: "bg-[#f2c56d]/10 text-[#b47e1e] border-[#f2c56d]/30",
-  },
-  {
     id: "espace-wu",
     label: "Espace Wu",
     subtitle: "Boutique WUGAMS — entretien, matériaux, mobilier et outillage",

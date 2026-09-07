@@ -12,7 +12,6 @@ import { ClientStdCommandes } from "@/app/components/workspace/client-std/client
 import { ClientStdDevis } from "@/app/components/workspace/client-std/client-std-devis";
 import { ClientStdNotifications } from "@/app/components/workspace/client-std/client-std-notifications";
 import { ClientStdProfil } from "@/app/components/workspace/client-std/client-std-profil";
-import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 import {
   clientStdProgress,
   clientStdStateFrom,
@@ -28,7 +27,6 @@ type ClientStdScreenProps = {
 
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "std-apercu", label: "Vue d'ensemble", icon: "dashboard" },
-  { id: "std-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
   { id: "std-missions", label: "Missions", icon: "hardhat" },
   { id: "std-commandes", label: "Commandes", icon: "shopping-bag" },
   { id: "std-devis", label: "Devis", icon: "sparkles" },
@@ -158,8 +156,6 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
           <ClientStdKpiGrid {...kpi} />
         </div>
       </div>
-
-      <ClientMode2Vie sectionId="std-mode2vie" />
 
       <ClientStdMissions missions={data.missions} />
       <ClientStdCommandes commandes={data.commandes} />

@@ -8,11 +8,10 @@ import type { IconName } from "@/app/components/ui/app-icon";
 import { formatFcfa } from "@/app/lib/store-data";
 import type { ClientStdData } from "@/app/lib/client-std-data";
 import type { CleansOverview } from "@/app/lib/cleans-data";
-import { mode2vieArticles } from "@/app/lib/mode2vie-data";
 
 type SearchResult = {
   id: string;
-  section: "Missions" | "Commandes" | "Devis" | "Projets" | "Wugams Cleans" | "Mode2Vie";
+  section: "Missions" | "Commandes" | "Devis" | "Projets" | "Wugams Cleans";
   sectionId: string;
   icon: IconName;
   title: string;
@@ -25,7 +24,6 @@ const sectionIcon: Record<SearchResult["section"], IconName> = {
   Devis: "sparkles",
   Projets: "camera",
   "Wugams Cleans": "sparkles",
-  Mode2Vie: "newspaper",
 };
 
 function normalize(value: string): string {
@@ -93,7 +91,6 @@ export function ClientStdSearch({ data, cleans, open, onClose, onNavigate }: Cli
     return [
       ...data.projets.filter(matches).map((p) => build(p, "Projets")),
       ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
-      ...mode2vieArticles.filter(matches).map((a) => build(a, "Mode2Vie")),
       ...data.missions.filter(matches).map((m) => build(m, "Missions")),
       ...data.commandes.filter(matches).map((c) => build(c, "Commandes")),
       ...data.devis.filter(matches).map((d) => build(d, "Devis")),
@@ -222,7 +219,5 @@ function sectionIdOf(section: SearchResult["section"]): string {
       return "std-projets";
     case "Wugams Cleans":
       return "std-cleans";
-    case "Mode2Vie":
-      return "std-mode2vie";
   }
 }

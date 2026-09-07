@@ -10,7 +10,6 @@ import { updatePrime } from "@/app/lib/api/primes";
 import type { WorkerOverview } from "@/app/lib/worker-data";
 import type { WorkerPrime } from "@/app/lib/worker-services-data";
 import { formatMontantFcfa } from "@/app/lib/worker-services-data";
-import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 
 type WorkerProfileScreenProps = {
   overview: WorkerOverview;
@@ -49,7 +48,6 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
   const [pushEnabled, setPushEnabled] = useState(true);
   const [rappelEnabled, setRappelEnabled] = useState(true);
   const [signatureEnabled, setSignatureEnabled] = useState(false);
-  const [mode2vieOpen, setMode2vieOpen] = useState(false);
   const [payoutOpen, setPayoutOpen] = useState(false);
   const [payoutMode, setPayoutMode] = useState<"momo" | "bank" | null>(null);
   const [payoutDone, setPayoutDone] = useState(false);
@@ -81,25 +79,6 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
 
   return (
     <div className="space-y-5">
-      {mode2vieOpen ? (
-        <section aria-label="Mode2Vie">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-slate-400">Mode2Vie [Lifestyle]™</p>
-            <button
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold text-slate-500"
-              onClick={() => setMode2vieOpen(false)}
-              type="button"
-            >
-              <Icon name="close" size={12} />
-              Fermer
-            </button>
-          </div>
-          <div className="max-h-[70vh] overflow-y-auto pr-1">
-            <ClientMode2Vie compact sectionId="worker-mode2vie" />
-          </div>
-        </section>
-      ) : null}
-
       <section aria-label="Profil" className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-lg shadow-slate-950/[0.05]">
         <div className="bg-gradient-to-br from-[#0f7a5f] via-[#0e6e57] to-[#0c5f4b] p-5">
           <div className="flex items-center gap-4">
@@ -186,17 +165,16 @@ export function WorkerProfileScreen({ overview, pendingCount, prime, onPrimeWith
             <span className="text-[10px] font-bold text-[#16233a]">Blog</span>
             <span className="text-[8px] leading-3 text-slate-400">Conseils & actualités</span>
           </Link>
-          <button
+          <Link
             className="group flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/60 p-3.5 text-center transition hover:border-[#e3a641]/40 hover:bg-white hover:shadow-md"
-            onClick={() => setMode2vieOpen((open) => !open)}
-            type="button"
+            href="/mode2vie"
           >
             <span className="grid size-10 place-items-center rounded-xl bg-[#e3a641]/[0.14] text-[#b47e1e] transition group-hover:scale-105">
               <Icon name="sparkles" size={17} />
             </span>
             <span className="text-[10px] font-bold text-[#16233a]">Mode2Vie™</span>
             <span className="text-[8px] leading-3 text-slate-400">Vie chrétienne</span>
-          </button>
+          </Link>
         </div>
       </section>
 

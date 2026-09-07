@@ -33,6 +33,9 @@ export default function RealisationsPage() {
             <Link className="text-slate-300 transition hover:text-white" href="/blog">
               Blog
             </Link>
+            <Link className="text-slate-300 transition hover:text-white" href="/mode2vie">
+              Mode2Vie
+            </Link>
           </nav>
           <Link
             className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-3.5 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] sm:px-4 sm:text-sm"

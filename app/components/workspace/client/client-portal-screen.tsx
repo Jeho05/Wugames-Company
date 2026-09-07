@@ -12,7 +12,6 @@ import { ClientDevis } from "@/app/components/workspace/client/client-devis";
 import { ClientCommandes } from "@/app/components/workspace/client/client-commandes";
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
 import { ClientProfil } from "@/app/components/workspace/client/client-profil";
-import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 import {
   globalStateFrom,
   loadClientPortalData,
@@ -29,7 +28,6 @@ type ClientPortalScreenProps = {
 const navItems: { id: string; label: string; icon: IconName }[] = [
   { id: "portail-apercu", label: "Vue d'ensemble", icon: "dashboard" },
   { id: "portail-espaces-wugams", label: "Espaces Wugams", icon: "building" },
-  { id: "portail-mode2vie", label: "Mode2Vie [Lifestyle]", icon: "newspaper" },
   { id: "portail-missions", label: "Missions", icon: "hardhat" },
   { id: "portail-devis", label: "Devis", icon: "sparkles" },
   { id: "portail-commandes", label: "Commandes", icon: "box" },
@@ -170,8 +168,6 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
           {kpi ? <ClientKpiGrid {...kpi} /> : null}
         </div>
       </div>
-
-      <ClientMode2Vie />
 
       <ClientMissions missions={data.missions} />
       <ClientDevis devis={data.devis} />

@@ -8,11 +8,10 @@ import type { IconName } from "@/app/components/ui/app-icon";
 import { formatFcfa } from "@/app/lib/store-data";
 import type { ClientPortalData } from "@/app/lib/client-data";
 import type { CleansOverview } from "@/app/lib/cleans-data";
-import { mode2vieArticles } from "@/app/lib/mode2vie-data";
 
 type SearchResult = {
   id: string;
-  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Espaces Wugams" | "Projets" | "Wugams Cleans" | "Mode2Vie" | "Espace Wu";
+  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Espaces Wugams" | "Projets" | "Wugams Cleans" | "Espace Wu";
   sectionId: string;
   icon: IconName;
   title: string;
@@ -27,7 +26,6 @@ const sectionIcon: Record<SearchResult["section"], IconName> = {
   "Espaces Wugams": "building",
   Projets: "camera",
   "Wugams Cleans": "sparkles",
-  Mode2Vie: "newspaper",
   "Espace Wu": "shopping-bag",
 };
 
@@ -98,7 +96,6 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
       ...data.demandes.filter(matches).map((d) => build(d, "Espaces Wugams")),
       ...data.projets.filter(matches).map((p) => build(p, "Projets")),
       ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
-      ...mode2vieArticles.filter(matches).map((a) => build(a, "Mode2Vie")),
       ...data.commandes.map((commande) => ({
         id: commande.id,
         titre: commande.articles[0]?.split("—")[0]?.trim() ?? commande.numero,
@@ -240,8 +237,6 @@ function sectionIdOf(section: SearchResult["section"]): string {
       return "portail-projets";
     case "Wugams Cleans":
       return "portail-cleans";
-    case "Mode2Vie":
-      return "portail-mode2vie";
     case "Espace Wu":
       return "portail-boutique";
   }

@@ -157,6 +157,9 @@ export default function BoutiquePage() {
             <Link className="text-slate-300 transition hover:text-white" href="/blog">
               Blog
             </Link>
+            <Link className="text-slate-300 transition hover:text-white" href="/mode2vie">
+              Mode2Vie
+            </Link>
           </nav>
           <div className="flex items-center gap-2.5">
             <button
