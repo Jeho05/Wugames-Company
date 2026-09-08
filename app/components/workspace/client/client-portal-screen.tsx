@@ -14,7 +14,7 @@ import {
   loadClientPortalData,
 } from "@/app/lib/client-data";
 import type { ClientPortalData } from "@/app/lib/client-data";
-import { demoCleansOverview } from "@/app/lib/cleans-data";
+import { emptyCleansOverview, loadCleansOverview } from "@/app/lib/cleans-data";
 import type { CleansOverview } from "@/app/lib/cleans-data";
 import type { WorkspaceUser } from "@/app/lib/workspace-demo";
 
@@ -24,7 +24,7 @@ type ClientPortalScreenProps = {
 
 export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
   const [data, setData] = useState<ClientPortalData | null>(null);
-  const [cleans, setCleans] = useState<CleansOverview>(demoCleansOverview);
+  const [cleans, setCleans] = useState<CleansOverview>(emptyCleansOverview);
   const [live, setLive] = useState(false);
   const reduce = useReducedMotion();
 
@@ -34,6 +34,10 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
       if (cancelled) return;
       setData(result);
       setLive(result.live);
+    });
+    loadCleansOverview().then((result) => {
+      if (cancelled) return;
+      setCleans(result);
     });
     return () => {
       cancelled = true;
@@ -62,9 +66,22 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
     };
   }, [data]);
 
+  const abonnementStatut = useMemo(() => {
+    if (cleans.abonnement.statut === "ACTIF") return "ACTIF" as const;
+    if (cleans.abonnement.statut === "SUSPENDU") return "EXPIRE" as const;
+    return "AUCUN" as const;
+  }, [cleans.abonnement.statut]);
+
+  const abonnementDetail = useMemo(() => {
+    if (cleans.abonnement.statut !== "ACTIF" || !cleans.abonnement.planNom) {
+      return "Choisissez votre plan";
+    }
+    return `${cleans.abonnement.planNom} · ${cleans.abonnement.prixMensuel.toLocaleString("fr-FR")} FCFA/mois`;
+  }, [cleans.abonnement]);
+
   const state = useMemo(
-    () => data ? globalStateFrom(data.missions, data.factures, data.devis) : "ok" as const,
-    [data]
+    () => data ? globalStateFrom(data.missions, data.factures, data.devis, abonnementStatut) : "critical" as const,
+    [data, abonnementStatut]
   );
 
   const missionsActives = data ? data.missions.filter((m) => m.statut !== "TERMINE" && m.statut !== "VALIDE").length : 0;
@@ -105,7 +122,13 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
               </p>
             </div>
           </div>
-          {kpi ? <ClientKpiGrid {...kpi} /> : null}
+          {kpi ? (
+            <ClientKpiGrid
+              {...kpi}
+              abonnementDetail={abonnementDetail}
+              abonnementValeur={cleans.abonnement.statut === "ACTIF" ? "Actif" : "Aucun"}
+            />
+          ) : null}
         </div>
       </div>
 

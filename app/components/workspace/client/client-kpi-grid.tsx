@@ -45,6 +45,8 @@ type ClientKpiGridProps = {
   montantImpaye: number;
   notificationsNonLues: number;
   derniereActivite: string;
+  abonnementValeur?: string;
+  abonnementDetail?: string;
 };
 
 export function ClientKpiGrid({
@@ -57,14 +59,17 @@ export function ClientKpiGrid({
   montantImpaye,
   notificationsNonLues,
   derniereActivite,
+  abonnementValeur = "Aucun",
+  abonnementDetail = "Choisissez votre plan",
 }: ClientKpiGridProps) {
   const reduce = useReducedMotion();
+  const abonnementActif = abonnementValeur === "Actif";
 
   const kpis: ClientKpi[] = [
     { id: "missions", label: "Travail Total", value: String(missions), detail: missions > 0 ? "En cours d'exécution" : "Aucun travail en cours", icon: "hardhat", tone: "navy", spark: [12, 14, 16, 15, 18, 17, 20, 22] },
     { id: "commandes", label: "Mes commandes", value: String(commandes), detail: commandes > 0 ? "En préparation" : "Aucune commande active", icon: "box", tone: "sky", spark: [8, 9, 9, 11, 12, 12, 13, 14] },
     { id: "devis", label: "Mes devis", value: String(devis), detail: devis > 0 ? "En attente de réponse" : "Aucun devis en attente", icon: "sparkles", tone: "gold", spark: [6, 7, 7, 8, 9, 9, 10, 10] },
-    { id: "abonnement", label: "Abonnement Wugam Clean", value: "Actif", detail: "Plan A · 7 500 FCFA/mois", icon: "sparkles", tone: "emerald", spark: [4, 5, 6, 6, 7, 8, 9, 10] },
+    { id: "abonnement", label: "Abonnement Wugam Clean", value: abonnementValeur, detail: abonnementDetail, icon: "sparkles", tone: abonnementActif ? "emerald" : "amber", spark: [4, 5, 6, 6, 7, 8, 9, 10] },
     { id: "notifications", label: "Notifications", value: String(notificationsNonLues), detail: notificationsNonLues > 0 ? "À consulter" : "Tout est à jour", icon: "bell", tone: "amber", spark: [7, 6, 5, 5, 4, 3, 3, 2] },
     { id: "activite", label: "Dernière activité", value: derniereActivite, detail: "Mise à jour en continu", icon: "history", tone: "sky", spark: [2, 3, 4, 4, 5, 6, 7, 8] },
   ];

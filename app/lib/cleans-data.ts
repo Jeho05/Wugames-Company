@@ -261,6 +261,27 @@ export function groupServicesByDay(services: CleansService[]): CleansDayGroup[] 
 }
 
 /* ------------------------------------------------------------------ */
+/* État initial — nouveau client = SANS abonnement                     */
+/* Le client choisit ensuite son plan (A / B / C) depuis l'UI.         */
+/* ------------------------------------------------------------------ */
+
+export const emptyCleansOverview: CleansOverview = {
+  source: "demo",
+  abonnement: {
+    statut: "AUCUN",
+    planId: null,
+    planNom: null,
+    nbToilettes: 0,
+    prixMensuel: 0,
+    dateDebut: null,
+    prochainPaiement: null,
+    prochainPassage: null,
+    localisation: "",
+  },
+  services: [],
+};
+
+/* ------------------------------------------------------------------ */
 /* Chargement — tente l'API, sinon vide (plus de mock affiché)         */
 /* ------------------------------------------------------------------ */
 
@@ -270,21 +291,7 @@ export async function loadCleansOverview(): Promise<CleansOverview> {
     const data = await apiFetch<CleansOverview>("/cleans/overview", { cacheTtlMs: 0 });
     if (data && Array.isArray((data as unknown as { services?: unknown }).services)) return data;
   } catch {
-    /* API non dispo — on retourne un état vide, pas de mock */
+    /* API non dispo — nouveau client reste SANS abonnement, pas de mock */
   }
-  return {
-    source: "demo",
-    abonnement: {
-      statut: "AUCUN",
-      planId: null,
-      planNom: null,
-      nbToilettes: 0,
-      prixMensuel: 0,
-      dateDebut: null,
-      prochainPaiement: null,
-      prochainPassage: null,
-      localisation: "",
-    },
-    services: [],
-  };
+  return emptyCleansOverview;
 }

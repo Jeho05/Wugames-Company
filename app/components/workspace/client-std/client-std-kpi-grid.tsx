@@ -5,7 +5,6 @@ import { motion, useReducedMotion } from "motion/react";
 import { Icon } from "@/app/components/ui/app-icon";
 import type { IconName } from "@/app/components/ui/app-icon";
 import { Sparkline } from "@/app/components/workspace/executive/sparkline";
-import { formatFcfa } from "@/app/lib/cleans-data";
 
 type ClientStdKpi = {
   id: string;
@@ -40,6 +39,8 @@ type ClientStdKpiGridProps = {
   notificationsNonLues: number;
   derniereActivite: string;
   progressionGlobale: number;
+  abonnementValeur?: string;
+  abonnementDetail?: string;
 };
 
 export function ClientStdKpiGrid({
@@ -49,14 +50,17 @@ export function ClientStdKpiGrid({
   notificationsNonLues,
   derniereActivite,
   progressionGlobale,
+  abonnementValeur = "Aucun",
+  abonnementDetail = "Choisissez votre plan",
 }: ClientStdKpiGridProps) {
   const reduce = useReducedMotion();
+  const abonnementActif = abonnementValeur === "Actif";
 
   const kpis: ClientStdKpi[] = [
     { id: "missions", label: "Travail Total", value: String(missions), detail: missions > 0 ? "En cours d'exécution" : "Aucun travail en cours", icon: "hardhat", tone: "navy", spark: [10, 12, 14, 13, 16, 15, 18, 20] },
     { id: "commandes", label: "Mes commandes", value: String(commandes), detail: commandes > 0 ? "En préparation" : "Aucune commande active", icon: "shopping-bag", tone: "sky", spark: [6, 7, 9, 8, 10, 11, 12, 13] },
     { id: "devis", label: "Mes devis", value: String(devis), detail: devis > 0 ? "En attente de réponse" : "Aucun devis en attente", icon: "sparkles", tone: "gold", spark: [5, 6, 6, 7, 8, 8, 9, 10] },
-    { id: "abonnement", label: "Abonnement Wugam Clean", value: "Actif", detail: "Plan A · 7 500 FCFA/mois", icon: "sparkles", tone: "emerald", spark: [3, 4, 5, 5, 6, 7, 8, 9] },
+    { id: "abonnement", label: "Abonnement Wugam Clean", value: abonnementValeur, detail: abonnementDetail, icon: "sparkles", tone: abonnementActif ? "emerald" : "amber", spark: [3, 4, 5, 5, 6, 7, 8, 9] },
     { id: "notifications", label: "Notifications", value: String(notificationsNonLues), detail: notificationsNonLues > 0 ? "À consulter" : "Tout est à jour", icon: "bell", tone: "amber", spark: [8, 7, 6, 6, 5, 4, 4, 3] },
     { id: "activite", label: "Dernière activité", value: derniereActivite, detail: "Mise à jour en continu", icon: "history", tone: "sky", spark: [2, 3, 4, 4, 5, 6, 7, 8] },
   ];

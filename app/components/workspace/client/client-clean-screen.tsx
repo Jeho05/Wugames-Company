@@ -1,15 +1,32 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { Icon } from "@/app/components/ui/app-icon";
 import { ClientCleans } from "@/app/components/workspace/client/client-cleans";
-import { demoCleansOverview } from "@/app/lib/cleans-data";
+import { emptyCleansOverview, loadCleansOverview } from "@/app/lib/cleans-data";
+import type { CleansOverview } from "@/app/lib/cleans-data";
 
 /**
  * Page Wugams Clean — abonnement entretien, plans et suivi des passages.
- * (Remplace l'ancienne page « Espaces Wugams » : uniquement Wugams Clean.)
+ * Nouveau client = SANS abonnement : il choisit son plan (A / B / C) depuis l'UI.
  */
 export function ClientCleanScreen() {
-  const cleans = demoCleansOverview;
+  const [cleans, setCleans] = useState<CleansOverview>(emptyCleansOverview);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadCleansOverview().then((result) => {
+      if (cancelled) return;
+      setCleans(result);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const actif = cleans.abonnement.statut === "ACTIF";
   const valides = cleans.services.filter((s) => s.statut === "VALIDE").length;
 
@@ -63,7 +80,19 @@ export function ClientCleanScreen() {
         </div>
       </div>
 
-      <ClientCleans cleans={cleans} sectionId="espace-clean" embedded />
+      {loading ? (
+        <div className="animate-pulse rounded-3xl border border-slate-200/80 bg-white p-6 dark:border-white/10 dark:bg-[#101c36]">
+          <div className="h-5 w-1/3 rounded bg-slate-200/70 dark:bg-white/10" />
+          <div className="mt-3 h-4 w-2/3 rounded bg-slate-200/60 dark:bg-white/[0.07]" />
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="h-24 rounded-2xl bg-slate-200/60 dark:bg-white/[0.07]" />
+            <div className="h-24 rounded-2xl bg-slate-200/60 dark:bg-white/[0.07]" />
+            <div className="h-24 rounded-2xl bg-slate-200/60 dark:bg-white/[0.07]" />
+          </div>
+        </div>
+      ) : (
+        <ClientCleans cleans={cleans} sectionId="espace-clean" embedded />
+      )}
     </div>
   );
 }
