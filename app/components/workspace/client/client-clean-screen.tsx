@@ -47,7 +47,7 @@ export function ClientCleanScreen() {
             Un espace impeccable, <span className="text-[#f2c56d]">sans y penser</span>.
           </h1>
           <p className="mt-2 max-w-xl text-xs leading-6 text-slate-300">
-            Entretien régulier de vos toilettes par nos Cleaners, preuve photo avant / après à chaque passage.
+            Catalogue des offres de nettoyage de sanitaires &amp; solution digitale intégrée — 2 passages / semaine, preuve photo Avant / Après, score d&apos;hygiène /100.
           </p>
           <dl className="mt-6 grid grid-cols-3 gap-3">
             {stats.map((stat) => (

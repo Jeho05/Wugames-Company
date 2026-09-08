@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
+import { WugamsCleanCatalog } from "@/app/components/branding/wugams-clean-catalog";
 import { cleansPlans, cleansServiceStatutMeta, formatFcfa, groupServicesByDay } from "@/app/lib/cleans-data";
 import type { CleansOverview, CleansService, CleansDayGroup } from "@/app/lib/cleans-data";
 
@@ -120,8 +121,8 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
             </div>
           </div>
 
-          {/* Plans */}
-          <div className="mt-5 grid gap-3.5 sm:grid-cols-2">
+          {/* Plans — catalogue officiel WUGAMS CLEAN (Plans A / B / C) */}
+          <div className="mt-5 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             {cleansPlans.map((plan, index) => {
               const estPlanActif = actif && abonnement.planId === plan.id;
               return (
@@ -155,9 +156,14 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                     ) : null}
                   </div>
                   <p className="mt-5 text-2xl font-extrabold tabular-nums text-[#16233a] dark:text-white">
-                    {plan.prixMensuel.toLocaleString("fr-FR")}
-                    <span className="text-xs font-semibold text-slate-400"> FCFA / mois</span>
+                    {plan.prixLabel ?? `${plan.prixMensuel.toLocaleString("fr-FR")} FCFA / mois`}
                   </p>
+                  {plan.frequence ? (
+                    <p className="mt-1 text-[11px] font-semibold text-teal-700">{plan.frequence}</p>
+                  ) : null}
+                  {plan.cibles ? (
+                    <p className="mt-1 text-[10px] leading-4 text-slate-400">{plan.cibles}</p>
+                  ) : null}
                   <ul className="mt-5 space-y-2">
                     {plan.avantages.map((avantage) => (
                       <li className="flex items-start gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400" key={avantage}>
@@ -193,6 +199,11 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
               {message}
             </div>
           ) : null}
+
+          {/* Catalogue officiel complet — tarifs Plans A / B / C, options, digital */}
+          <div className="mt-8 rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-7 dark:border-white/10 dark:bg-[#101c36]">
+            <WugamsCleanCatalog />
+          </div>
 
           {/* Calendrier des services rendus — organisés par jour */}
           {actif ? (

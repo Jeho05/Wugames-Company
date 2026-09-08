@@ -13,6 +13,10 @@ export type CleansPlan = {
   prixMensuel: number;
   avantages: string[];
   premium: boolean;
+  /* Champs canoniques WUGAMS CLEAN (PDF officiel) */
+  frequence?: string;
+  cibles?: string;
+  prixLabel?: string;
 };
 
 export type CleansService = {
@@ -54,21 +58,58 @@ export type CleansOverview = {
 export const cleansPlans: CleansPlan[] = [
   {
     id: "plan-a",
-    nom: "Plan A",
-    tagline: "L'essentiel pour votre domicile",
+    nom: "Plan A – Résidences & Maisons",
+    tagline: "L'essentiel pour domicile · 2 passages / semaine (8 / mois)",
     nbToilettes: 1,
     prixMensuel: 4_000,
-    avantages: ["1 toilettes nettoyée", "2 passages par mois", "Preuve photo avant / après", "Produits professionnels"],
+    avantages: [
+      "2 passages / semaine (8 / mois)",
+      "1 toilette : 4 000 FCFA / mois",
+      "2 toilettes : 7 500 FCFA / mois",
+      "3 toilettes : 10 500 FCFA / mois",
+      "Nettoyage miroirs & murs inclus",
+      "Preuve photo Avant / Après",
+    ],
     premium: false,
+    frequence: "2 passages / semaine (8 / mois)",
+    cibles: "Maisons individuelles, Villas, Appartements & Résidences privées.",
+    prixLabel: "dès 4 000 FCFA / mois",
   },
   {
     id: "plan-b",
-    nom: "Plan B Premium",
-    tagline: "Le confort d'une maison sans tracas",
-    nbToilettes: 5,
-    prixMensuel: 50_000,
-    avantages: ["Jusqu'à 5 toilettes", "4 passages par mois", "Cleaner dédié", "Preuve photo avant / après", "Priorité d'intervention", "Suivi en temps réel"],
+    nom: "Plan B – Entreprises & Pro",
+    tagline: "Bureaux, Banques, Hôtels, Écoles, Cliniques…",
+    nbToilettes: 1,
+    prixMensuel: 5_000,
+    avantages: [
+      "Essentiel (2/sem) dès 3 500 FCFA / tol.",
+      "Confort (3/sem) dès 4 800 FCFA / tol.",
+      "Premium (6/sem) dès 8 000 FCFA / tol.",
+      "Checklist digitale + photos Avant / Après",
+      "Signalement anomalies en temps réel",
+    ],
     premium: true,
+    frequence: "Essentiel 2/sem · Confort 3/sem · Premium 6/sem",
+    cibles: "Bureaux, Banques, Restaurants, Hôtels, Écoles, Cliniques, Églises, Administrations…",
+    prixLabel: "dès 3 500 FCFA / tol. / mois",
+  },
+  {
+    id: "plan-c",
+    nom: "Plan C – Forte Fréquentation",
+    tagline: "Marchés, Gares, Stations-service, Stades, Événements…",
+    nbToilettes: 1,
+    prixMensuel: 9_000,
+    avantages: [
+      "Standard (2/jour) dès 9 000 FCFA / jour",
+      "Intensive (4/jour) dès 14 000 FCFA / jour",
+      "Formule Permanence sur devis",
+      "Horodatage + géolocalisation agent",
+      "Score d'hygiène /100 à chaque passage",
+    ],
+    premium: false,
+    frequence: "Standard 2/jour · Intensive 4/jour · Permanence sur devis",
+    cibles: "Marchés, Gares, Stations-service, Stades, Événements, Chantiers.",
+    prixLabel: "dès 9 000 FCFA / jour",
   },
 ];
 
@@ -78,10 +119,10 @@ export const cleansPlans: CleansPlan[] = [
 
 const demoAbonnement: CleansAbonnement = {
   statut: "ACTIF",
-  planId: "plan-b",
-  planNom: "Plan B Premium",
-  nbToilettes: 5,
-  prixMensuel: 50_000,
+  planId: "plan-a",
+  planNom: "Plan A – Résidences & Maisons",
+  nbToilettes: 2,
+  prixMensuel: 7_500,
   dateDebut: "1er juillet 2026",
   prochainPaiement: "1er septembre 2026",
   prochainPassage: "Mercredi 13 août · 08:00",
@@ -98,7 +139,7 @@ const demoServices: CleansService[] = [
     statut: "REALISE",
     photoAvant: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop",
     photoApres: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=75&auto=format&fit=crop",
-    note: "Nettoyage complet des 5 équipements. Produit détergent désinfectant appliqué.",
+    note: "Nettoyage complet des 2 équipements. Produit détergent désinfectant appliqué.",
     toiletteNumero: 1,
     notesTravailleur: "Joint de chasse d'eau à remplacer. robinet à serrage à resserrer.",
   },
@@ -138,7 +179,7 @@ const demoServices: CleansService[] = [
     photoAvant: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop",
     photoApres: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=75&auto=format&fit=crop",
     note: "Nettoyage standard effectué.",
-    toiletteNumero: 3,
+    toiletteNumero: 2,
     notesTravailleur: "Carrelage fissuré près de la douche — à réparer. Produit assainissant à racheter.",
   },
   {

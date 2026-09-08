@@ -27,6 +27,7 @@ const navLinks = [
 ];
 
 const siteLinks = [
+  { label: "Wugams Clean", href: "/clean" },
   { label: "Boutique", href: "/boutique" },
   { label: "Réalisations", href: "/realisations" },
   { label: "Blog", href: "/blog" },
@@ -518,6 +519,7 @@ export default function ClientBrandingPage() {
             <div>
               <p className="text-xs font-bold text-slate-700">Site</p>
               <ul className="mt-3 space-y-2 text-xs text-slate-500">
+                <li><Link className="transition hover:text-[#17294b]" href="/clean">Wugams Clean — Abonnements</Link></li>
                 <li><Link className="transition hover:text-[#17294b]" href="/boutique">Boutique matériaux</Link></li>
                 <li><Link className="transition hover:text-[#17294b]" href="/realisations">Nos réalisations</Link></li>
                 <li><Link className="transition hover:text-[#17294b]" href="/blog">Blog &amp; conseils</Link></li>
