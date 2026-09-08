@@ -52,29 +52,30 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
 
   const cleansContent = (
     <>
-      {/* Message bloquant si pas d'abonnement */}
-      {!actif && !message ? (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center dark:border-amber-400/20 dark:bg-amber-400/10">
-          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300">
+      {/* Bandeau si pas d'abonnement — ne masque plus les formules : le client voit et choisit son plan ci-dessous */}
+      {!actif ? (
+        <div className="rounded-3xl border border-amber-300 bg-amber-50 p-6 text-center sm:p-8 dark:border-amber-400/30 dark:bg-amber-400/10">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300">
             <Icon name="sparkles" size={22} />
           </span>
-          <h3 className="mt-3 text-[15px] font-bold text-[#16233a] dark:text-slate-100">
+          <h3 className="mt-3 text-lg font-bold tracking-[-0.02em] text-[#16233a] dark:text-white">
             Activez un abonnement WUGAMS Clean
           </h3>
-          <p className="mt-1.5 text-[12px] font-medium leading-5 text-slate-600 dark:text-slate-300">
-            Veuillez activer un abonnement WUGAMS Clean pour accéder à votre espace de suivi.
+          <p className="mx-auto mt-1.5 max-w-md text-[13px] font-medium leading-6 text-slate-700 dark:text-slate-200">
+            Choisissez votre formule ci-dessous (Plan A, B ou C) pour accéder à votre espace de suivi.
           </p>
           <button
             className="mt-4 rounded-2xl bg-[#17294b] px-5 py-2.5 text-[12px] font-bold text-white transition hover:bg-[#243a61]"
-            onClick={() => setChoosing(true)}
+            onClick={() => document.getElementById("wugams-clean-plans")?.scrollIntoView({ behavior: "smooth", block: "start" })}
             type="button"
           >
-            Voir les plans
+            Voir les formules
           </button>
         </div>
-      ) : (
-        <>
-          {/* Carte abonnement */}
+      ) : null}
+      <>
+        {/* Carte abonnement — visible seulement si abonnement actif */}
+        {actif ? (
           <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#17294b] to-[#243a61] p-6 text-white shadow-lg shadow-[#17294b]/15 sm:p-7 dark:border-white/10">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
@@ -120,9 +121,10 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
               </span>
             </div>
           </div>
+        ) : null}
 
-          {/* Plans — catalogue officiel WUGAMS CLEAN (Plans A / B / C) */}
-          <div className="mt-5 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Plans — catalogue officiel WUGAMS CLEAN (Plans A / B / C), toujours visibles pour choisir */}
+          <div className="mt-5 grid scroll-mt-32 gap-3.5 sm:grid-cols-2 lg:grid-cols-3" id="wugams-clean-plans">
             {cleansPlans.map((plan, index) => {
               const estPlanActif = actif && abonnement.planId === plan.id;
               return (
@@ -303,7 +305,6 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
             </div>
           ) : null}
         </>
-      )}
 
       {/* Sélecteur de plan */}
       <AnimatePresence>
