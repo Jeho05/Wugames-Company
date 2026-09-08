@@ -19,6 +19,14 @@ export type AuthUser = {
   name: string;
   role: RoleCode;
   profileId: string | null;
+  /** Détails déjà chargés au login (getUser / getProfil) — réutilisés sans nouvel appel. */
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  adresse: string | null;
+  /** Id du profil client (pour PATCH /clients/:id), null sinon. */
+  clientProfileId: string | null;
+  twoFactorEnabled: boolean | null;
 };
 
 export type LoginOutcome = "authenticated" | "2fa-required";
@@ -120,6 +128,12 @@ function instantAuthUser(dto: AuthUserDto): AuthUser {
     name: fallbackName,
     role: dto.role,
     profileId: dto.profile_id,
+    firstName: null,
+    lastName: null,
+    phone: null,
+    adresse: null,
+    clientProfileId: null,
+    twoFactorEnabled: dto.two_factor_enabled,
   };
 }
 
@@ -149,13 +163,26 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
     name,
     role,
     profileId,
+    firstName: null,
+    lastName: null,
+    phone: null,
+    adresse: null,
+    clientProfileId: null,
+    twoFactorEnabled: dto.two_factor_enabled,
   });
 
   try {
     if (clientRoles.has(dto.role)) {
       const profil = await withTimeout(clientSpaceApi.getProfil(), 8_000, "profil");
       const name = [profil.user?.first_name, profil.user?.last_name].filter(Boolean).join(" ") || fallbackName;
-      return fallback(name, "Espace client", dto.role, null);
+      return {
+        ...fallback(name, "Espace client", dto.role, null),
+        firstName: profil.user?.first_name ?? null,
+        lastName: profil.user?.last_name ?? null,
+        phone: profil.user?.phone ?? null,
+        adresse: profil.adresse ?? null,
+        clientProfileId: profil.id,
+      };
     }
 
     const [full, filiale] = await withTimeout(
@@ -173,6 +200,12 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
       name,
       role: full.role,
       profileId: full.ouvrier_profile?.id ?? null,
+      firstName: full.first_name ?? null,
+      lastName: full.last_name ?? null,
+      phone: full.phone ?? null,
+      adresse: null,
+      clientProfileId: full.client_profile?.id ?? null,
+      twoFactorEnabled: full.two_factor_enabled ?? dto.two_factor_enabled,
     };
   } catch {
     return fallback(fallbackName, await resolveFilialeName(dto.filiale_id).catch(() => "Filiale"), dto.role, dto.profile_id);
