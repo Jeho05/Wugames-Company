@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { ClientEspacesWugamsScreen } from "@/app/components/workspace/client/client-espaces-wugams-screen";
+import { ClientCleanScreen } from "@/app/components/workspace/client/client-clean-screen";
 import { ClientMessagerieScreen } from "@/app/components/workspace/client/client-messagerie-screen";
 import { ClientMode2Vie } from "@/app/components/workspace/client/client-mode2vie";
 import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
@@ -17,7 +17,7 @@ export default async function WorkspaceModulePage({
   const { creer } = await searchParams;
 
   if (module === "demandes") {
-    return <ClientEspacesWugamsScreen />;
+    return <ClientCleanScreen />;
   }
 
   if (module === "messages") {

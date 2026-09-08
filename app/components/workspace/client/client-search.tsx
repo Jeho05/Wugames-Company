@@ -11,7 +11,7 @@ import type { CleansOverview } from "@/app/lib/cleans-data";
 
 type SearchResult = {
   id: string;
-  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Espaces Wugams" | "Projets" | "Wugams Cleans" | "Espace Wu";
+  section: "Missions" | "Factures" | "Devis" | "Commandes" | "Projets" | "Wugams Cleans" | "Espace Wu";
   sectionId: string;
   icon: IconName;
   title: string;
@@ -23,7 +23,6 @@ const sectionIcon: Record<SearchResult["section"], IconName> = {
   Factures: "file-text",
   Devis: "sparkles",
   Commandes: "shopping-bag",
-  "Espaces Wugams": "building",
   Projets: "camera",
   "Wugams Cleans": "sparkles",
   "Espace Wu": "shopping-bag",
@@ -93,7 +92,6 @@ export function ClientSearch({ data, cleans, open, onClose, onNavigate }: Client
           .join(" "),
       ).includes(q);
     return [
-      ...data.demandes.filter(matches).map((d) => build(d, "Espaces Wugams")),
       ...data.projets.filter(matches).map((p) => build(p, "Projets")),
       ...cleans.services.filter(matches).map((s) => build(s, "Wugams Cleans")),
       ...data.commandes.map((commande) => ({
@@ -231,8 +229,6 @@ function sectionIdOf(section: SearchResult["section"]): string {
       return "portail-devis";
     case "Commandes":
       return "portail-commandes";
-    case "Espaces Wugams":
-      return "portail-espaces-wugams";
     case "Projets":
       return "portail-projets";
     case "Wugams Cleans":

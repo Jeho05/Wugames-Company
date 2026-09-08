@@ -53,7 +53,7 @@ export function WorkspaceCommandSearch() {
     const moduleSlugs = [
       "clients", "chantiers", "missions", "ouvriers", "devis", "stocks",
       "fournisseurs", "filiales", "messagerie", "notifications", "rapports",
-      "demandes", "projets", "documents", "factures", "messages", "managers", "commandes",
+      "projets", "documents", "factures", "messages", "managers", "commandes",
     ];
     const modules = moduleSlugs
       .map((slug) => {

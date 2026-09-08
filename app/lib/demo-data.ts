@@ -107,7 +107,7 @@ export const clientNavigationGroups: {
     items: [
       { href: "/espace", icon: "dashboard", label: "Vue d'ensemble" },
       { href: "/espace/projets", icon: "folder", label: "Mes projets" },
-      { href: "/espace/demandes", icon: "building", label: "Espaces Wugams" },
+      { href: "/espace/demandes", icon: "sparkles", label: "Wugams Clean" },
     ],
   },
   {
