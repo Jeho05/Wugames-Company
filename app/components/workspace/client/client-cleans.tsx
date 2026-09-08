@@ -147,7 +147,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h4 className="text-[15px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">{plan.nom}</h4>
-                      <p className="mt-1 text-[11px] text-slate-400">{plan.tagline}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">{plan.tagline}</p>
                     </div>
                     {estPlanActif ? (
                       <span className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
@@ -159,15 +159,15 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                     {plan.prixLabel ?? `${plan.prixMensuel.toLocaleString("fr-FR")} FCFA / mois`}
                   </p>
                   {plan.frequence ? (
-                    <p className="mt-1 text-[11px] font-semibold text-teal-700">{plan.frequence}</p>
+                    <p className="mt-1 text-xs font-semibold text-teal-800 dark:text-teal-300">{plan.frequence}</p>
                   ) : null}
                   {plan.cibles ? (
-                    <p className="mt-1 text-[10px] leading-4 text-slate-400">{plan.cibles}</p>
+                    <p className="mt-1 text-[11px] font-medium leading-4 text-slate-600 dark:text-slate-300">{plan.cibles}</p>
                   ) : null}
                   <ul className="mt-5 space-y-2">
                     {plan.avantages.map((avantage) => (
-                      <li className="flex items-start gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400" key={avantage}>
-                        <Icon name="check" size={13} className="mt-0.5 shrink-0 text-emerald-500" />
+                      <li className="flex items-start gap-2 text-xs font-medium text-slate-700 dark:text-slate-300" key={avantage}>
+                        <Icon name="check" size={13} className="mt-0.5 shrink-0 text-emerald-600" />
                         {avantage}
                       </li>
                     ))}
@@ -201,7 +201,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
           ) : null}
 
           {/* Catalogue officiel complet — tarifs Plans A / B / C, options, digital */}
-          <div className="mt-8 rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-7 dark:border-white/10 dark:bg-[#101c36]">
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-5 sm:p-7 dark:border-white/10 dark:bg-[#101c36]">
             <WugamsCleanCatalog />
           </div>
 
@@ -213,7 +213,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   <h4 className="text-[13px] font-bold tracking-[-0.02em] text-[#16233a] dark:text-slate-100">
                     Calendrier des services rendus
                   </h4>
-                  <p className="mt-0.5 text-[11px] text-slate-400">
+                  <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                     {valides} passage{valides > 1 ? "s" : ""} validé{valides > 1 ? "s" : ""} avec preuve photo
                   </p>
                 </div>
