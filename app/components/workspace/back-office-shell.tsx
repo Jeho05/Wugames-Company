@@ -24,6 +24,7 @@ import {
 } from "@/app/lib/demo-data";
 import { canManageVitrine } from "@/app/lib/vitrine-store";
 import { NotificationToaster } from "@/app/components/workspace/notification-toaster";
+import { AccountSheet } from "@/app/components/workspace/account-sheet";
 import { resolveNotificationTarget } from "@/app/lib/notification-target";
 
 type BackOfficeShellProps = {
@@ -50,6 +51,7 @@ const roleLabels: Record<string, string> = {
 export function BackOfficeShell({ children }: BackOfficeShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [showTwoFa, setShowTwoFa] = useState(false);
   const [healthOk, setHealthOk] = useState<boolean | null>(null);
   const [brandClicks, setBrandClicks] = useState<{ hits: number; lastAt: number } | null>(null);
@@ -335,6 +337,19 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-[#17294b]"
                       onClick={() => {
                         setUserMenuOpen(false);
+                        setShowProfile(true);
+                      }}
+                      type="button"
+                    >
+                      <span className="grid size-7 place-items-center rounded-lg bg-[#edf3f9] text-[#426b95]">
+                        <Icon name="user" size={15} />
+                      </span>
+                      Mon profil
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-[#17294b]"
+                      onClick={() => {
+                        setUserMenuOpen(false);
                         setShowTwoFa(true);
                       }}
                       type="button"
@@ -413,6 +428,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
       </div>
 
       {showTwoFa ? <TwoFaForm onClose={() => setShowTwoFa(false)} /> : null}
+      {showProfile ? <AccountSheet open={showProfile} onClose={() => setShowProfile(false)} /> : null}
 
       {showCoffre ? <CoffreDuGerant onClose={() => setShowCoffre(false)} streamState={streamState} /> : null}
       <NotificationToaster />

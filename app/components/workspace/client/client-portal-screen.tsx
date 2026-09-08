@@ -9,7 +9,6 @@ import { ClientMissions } from "@/app/components/workspace/client/client-mission
 import { ClientDevis } from "@/app/components/workspace/client/client-devis";
 import { ClientCommandes } from "@/app/components/workspace/client/client-commandes";
 import { ClientNotifications } from "@/app/components/workspace/client/client-notifications";
-import { ClientProfil } from "@/app/components/workspace/client/client-profil";
 import {
   globalStateFrom,
   loadClientPortalData,
@@ -115,8 +114,6 @@ export function ClientPortalScreen({ user }: ClientPortalScreenProps) {
       <ClientCommandes commandes={data.commandes} />
 
       <ClientNotifications key={live ? "live" : "demo"} live={live} notifications={data.notifications} />
-
-      <ClientProfil fidelite={data.fidelite} user={user} />
     </div>
   );
 }

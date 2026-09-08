@@ -9,7 +9,6 @@ import { ClientStdMissions } from "@/app/components/workspace/client-std/client-
 import { ClientStdCommandes } from "@/app/components/workspace/client-std/client-std-commandes";
 import { ClientStdDevis } from "@/app/components/workspace/client-std/client-std-devis";
 import { ClientStdNotifications } from "@/app/components/workspace/client-std/client-std-notifications";
-import { ClientStdProfil } from "@/app/components/workspace/client-std/client-std-profil";
 import {
   clientStdProgress,
   clientStdStateFrom,
@@ -104,8 +103,6 @@ export function ClientStdScreen({ user }: ClientStdScreenProps) {
       <ClientStdDevis devis={data.devis} />
 
       <ClientStdNotifications live={data.live} notifications={data.notifications} />
-
-      <ClientStdProfil user={user} />
     </div>
   );
 }

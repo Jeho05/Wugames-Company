@@ -36,6 +36,8 @@ type AuthContextValue = {
   verify2fa: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   clearSessionExpired: () => void;
+  /** Recharge le profil depuis l'API (après une édition, ex. AccountSheet). */
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -363,8 +365,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [hydrate],
   );
 
-  const logout = useCallback(async () => {
-    loggingOutRef.current = true;
+  const refreshUser = useCallback(async (): Promise<void> => {
+    if (!getSession()) return;
+    try {
+      const payload = await authApi.me();
+      const dto: AuthUserDto = {
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role,
+        filiale_id: payload.filiale_id,
+        two_factor_enabled: payload.two_factor_enabled,
+        profile_id: payload.profile_id,
+      };
+      const instant = instantAuthUser(dto);
+      cacheAuthUser(instant);
+      setUser(instant);
+      scheduleProactiveRefresh();
+      try {
+        const enriched = await buildAuthUser(dto);
+        cacheAuthUser(enriched);
+        setUser(enriched);
+      } catch {
+        /* profil instantané conservé */
+      }
+    } catch {
+      /* la session est gérée par ailleurs (refresh auto / bandeau expiré) */
+    }
+  }, [scheduleProactiveRefresh]);
+
+  const logout = useCallback(async () => {    loggingOutRef.current = true;
     try {
       await authApi.logout();
     } catch {
@@ -384,8 +413,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired }),
-    [user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired],
+    () => ({ user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired, refreshUser }),
+    [user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
