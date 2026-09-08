@@ -61,7 +61,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
           <h3 className="mt-3 text-[15px] font-bold text-[#16233a] dark:text-slate-100">
             Activez un abonnement WUGAMS Clean
           </h3>
-          <p className="mt-1.5 text-[12px] leading-5 text-slate-500 dark:text-slate-400">
+          <p className="mt-1.5 text-[12px] font-medium leading-5 text-slate-600 dark:text-slate-300">
             Veuillez activer un abonnement WUGAMS Clean pour accéder à votre espace de suivi.
           </p>
           <button
@@ -140,7 +140,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   transition={{ duration: 0.45, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
                 >
                   {plan.premium ? (
-                    <span className="absolute -top-2.5 right-4 rounded-full bg-[#e3a641] px-3 py-1 text-[9px] font-extrabold uppercase tracking-wide text-white">
+                    <span className="absolute -top-2.5 right-4 rounded-full bg-[#e3a641] px-3 py-1 text-[9px] font-extrabold uppercase tracking-wide text-[#14223b]">
                       Recommandé
                     </span>
                   ) : null}
@@ -174,7 +174,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   </ul>
                   {estPlanActif ? (
                     <button
-                      className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[12px] font-bold text-amber-700"
+                      className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-[12px] font-bold text-amber-800"
                       onClick={handleContactWugams}
                       type="button"
                     >
@@ -255,7 +255,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                                     {meta.label}
                                   </span>
                                 </div>
-                                <p className="mt-0.5 truncate text-[10px] text-slate-400">{service.heure} · {service.cleaner}</p>
+                                <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{service.heure} · {service.cleaner}</p>
                               </div>
                             </div>
                             {service.photoAvant && service.photoApres ? (
@@ -329,11 +329,11 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b47e1e]">Wugams Cleans</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-800 dark:text-amber-300">Wugams Cleans</p>
                   <h3 className="mt-1.5 text-lg font-bold tracking-[-0.03em] text-[#16233a] dark:text-white">
                     {actif ? "Votre abonnement est actif" : "Activer mon abonnement"}
                   </h3>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     {actif
                       ? "Pour changer de plan, contactez WUGAMS."
                       : "Confirmez votre choix : nos Cleaners commencent dès demain matin."}
@@ -366,7 +366,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                     >
                       <span>
                         <span className="block text-[13px] font-bold text-[#16233a] dark:text-slate-100">{plan.nom}</span>
-                        <span className="mt-0.5 block text-[11px] text-slate-400">
+                        <span className="mt-0.5 block text-[11px] font-medium text-slate-600 dark:text-slate-300">
                           {plan.nbToilettes} toilettes · {plan.prixMensuel.toLocaleString("fr-FR")} FCFA / mois
                         </span>
                       </span>
@@ -383,11 +383,11 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
               </div>
 
               {actif ? (
-                <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[11px] leading-5 text-amber-700">
+                <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-[11px] font-medium leading-5 text-amber-800">
                   Vous avez déjà un abonnement actif. Pour changer de plan, veuillez contacter WUGAMS.
                 </div>
               ) : (
-                <p className="mt-4 text-[11px] leading-5 text-slate-400">
+                <p className="mt-4 text-[11px] font-medium leading-5 text-slate-500 dark:text-slate-300">
                   Paiement par carte ou Mobile Money (MTN MoMo, Moov Money). Résiliable à tout moment.
                 </p>
               )}
@@ -434,7 +434,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                 <span className="font-bold">Note du travailleur :</span> {proof.notesTravailleur}
               </div>
             ) : null}
-            <p className="pointer-events-auto text-[11px] font-semibold text-slate-400">
+            <p className="pointer-events-auto text-[11px] font-semibold text-slate-300">
               {proof.cleaner} · {proof.date} · {proof.heure}
             </p>
           </div>

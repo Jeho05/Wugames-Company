@@ -94,7 +94,7 @@ export function ClientKpiGrid({
               {kpi.value}
             </p>
             <p className="mt-1 truncate text-xs font-bold text-slate-600 dark:text-slate-300">{kpi.label}</p>
-            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">{kpi.detail}</p>
+            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{kpi.detail}</p>
           </motion.article>
         </li>
       ))}

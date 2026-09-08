@@ -73,7 +73,7 @@ export function ClientCleanScreen() {
                 key={stat.label}
               >
                 <dd className="truncate text-sm font-extrabold tracking-tight text-white sm:text-base">{stat.value}</dd>
-                <dt className="mt-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">{stat.label}</dt>
+                <dt className="mt-1 text-[9px] font-bold uppercase tracking-wide text-slate-300">{stat.label}</dt>
               </div>
             ))}
           </dl>
