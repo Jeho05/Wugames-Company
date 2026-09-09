@@ -54,8 +54,8 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
     <>
       {/* Bandeau si pas d'abonnement — ne masque plus les formules : le client voit et choisit son plan ci-dessous */}
       {!actif ? (
-        <div className="rounded-3xl border border-amber-300 bg-amber-50 p-6 text-center sm:p-8 dark:border-amber-400/30 dark:bg-amber-400/10">
-          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300">
+        <div className="rounded-3xl border border-amber-300 bg-amber-50 p-6 text-center sm:p-8 dark:border-amber-700 dark:bg-amber-950">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">
             <Icon name="sparkles" size={22} />
           </span>
           <h3 className="mt-3 text-lg font-bold tracking-[-0.02em] text-[#16233a] dark:text-white">
