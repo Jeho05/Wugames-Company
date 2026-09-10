@@ -186,6 +186,23 @@ function AdministrationContent() {
     setToast("Journal d'audit exporté au format CSV avec succès.");
   }
 
+  // Pagination for accounts
+  const [accountPage, setAccountPage] = useState(1);
+  const [accountPageSize, setAccountPageSize] = useState(10);
+
+  // Pagination for audit logs
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditPageSize, setAuditPageSize] = useState(10);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setAccountPage(1);
+  }, [accountQuery, filterRole, filterFiliale]);
+
+  useEffect(() => {
+    setAuditPage(1);
+  }, [auditSearchQuery, auditActionFilter]);
+
   // Filtered accounts
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -201,6 +218,12 @@ function AdministrationContent() {
     });
   }, [users, filterRole, filterFiliale, accountQuery]);
 
+  const totalAccountPages = Math.max(1, Math.ceil(filteredUsers.length / accountPageSize));
+  const paginatedUsers = useMemo(() => {
+    const start = (accountPage - 1) * accountPageSize;
+    return filteredUsers.slice(start, start + accountPageSize);
+  }, [filteredUsers, accountPage, accountPageSize]);
+
   // Filtered audit logs
   const filteredAuditLogs = useMemo(() => {
     return auditLogs.filter((log) => {
@@ -214,6 +237,12 @@ function AdministrationContent() {
       return true;
     });
   }, [auditLogs, auditActionFilter, auditSearchQuery]);
+
+  const totalAuditPages = Math.max(1, Math.ceil(filteredAuditLogs.length / auditPageSize));
+  const paginatedAuditLogs = useMemo(() => {
+    const start = (auditPage - 1) * auditPageSize;
+    return filteredAuditLogs.slice(start, start + auditPageSize);
+  }, [filteredAuditLogs, auditPage, auditPageSize]);
 
   if (!user) return null;
 
@@ -393,7 +422,7 @@ function AdministrationContent() {
 
           <div className="hidden items-center gap-2 text-xs text-slate-400 sm:flex">
             <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-            Synchronisation API directe
+            Données synchronisées en direct
           </div>
         </div>
 
@@ -469,14 +498,14 @@ function AdministrationContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.length === 0 ? (
+                  {paginatedUsers.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center text-xs text-slate-400">
                         Aucun compte trouvé correspondant aux critères.
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((account) => {
+                    paginatedUsers.map((account) => {
                       const name =
                         [account.first_name, account.last_name].filter(Boolean).join(" ") ||
                         account.email;
@@ -551,17 +580,84 @@ function AdministrationContent() {
               </table>
             </div>
 
-            {/* Table Footer info */}
-            <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-5 py-3 text-xs text-slate-500 sm:px-6">
-              <span>
-                Affichage de <strong>{filteredUsers.length}</strong> sur <strong>{users.length}</strong> utilisateurs
-              </span>
-              <button
-                onClick={() => setShowCreate(true)}
-                className="font-bold text-[#d19331] hover:underline"
-              >
-                + Ajouter un nouvel utilisateur
-              </button>
+            {/* Table Footer info with Flowdash Pagination */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 text-xs text-slate-500 sm:px-6">
+              <div className="flex items-center gap-3">
+                <span>
+                  Affichage de <strong>{filteredUsers.length ? (accountPage - 1) * accountPageSize + 1 : 0}</strong> à{" "}
+                  <strong>{Math.min(accountPage * accountPageSize, filteredUsers.length)}</strong> sur{" "}
+                  <strong>{filteredUsers.length}</strong> utilisateurs
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-slate-400">Lignes :</span>
+                  <select
+                    value={accountPageSize}
+                    onChange={(e) => {
+                      setAccountPageSize(Number(e.target.value));
+                      setAccountPage(1);
+                    }}
+                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-xs focus:outline-none"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+              </div>
+
+              {totalAccountPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    disabled={accountPage === 1}
+                    onClick={() => setAccountPage((p) => Math.max(1, p - 1))}
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Icon name="arrow-left" size={13} />
+                    Précédent
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: Math.min(5, totalAccountPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalAccountPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (accountPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (accountPage >= totalAccountPages - 2) {
+                        pageNum = totalAccountPages - 4 + i;
+                      } else {
+                        pageNum = accountPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setAccountPage(pageNum)}
+                          type="button"
+                          className={`size-7 rounded-lg text-xs font-bold transition ${
+                            accountPage === pageNum
+                              ? "bg-[#0c1424] text-white shadow-xs"
+                              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    disabled={accountPage === totalAccountPages}
+                    onClick={() => setAccountPage((p) => Math.min(totalAccountPages, p + 1))}
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Suivant
+                    <Icon name="arrow-right" size={13} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : null}
@@ -607,12 +703,12 @@ function AdministrationContent() {
 
             {/* Audit Logs List */}
             <div className="divide-y divide-slate-100">
-              {filteredAuditLogs.length === 0 ? (
+              {paginatedAuditLogs.length === 0 ? (
                 <p className="px-6 py-12 text-center text-xs text-slate-400">
                   Aucune entrée de journal trouvée.
                 </p>
               ) : (
-                filteredAuditLogs.map((entry) => {
+                paginatedAuditLogs.map((entry) => {
                   const who = entry.user
                     ? [entry.user.first_name, entry.user.last_name].filter(Boolean).join(" ") || entry.user.email
                     : "Système automatique";
@@ -675,6 +771,88 @@ function AdministrationContent() {
                 })
               )}
             </div>
+
+            {/* Audit Logs Pagination */}
+            {filteredAuditLogs.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 text-xs text-slate-500 sm:px-6">
+                <div className="flex items-center gap-3">
+                  <span>
+                    Affichage de <strong>{(auditPage - 1) * auditPageSize + 1}</strong> à{" "}
+                    <strong>{Math.min(auditPage * auditPageSize, filteredAuditLogs.length)}</strong> sur{" "}
+                    <strong>{filteredAuditLogs.length}</strong> entrées d&apos;audit
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-slate-400">Lignes :</span>
+                    <select
+                      value={auditPageSize}
+                      onChange={(e) => {
+                        setAuditPageSize(Number(e.target.value));
+                        setAuditPage(1);
+                      }}
+                      className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-xs focus:outline-none"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                </div>
+
+                {totalAuditPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      disabled={auditPage === 1}
+                      onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Icon name="arrow-left" size={13} />
+                      Précédent
+                    </button>
+
+                    <div className="flex items-center gap-1 px-1">
+                      {Array.from({ length: Math.min(5, totalAuditPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalAuditPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (auditPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (auditPage >= totalAuditPages - 2) {
+                          pageNum = totalAuditPages - 4 + i;
+                        } else {
+                          pageNum = auditPage - 2 + i;
+                        }
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setAuditPage(pageNum)}
+                            type="button"
+                            className={`size-7 rounded-lg text-xs font-bold transition ${
+                              auditPage === pageNum
+                                ? "bg-[#0c1424] text-white shadow-xs"
+                                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      disabled={auditPage === totalAuditPages}
+                      onClick={() => setAuditPage((p) => Math.min(totalAuditPages, p + 1))}
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Suivant
+                      <Icon name="arrow-right" size={13} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : null}
 

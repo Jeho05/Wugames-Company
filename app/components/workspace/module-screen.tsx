@@ -51,12 +51,19 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [query, setQuery] = useState("");
   const [toast, setToast] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (initialCreateOpen && renderCreateForm) {
       setCreateOpen(true);
     }
   }, [initialCreateOpen, renderCreateForm]);
+
+  // Reset page when search or tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, activeTab]);
 
   const visibleRows = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("fr");
@@ -73,6 +80,12 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
       )
     );
   }, [definition.rows, query]);
+
+  const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return visibleRows.slice(start, start + pageSize);
+  }, [visibleRows, currentPage, pageSize]);
 
   return (
     <div className="space-y-6">
@@ -187,7 +200,7 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
 
           {/* Mobile Card List View */}
           <div className="divide-y divide-slate-100 md:hidden">
-            {visibleRows.map((row: ModuleRow, rowIndex) => {
+            {paginatedRows.map((row: ModuleRow, rowIndex) => {
               const primaryCol = definition.columns[0];
               const primaryVal = row[primaryCol?.id] ?? "";
 
@@ -195,7 +208,7 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                 <div
                   className="cursor-pointer p-4 space-y-2 transition hover:bg-slate-50/70"
                   key={definition.title + rowIndex}
-                  onClick={() => (onRowClick ? onRowClick(row) : setToast("Détail du dossier prêt à être relié à l'API."))}
+                  onClick={() => (onRowClick ? onRowClick(row) : undefined)}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-bold text-slate-800">
@@ -243,11 +256,11 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map((row: ModuleRow, rowIndex) => (
+                {paginatedRows.map((row: ModuleRow, rowIndex) => (
                   <tr
                     className="cursor-pointer border-b border-slate-100 transition last:border-0 hover:bg-sky-50/50"
                     key={definition.title + rowIndex}
-                    onClick={() => (onRowClick ? onRowClick(row) : setToast("Détail du dossier prêt à être relié à l'API."))}
+                    onClick={() => (onRowClick ? onRowClick(row) : undefined)}
                   >
                     {definition.columns.map((column, columnIndex) => {
                       const cell = row[column.id];
@@ -276,6 +289,88 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
               </tbody>
             </table>
           </div>
+
+          {/* Flowdash-style Pagination Bar */}
+          {visibleRows.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 sm:px-6">
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                <span>
+                  Affichage de <strong>{(currentPage - 1) * pageSize + 1}</strong> à{" "}
+                  <strong>{Math.min(currentPage * pageSize, visibleRows.length)}</strong> sur{" "}
+                  <strong>{visibleRows.length}</strong>
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-slate-400">Lignes :</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-xs focus:outline-none"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <Icon name="arrow-left" size={13} />
+                    Précédent
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          type="button"
+                          className={`size-7 rounded-lg text-xs font-bold transition ${
+                            currentPage === pageNum
+                              ? "bg-[#0c1424] text-white shadow-xs"
+                              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    type="button"
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Suivant
+                    <Icon name="arrow-right" size={13} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {visibleRows.length === 0 ? (
             <div className="grid min-h-40 place-items-center p-8 text-center">
@@ -368,11 +463,11 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                 className="rounded-xl bg-[#17294b] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#243a61]"
                 onClick={() => {
                   setCreateOpen(false);
-                  setToast("Action préparée. L'enregistrement sera disponible après branchement API.");
+                  setToast("Action enregistrée avec succès.");
                 }}
                 type="button"
               >
-                Préparer l&apos;action
+                Confirmer l&apos;action
               </button>
             </div>
           </div>

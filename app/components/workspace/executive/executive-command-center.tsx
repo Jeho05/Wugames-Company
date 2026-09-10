@@ -232,10 +232,16 @@ export function ExecutiveCommandCenter() {
             </Reveal>
 
             {/* Teams Performance & Flowdash Quick Actions */}
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-              <ExecutiveTeams teams={data.teams} />
-              <ExecutiveQuickActions />
-            </div>
+            {data.teams && data.teams.length > 0 ? (
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                <ExecutiveTeams teams={data.teams} />
+                <ExecutiveQuickActions />
+              </div>
+            ) : (
+              <div>
+                <ExecutiveQuickActions />
+              </div>
+            )}
 
             {/* Realtime Audit Traceability */}
             <Reveal delay={0.1}>

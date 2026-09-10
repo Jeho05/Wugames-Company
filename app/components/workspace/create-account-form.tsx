@@ -76,7 +76,7 @@ export function CreateAccountForm({ onClose, onCreated }: CreateAccountFormProps
       <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-sm font-bold tracking-[-0.02em] text-[#17294b]">
-            Créer un compte (API)
+            Créer un compte
           </h2>
           <button
             aria-label="Fermer"
