@@ -198,7 +198,8 @@ const sparkSeries: Record<string, number[]> = {
 /* Chargement                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null> {
+export async function loadExecutiveOverview(filialeId?: string | null): Promise<ExecutiveOverview | null> {
+  const filter = filialeId ? { filiale_id: filialeId } : undefined;
   const [
     filialesRes,
     facturesRes,
@@ -214,10 +215,10 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
   ] = await Promise.allSettled([
     filialesApi.getFilialesConsolidation(),
     facturesApi.getFacturesConsolidation(),
-    facturesApi.listFactures(),
-    stocksApi.listProduits(),
-    missionsApi.listMissions(),
-    usersApi.listUsers(),
+    facturesApi.listFactures(filter),
+    stocksApi.listProduits(filter ?? {}),
+    missionsApi.listMissions(filter),
+    usersApi.listUsers(filter),
     clientsApi.listClients(),
     fournisseursApi.listFournisseurs(),
     auditApi.listAuditLogs(),
