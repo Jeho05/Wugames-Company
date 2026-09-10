@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600" role="img" aria-labelledby="title desc">
-  <title id="title">WUGAMS HOLDING INC</title>
-  <desc id="desc">Emblème doré représentant un livre ouvert et la lettre W au-dessus du mot-symbole WUGAMS, sur fond noir profond.</desc>
-  <defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="WUGAMS">
+  <rect width="512" height="512" rx="112" fill="#090A0C"/>
+  <svg x="76" y="128" width="360" height="253" viewBox="430 240 740 520">
+    <defs>
     <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#9A671F"/>
       <stop offset="22%" stop-color="#F4CE79"/>
@@ -21,19 +21,13 @@
       <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-
-  <rect width="1600" height="1600" fill="#090A0C"/>
-
-  <g fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
-    <path d="M438 264 C548 285 640 345 684 425 C704 462 708 510 708 574 L708 724 C638 662 552 620 454 600 L454 276 Z" stroke-width="18"/>
-    <path d="M1162 264 C1052 285 960 345 916 425 C896 462 892 510 892 574 L892 724 C962 662 1048 620 1146 600 L1146 276 Z" stroke-width="18"/>
-    <path d="M708 426 C704 520 705 623 708 724 L760 594 L800 730 L840 594 L892 724 C895 623 896 520 892 426" stroke-width="18"/>
-    <path d="M454 600 C548 620 638 662 708 724" stroke="url(#goldSoft)" stroke-width="8" opacity=".95"/>
-    <path d="M1146 600 C1052 620 962 662 892 724" stroke="url(#goldSoft)" stroke-width="8" opacity=".95"/>
-  </g>
-
-  <g text-anchor="middle">
-    <text x="800" y="960" fill="#FFF0C2" font-family="'Cormorant Garamond', Georgia, 'Times New Roman', serif" font-size="176" font-weight="600" letter-spacing="18">WUGAMS</text>
-    <text x="800" y="1068" fill="#F0D99C" font-family="Montserrat, Arial, Helvetica, sans-serif" font-size="52" font-weight="500" letter-spacing="22">HOLDING INC</text>
-  </g>
+    
+    <g fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+      <path d="M438 264 C548 285 640 345 684 425 C704 462 708 510 708 574 L708 724 C638 662 552 620 454 600 L454 276 Z" stroke-width="18"/>
+      <path d="M1162 264 C1052 285 960 345 916 425 C896 462 892 510 892 574 L892 724 C962 662 1048 620 1146 600 L1146 276 Z" stroke-width="18"/>
+      <path d="M708 426 C704 520 705 623 708 724 L760 594 L800 730 L840 594 L892 724 C895 623 896 520 892 426" stroke-width="18"/>
+      <path d="M454 600 C548 620 638 662 708 724" stroke="url(#goldSoft)" stroke-width="8" opacity=".95"/>
+      <path d="M1146 600 C1052 620 962 662 892 724" stroke="url(#goldSoft)" stroke-width="8" opacity=".95"/>
+    </g>
+  </svg>
 </svg>

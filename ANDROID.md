@@ -16,7 +16,7 @@ Ce projet Next.js est **déjà installable sur Android** en tant que PWA. Ce doc
 
 ### Prérequis
 - Compte Google Play Console ($25, une fois).
-- Icônes `public/icon-192.png` + `public/icon-512.png` + `public/icon-512-maskable.png` (générées via `scripts/gen-icons.mjs`).
+- Icônes `public/icon-192.png` + `public/icon-512.png` + `public/icon-512-maskable.png` (emblème exact du vrai logo via `node scripts/gen-mobile-brand.mjs`) + splash `public/splash-icon.png` + `public/splash-portrait-1080x1920.png`.
 
 ### Génération TWA via Bubblewrap / PWABuilder
 ```bash
@@ -73,7 +73,7 @@ npx cap open android  # ouvre Android Studio
 ### Config déjà prête
 - `capacitor.config.ts` pointe vers `https://wugams.vercel.app` (live updates) + `webDir: out`
 - Plugins `Geolocation`, `Camera`, `PushNotifications` déclarés
-- `android:backgroundColor #0a1420` pour le splash
+- `android:backgroundColor #090A0C` pour le splash (vrai logo, voir `capacitor.config.ts`)
 
 ### Permissions Android (`android/app/src/main/AndroidManifest.xml` généré)
 ```xml
@@ -90,7 +90,8 @@ npx cap open android  # ouvre Android Studio
 
 ## Checklist Play Store
 
-- [ ] Icônes 512 générées (`scripts/gen-icons.mjs` fait)
+- [ ] Icônes launcher + splash depuis le vrai logo (`node scripts/gen-mobile-brand.mjs` fait)
+- [ ] `capacitor.config.ts` → SplashScreen `backgroundColor #090A0C` + `androidScaleType CENTER_CROP` + `splash-icon.png` copié dans `android/app/src/main/res/drawable/` après `npx cap add android`
 - [ ] `public/.well-known/assetlinks.json` avec vrai SHA256
 - [ ] `twa-manifest.json` renseigné
 - [ ] Keystore sauvegardé (ne jamais le perdre)

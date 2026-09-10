@@ -100,6 +100,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* iOS splash — vrai logo officiel (fichier exact 1600 centré sur #090A0C) */}
+        <link rel="apple-touch-startup-image" href="/splash-portrait-1080x1920.png" />
       </head>
       <body className="min-h-full bg-background text-foreground">
         <AuthProvider>

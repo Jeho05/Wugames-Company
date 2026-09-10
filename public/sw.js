@@ -1,4 +1,4 @@
-const CACHE_NAME = "wugams-v4";
+const CACHE_NAME = "wugams-v5"; // v5: launcher + splash alignés sur le vrai logo (emblème exact)
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
