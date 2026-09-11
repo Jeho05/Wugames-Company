@@ -160,7 +160,8 @@ function AdministrationContent() {
         ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ")
         : "Système";
       const userEmail = log.user?.email || "—";
-      const payloadStr = log.details ? JSON.stringify(log.details).replace(/"/g, '""') : "";
+      const payload = log.valeur_apres ?? log.valeur_avant ?? log.details;
+      const payloadStr = payload ? JSON.stringify(payload).replace(/"/g, '""') : "";
       return [
         `"${log.id}"`,
         `"${log.created_at}"`,
@@ -756,11 +757,17 @@ function AdministrationContent() {
                           <p className="mt-0.5 text-[11px] text-slate-500">
                             Par <strong className="text-slate-700">{who}</strong> · {detail}
                           </p>
-                          {entry.details && Object.keys(entry.details).length > 0 && (
-                            <pre className="mt-1.5 max-h-20 max-w-xl overflow-x-auto rounded-lg bg-slate-50 p-2 font-mono text-[10px] text-slate-600">
-                              {JSON.stringify(entry.details, null, 2)}
-                            </pre>
-                          )}
+                          {(() => {
+                            const payload = (entry.valeur_apres ?? entry.valeur_avant ?? entry.details) as Record<string, unknown> | null | undefined;
+                            if (!payload || typeof payload !== "object" || Object.keys(payload).length === 0) {
+                              return null;
+                            }
+                            return (
+                              <pre className="mt-1.5 max-h-20 max-w-xl overflow-x-auto rounded-lg bg-slate-50 p-2 font-mono text-[10px] text-slate-600">
+                                {JSON.stringify(payload, null, 2)}
+                              </pre>
+                            );
+                          })()}
                         </div>
                       </div>
                       <p className="shrink-0 text-[11px] font-semibold text-slate-400">

@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 export type IconName =
   | "activity"
   | "arrow-down"
+  | "arrow-left"
   | "arrow-right"
   | "arrow-up"
   | "arrow-up-right"
@@ -39,6 +40,7 @@ export type IconName =
   | "minus"
   | "newspaper"
   | "package"
+  | "pencil"
   | "phone"
   | "plus"
   | "print"
@@ -52,6 +54,7 @@ export type IconName =
   | "user"
   | "users"
   | "user-plus"
+  | "user-check"
   | "wallet"
   | "warning"
   | "refresh";
@@ -85,6 +88,12 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
       return (
         <svg {...common}>
           <path d="M12 5v14M6 13l6 6 6-6" />
+        </svg>
+      );
+    case "arrow-left":
+      return (
+        <svg {...common}>
+          <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
       );
     case "arrow-up":
@@ -328,6 +337,12 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
           <path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
         </svg>
       );
+    case "pencil":
+      return (
+        <svg {...common}>
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        </svg>
+      );
     case "box":
       return (
         <svg {...common}>
@@ -424,6 +439,14 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
         <svg {...common}>
           <circle cx="9" cy="8" r="3" />
           <path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20M19 9v5M16.5 11.5h5" />
+        </svg>
+      );
+    case "user-check":
+      return (
+        <svg {...common}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <polyline points="16 11 18 13 22 9" />
         </svg>
       );
     case "warning":
