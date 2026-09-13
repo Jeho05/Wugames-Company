@@ -51,6 +51,7 @@ export type IconName =
   | "sparkles"
   | "trash"
   | "truck"
+  | "upload"
   | "user"
   | "users"
   | "user-plus"
@@ -213,6 +214,12 @@ export function Icon({ name, size = 20, ...props }: IconProps) {
       return (
         <svg {...common}>
           <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+        </svg>
+      );
+    case "upload":
+      return (
+        <svg {...common}>
+          <path d="M12 16V5M7 10l5-5 5 5M5 20h14" />
         </svg>
       );
     case "file-text":

@@ -18,6 +18,7 @@ export type CreateUserPayload = {
   role: RoleCode;
   filiale_id?: string | null;
   is_active?: boolean;
+  avatar_url?: string;
   localisation?: string;
   adresse?: string;
   ville?: string;

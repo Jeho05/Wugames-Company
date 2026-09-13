@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { AdminImageUploader } from "@/app/components/ui/admin-image-uploader";
 import { Icon } from "@/app/components/ui/app-icon";
 import { LoadingButton } from "@/app/components/ui/loading-button";
 import { ApiError } from "@/app/lib/api-client";
@@ -38,6 +39,7 @@ export function EditAccountForm({ account, filiales = [], onClose, onUpdated, on
   const [role, setRole] = useState<RoleCode>(account.role);
   const [filialeId, setFilialeId] = useState<string>(account.filiale?.id ?? account.filiale_id ?? "");
   const [isActive, setIsActive] = useState<boolean>(account.is_active ?? true);
+  const [avatarUrl, setAvatarUrl] = useState<string>(account.avatar_url ?? "");
   const [localisation, setLocalisation] = useState<string>(account.localisation ?? "");
   const [adresse, setAdresse] = useState<string>(account.adresse ?? "");
   const [ville, setVille] = useState<string>(account.ville ?? "");
@@ -62,6 +64,7 @@ export function EditAccountForm({ account, filiales = [], onClose, onUpdated, on
         role,
         filiale_id: filialeId || null,
         is_active: isActive,
+        avatar_url: avatarUrl.trim() || undefined,
         localisation: localisation.trim() || undefined,
         adresse: adresse.trim() || undefined,
         ville: ville.trim() || undefined,
@@ -138,6 +141,19 @@ export function EditAccountForm({ account, filiales = [], onClose, onUpdated, on
               <span>{error}</span>
             </div>
           )}
+
+          {/* Avatar Upload */}
+          <div className="flex justify-center pb-2">
+            <AdminImageUploader
+              label="Photo de profil / Avatar"
+              value={avatarUrl}
+              onChange={setAvatarUrl}
+              bucket="avatars"
+              pathPrefix={account.id}
+              aspectRatio="avatar"
+              hint="Format carré recommandé (JPG, PNG ou WEBP, max 5 Mo)"
+            />
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
