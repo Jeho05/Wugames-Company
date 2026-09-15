@@ -335,14 +335,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: clients.map(clientRow),
       stats: [
-        { label: "Clients API", value: String(clients.length) },
+        { label: "Clients", value: String(clients.length) },
         { label: "Membres", value: String(membres) },
         { label: "Standards", value: String(standards) },
       ],
       insights: [
         { label: "Clients actifs", value: String(clients.filter((c) => c.user?.is_active !== false).length) },
         { label: "Adresses renseignées", value: String(clients.filter((c) => c.adresse).length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -351,14 +351,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: fournisseurs.map(fournisseurRow),
       stats: [
-        { label: "Fournisseurs API", value: String(fournisseurs.length) },
+        { label: "Fournisseurs", value: String(fournisseurs.length) },
         { label: "SIRET renseigné", value: String(fournisseurs.filter((f) => f.siret).length) },
         { label: "Avec coordonnées", value: String(fournisseurs.filter((f) => f.adresse).length) },
       ],
       insights: [
         { label: "Actifs", value: String(fournisseurs.filter((f) => f.user?.is_active !== false).length) },
         { label: "Raisons sociales", value: String(fournisseurs.filter((f) => f.raison_sociale).length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -367,13 +367,13 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: filiales.map(filialeRow),
       stats: [
-        { label: "Filiales API", value: String(filiales.length) },
+        { label: "Filiales", value: String(filiales.length) },
         { label: "Actives", value: String(filiales.filter((f) => f.is_active).length) },
         { label: "Sans description", value: String(filiales.filter((f) => !f.description).length) },
       ],
       insights: [
         { label: "Codes enregistrés", value: filiales.map((f) => f.code).join(" · ") },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -385,7 +385,7 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: produits.map(produitRow),
       stats: [
-        { label: "Produits API", value: String(produits.length) },
+        { label: "Produits", value: String(produits.length) },
         { label: "Alertes de seuil", value: String(alertes.length) },
         { label: "Valeur du stock", value: formatFcfa(valeur) },
       ],
@@ -403,14 +403,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: missions.map(missionRow),
       stats: [
-        { label: "Missions API", value: String(missions.length) },
+        { label: "Missions", value: String(missions.length) },
         { label: "En cours / notifiées", value: String(enCours.length) },
         { label: "À valider", value: String(aValider.length) },
       ],
       insights: [
         { label: "Terminées", value: String(missions.filter((m) => m.statut === "TERMINE").length) },
         { label: "Avec rapport", value: String(missions.filter((m) => m.rapport_texte).length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -421,14 +421,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: devis.map(devisRow),
       stats: [
-        { label: "Devis API", value: String(devis.length) },
+        { label: "Devis", value: String(devis.length) },
         { label: "Signés", value: String(signes) },
         { label: "Envoyés", value: String(envoyes) },
       ],
       insights: [
         { label: "Montant total TTC", value: formatFcfa(devis.reduce((sum, d) => sum + Number(d.montant_ttc), 0)) },
         { label: "Refusés / expirés", value: String(devis.filter((d) => d.statut === "REFUSE" || d.statut === "EXPIRE").length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -439,14 +439,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: chantiers.map(chantierRow),
       stats: [
-        { label: "Chantiers API", value: String(chantiers.length) },
+        { label: "Chantiers", value: String(chantiers.length) },
         { label: "En cours / planifiés", value: String(enCours) },
         { label: "Terminés", value: String(termines) },
       ],
       insights: [
         { label: "Avancement moyen", value: chantiers.length ? `${Math.round(chantiers.reduce((sum, c) => sum + (c.avancement_pct ?? 0), 0) / chantiers.length)} %` : "—" },
         { label: "Budget prévisionnel", value: formatFcfa(chantiers.reduce((sum, c) => sum + Number(c.budget_previsionnel ?? 0), 0)) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -463,7 +463,7 @@ const apiLoaders: Record<string, Loader> = {
         insights: [
           { label: "Total commandé", value: formatFcfa(commandes.reduce((sum, c) => sum + Number(c.montant_total), 0)) },
           { label: "Payées", value: String(commandes.filter((c) => c.paiement?.statut === "PAYE").length) },
-          { label: "Source", value: "API WUGAMS" },
+          { label: "Synchronisation", value: "En direct" },
         ],
       };
     }
@@ -473,14 +473,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: commandes.map(commandeRow),
       stats: [
-        { label: "Commandes API", value: String(commandes.length) },
+        { label: "Commandes", value: String(commandes.length) },
         { label: "En préparation", value: String(enPreparation) },
         { label: "Livrées", value: String(livrees) },
       ],
       insights: [
         { label: "Total commandé", value: formatFcfa(commandes.reduce((sum, c) => sum + Number(c.montant_total), 0)) },
         { label: "Payées", value: String(commandes.filter((c) => c.paiement?.statut === "PAYE").length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -490,13 +490,13 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: conversations.map(conversationRow),
       stats: [
-        { label: "Conversations API", value: String(conversations.length) },
+        { label: "Conversations", value: String(conversations.length) },
         { label: "Non lues", value: String(nonLus) },
         { label: "Actives", value: String(conversations.length) },
       ],
       insights: [
         { label: "Dernière activité", value: conversations[0] ? formatDate(conversations[0].derniere_activite, "—") : "—" },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -512,7 +512,7 @@ const apiLoaders: Record<string, Loader> = {
       ],
       insights: [
         { label: "Dernière activité", value: conversations[0] ? formatDate(conversations[0].derniere_activite, "—") : "—" },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -522,13 +522,13 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: managers.filter((m) => MANAGER_ROLES.includes(m.user.role)).map(managerRow),
       stats: [
-        { label: "Managers API", value: String(managers.length) },
+        { label: "Managers", value: String(managers.length) },
         { label: "Actifs", value: String(actifs) },
         { label: "À activer", value: String(managers.length - actifs) },
       ],
       insights: [
         { label: "Rôles couverts", value: Array.from(new Set(managers.map((m) => roleLabels[m.user.role] ?? m.user.role))).join(" · ") || "—" },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -545,7 +545,7 @@ const apiLoaders: Record<string, Loader> = {
         insights: [
           { label: "Montant total TTC", value: formatFcfa(factures.reduce((sum, f) => sum + Number(f.montant_ttc), 0)) },
           { label: "Annulées", value: String(factures.filter((f) => f.statut === "ANNULEE").length) },
-          { label: "Source", value: "API WUGAMS" },
+          { label: "Synchronisation", value: "En direct" },
         ],
       };
     }
@@ -555,14 +555,14 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: factures.map(factureRow),
       stats: [
-        { label: "Factures API", value: String(factures.length) },
+        { label: "Factures", value: String(factures.length) },
         { label: "Payées", value: String(payees) },
         { label: "En attente", value: String(enAttente) },
       ],
       insights: [
         { label: "Montant total TTC", value: formatFcfa(factures.reduce((sum, f) => sum + Number(f.montant_ttc), 0)) },
         { label: "Annulées", value: String(factures.filter((f) => f.statut === "ANNULEE").length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -579,7 +579,7 @@ const apiLoaders: Record<string, Loader> = {
       insights: [
         { label: "Avancement moyen", value: projets.length ? `${Math.round(projets.reduce((sum, p) => sum + (p.avancement_pct ?? 0), 0) / projets.length)} %` : "—" },
         { label: "Avec photos", value: String(projets.filter((p) => p.photos_count > 0).length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -595,7 +595,7 @@ const apiLoaders: Record<string, Loader> = {
       ],
       insights: [
         { label: "À confirmer", value: String(demandes.filter((d) => d.statut === "A_CONFIRMER").length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -611,7 +611,7 @@ const apiLoaders: Record<string, Loader> = {
       insights: [
         { label: "Devis", value: String(documents.filter((d) => d.type === "DEVIS").length) },
         { label: "Plannings", value: String(documents.filter((d) => d.type === "PLANNING").length) },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -621,12 +621,12 @@ const apiLoaders: Record<string, Loader> = {
     return {
       rows: notifications.map(notificationRow),
       stats: [
-        { label: "Notifications API", value: String(notifications.length) },
+        { label: "Notifications", value: String(notifications.length) },
         { label: "Non lues", value: String(unread) },
         { label: "Traitées", value: String(notifications.length - unread) },
       ],
       insights: [
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },
@@ -640,14 +640,14 @@ const apiLoaders: Record<string, Loader> = {
       {
         rapport: "Synthèse financière consolidée",
         période: monthLabel,
-        auteur: "API WUGAMS",
+        auteur: "Système WUGAMS",
         dernièreédition: "Automatique",
         statut: status("Prêt", "success"),
       },
       ...consolidation.filiales.map((filiale) => ({
         rapport: `Détail filiale — ${filiale.nom} (${filiale.code})`,
         période: monthLabel,
-        auteur: "API WUGAMS",
+        auteur: "Système WUGAMS",
         dernièreédition: `${filiale.count} facture${filiale.count > 1 ? "s" : ""}`,
         statut: filiale.total_ttc > 0 ? status("Prêt", "success") : status("À vide", "neutral"),
       })),
@@ -656,7 +656,7 @@ const apiLoaders: Record<string, Loader> = {
       rows.push({
         rapport: "Rapport de clôture",
         période: "Exercice en cours",
-        auteur: "API WUGAMS",
+        auteur: "Système WUGAMS",
         dernièreédition: "Généré à la demande",
         statut: status("Exportable", "info"),
       });
@@ -671,7 +671,7 @@ const apiLoaders: Record<string, Loader> = {
       insights: [
         { label: "Filiales consolidées", value: String(consolidation.filiales.length) },
         { label: "Clôture", value: cloture ? "Disponible" : "—" },
-        { label: "Source", value: "API WUGAMS" },
+        { label: "Synchronisation", value: "En direct" },
       ],
     };
   },

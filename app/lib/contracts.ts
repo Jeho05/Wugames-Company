@@ -158,6 +158,12 @@ export type UserLite = {
   last_name: string;
   phone: string | null;
   is_active?: boolean;
+  avatar_url?: string | null;
+  localisation?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export type OuvrierProfileLite = { id: string; specialite: string | null; matricule: string | null };
@@ -173,6 +179,12 @@ export type User = {
   role: RoleCode;
   filiale_id: string | null;
   is_active: boolean;
+  avatar_url?: string | null;
+  localisation?: string | null;
+  adresse?: string | null;
+  ville?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   two_factor_enabled?: boolean;
   created_at: string;
   updated_at?: string;
@@ -467,6 +479,7 @@ export type AuditLog = {
   ip: string | null;
   created_at: string;
   user: { id: string; first_name: string; last_name: string; email: string } | null;
+  details?: unknown | null;
 };
 
 /* ------------------------------------------------------------------ */

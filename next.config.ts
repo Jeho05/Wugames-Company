@@ -40,8 +40,8 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               // FIX: élargi à https: blob: pour permettre tout hébergeur d'image (vitrine dynamique, témoignages, blog, réalisations)
-              "img-src 'self' data: blob: https: https://images.unsplash.com https://*.vercel.app",
-              "connect-src 'self' https://wugames-holding-inc.vercel.app https://vercel.live wss://*.vercel.app https://images.unsplash.com",
+              "img-src 'self' data: blob: https: https://images.unsplash.com https://*.vercel.app https://*.supabase.co",
+              "connect-src 'self' https://wugames-holding-inc.vercel.app https://*.supabase.co https://vercel.live wss://*.vercel.app https://images.unsplash.com",
               "font-src 'self' https://fonts.gstatic.com data:",
               "frame-ancestors 'none'",
               "base-uri 'self'",

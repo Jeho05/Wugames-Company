@@ -1,8 +1,8 @@
 import { apiFetch } from "@/app/lib/api-client";
 import type { MessageResponse, RoleCode, User } from "@/app/lib/contracts";
 
-export async function listUsers(): Promise<User[]> {
-  return apiFetch<User[]>("/users");
+export async function listUsers(filters?: { filiale_id?: string; role?: string }): Promise<User[]> {
+  return apiFetch<User[]>("/users", { query: filters });
 }
 
 export async function getUser(id: string): Promise<User> {
@@ -18,6 +18,7 @@ export type CreateUserPayload = {
   role: RoleCode;
   filiale_id?: string | null;
   is_active?: boolean;
+  avatar_url?: string;
   localisation?: string;
   adresse?: string;
   ville?: string;

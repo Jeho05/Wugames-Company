@@ -7,8 +7,8 @@ import type {
   MessageResponse,
 } from "@/app/lib/contracts";
 
-export async function listFactures(): Promise<Facture[]> {
-  return apiFetch<Facture[]>("/factures");
+export async function listFactures(filters?: { filiale_id?: string; statut?: string }): Promise<Facture[]> {
+  return apiFetch<Facture[]>("/factures", { query: filters });
 }
 
 export async function getFacture(id: string): Promise<Facture> {

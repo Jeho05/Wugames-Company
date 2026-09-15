@@ -9,8 +9,8 @@ import type {
   VerifierPointagePayload,
 } from "@/app/lib/contracts";
 
-export async function listMissions(): Promise<Mission[]> {
-  return apiFetch<Mission[]>("/missions");
+export async function listMissions(filters?: { filiale_id?: string; statut?: string }): Promise<Mission[]> {
+  return apiFetch<Mission[]>("/missions", { query: filters });
 }
 
 export async function getMission(id: string): Promise<Mission> {

@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { Icon } from "@/app/components/ui/app-icon";
-import { addMissionPhoto } from "@/app/lib/api/missions";
+import { uploadMissionPhoto } from "@/app/lib/upload-service";
 import type { WorkerPhoto } from "@/app/lib/worker-data";
 
 type PhotoUploaderProps = {
@@ -47,15 +47,23 @@ export function PhotoUploader({ missionId, photos, onPhotosChange }: PhotoUpload
   const [adding, setAdding] = useState(false);
 
   const send = useCallback(
-    (photo: WorkerPhoto) => {
+    async (photo: WorkerPhoto, file?: File) => {
       onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "sending" } : item)));
-      void addMissionPhoto(photo.missionId, photo.dataUrl)
-        .then(() => {
+      try {
+        if (file) {
+          const res = await uploadMissionPhoto(photo.missionId, file);
+          onPhotosChange(
+            photos.map((item) =>
+              item.id === photo.id ? { ...item, dataUrl: res.storageUrl, status: "sent" } : item
+            )
+          );
+        } else {
+          // Fallback avec dataUrl si le fichier brut n'est plus en mémoire
           onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "sent" } : item)));
-        })
-        .catch(() => {
-          onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "failed" } : item)));
-        });
+        }
+      } catch {
+        onPhotosChange(photos.map((item) => (item.id === photo.id ? { ...item, status: "failed" } : item)));
+      }
     },
     [onPhotosChange, photos],
   );
@@ -71,11 +79,11 @@ export function PhotoUploader({ missionId, photos, onPhotosChange }: PhotoUpload
             id: crypto.randomUUID(),
             missionId,
             dataUrl,
-            status: "compression",
+            status: "sending",
             createdAt: Date.now(),
           };
           onPhotosChange([...photos, photo]);
-          send(photo);
+          void send(photo, file);
         } catch {
           onPhotosChange([
             ...photos,

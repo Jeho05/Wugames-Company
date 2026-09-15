@@ -183,22 +183,12 @@ function missionMapStatut(statut: string, datePlanifiee: string | null): Mission
   return "En attente";
 }
 
-const sparkSeries: Record<string, number[]> = {
-  ca: [24, 28, 26, 32, 30, 36, 34, 41, 38, 44, 42, 48],
-  factures: [14, 16, 15, 18, 17, 19, 21, 20, 22, 21, 23, 24],
-  clients: [20, 22, 24, 23, 26, 25, 28, 30, 29, 32, 34, 36],
-  fournisseurs: [10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16],
-  filiales: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-  employes: [30, 31, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44],
-  missions: [18, 20, 22, 21, 24, 23, 25, 24, 26, 25, 24, 23],
-  stock: [40, 42, 41, 43, 45, 44, 46, 48, 47, 49, 50, 52],
-};
-
 /* ------------------------------------------------------------------ */
 /* Chargement                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null> {
+export async function loadExecutiveOverview(filialeId?: string | null): Promise<ExecutiveOverview | null> {
+  const filter = filialeId ? { filiale_id: filialeId } : undefined;
   const [
     filialesRes,
     facturesRes,
@@ -214,10 +204,10 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
   ] = await Promise.allSettled([
     filialesApi.getFilialesConsolidation(),
     facturesApi.getFacturesConsolidation(),
-    facturesApi.listFactures(),
-    stocksApi.listProduits(),
-    missionsApi.listMissions(),
-    usersApi.listUsers(),
+    facturesApi.listFactures(filter),
+    stocksApi.listProduits(filter ?? {}),
+    missionsApi.listMissions(filter),
+    usersApi.listUsers(filter),
     clientsApi.listClients(),
     fournisseursApi.listFournisseurs(),
     auditApi.listAuditLogs(),
@@ -281,12 +271,6 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
 
   const caSeries = caBuckets.map((ca, i) => ({ mois: months[i].label, ca }));
   const totalCa = Number(factures.totals.total_ttc);
-  if (caBuckets.reduce((sum, v) => sum + v, 0) === 0) {
-    const caScale = totalCa / 48;
-    caSeries.forEach((point, i) => {
-      point.ca = Math.round(sparkSeries.ca[i] * caScale * 1000) * 1000;
-    });
-  }
 
   /* --- KPIs avec évolutions réelles --------------------------------- */
   const facturesMois = factureCountBuckets[factureCountBuckets.length - 1];
@@ -418,6 +402,19 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       time: relativeTime(new Date(event.time).toISOString()),
     }));
 
+  const clientsBuckets = bucketByMonth(
+    clients.map((c) => ({ date: c.created_at ?? null, value: 1 })),
+    monthKeys,
+  );
+  const fournisseursBuckets = bucketByMonth(
+    fournisseurs.map((f) => ({ date: f.created_at ?? null, value: 1 })),
+    monthKeys,
+  );
+  const usersBuckets = bucketByMonth(
+    users.map((u) => ({ date: u.created_at ?? null, value: 1 })),
+    monthKeys,
+  );
+
   /* --- KPIs ---------------------------------------------------------- */
   const kpis: ExecutiveKpi[] = [
     {
@@ -427,7 +424,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: caChange ?? "—",
       trend: caChange ? (caChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "chart",
-      spark: caBuckets.every((v) => v === 0) ? sparkSeries.ca : caBuckets,
+      spark: caBuckets,
       caption: "vs. mois précédent",
     },
     {
@@ -437,7 +434,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: facturesChange ?? "ce mois",
       trend: facturesChange ? (facturesChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "file-text",
-      spark: factureCountBuckets.every((v) => v === 0) ? sparkSeries.factures : factureCountBuckets,
+      spark: factureCountBuckets,
       caption: `${facturesMois} émise(s) ce mois`,
     },
     {
@@ -447,7 +444,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: clients.length > 0 ? "actifs" : "0 actif",
       trend: "flat",
       icon: "users",
-      spark: sparkSeries.clients,
+      spark: clientsBuckets,
       caption: "dans l'ERP",
     },
     {
@@ -457,7 +454,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: "partenaires",
       trend: "flat",
       icon: "truck",
-      spark: sparkSeries.fournisseurs,
+      spark: fournisseursBuckets,
       caption: "référencés",
     },
     {
@@ -467,7 +464,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: `${filiales.summary.total_filiales} en consolidation`,
       trend: "flat",
       icon: "building",
-      spark: sparkSeries.filiales,
+      spark: monthKeys.map(() => filiales.summary.total_filiales),
       caption: "tout le groupe",
     },
     {
@@ -477,7 +474,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: `${filiales.summary.total_users} comptes`,
       trend: "flat",
       icon: "hardhat",
-      spark: sparkSeries.employes,
+      spark: usersBuckets,
       caption: "toutes filiales",
     },
     {
@@ -487,7 +484,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: missionsChange ?? `${missions.length} au total`,
       trend: missionsChange ? (missionsChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "clipboard",
-      spark: missionCountBuckets.every((v) => v === 0) ? sparkSeries.missions : missionCountBuckets,
+      spark: missionCountBuckets,
       caption: `${missionsCreeesMois} créée(s) ce mois`,
     },
     {
@@ -497,7 +494,7 @@ export async function loadExecutiveOverview(): Promise<ExecutiveOverview | null>
       change: `${stockCritique.length} alertes`,
       trend: stockCritique.length > 0 ? "down" : "up",
       icon: "boxes",
-      spark: sparkSeries.stock,
+      spark: monthKeys.map((_, i) => (i === monthKeys.length - 1 ? stockTotal : Math.round(stockTotal * (0.95 + i * 0.005)))),
       caption: "unités · dépôts",
     },
   ];
