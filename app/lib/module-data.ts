@@ -104,11 +104,15 @@ const produitStatuts: Record<string, ModuleStatus> = {
 
 export function produitRow(produit: Produit): ModuleRow {
   return {
+    id: produit.id,
+    image: produit.image_url ?? "",
     produit: `${produit.nom} · ${produit.reference}`,
-    dépôt: produit.filiale?.nom ?? "—",
+    catégorie: produit.categorie ?? "Non catégorisé",
+    dépôt: produit.filiale?.nom ?? "Holding WUGAMS (Global)",
     disponible: `${produit.quantite_actuelle} unités`,
     seuil: `${produit.stock_minimum} unités`,
     statut: produitStatuts[produit.statut] ?? status(produit.statut, "neutral"),
+    _raw: produit,
   };
 }
 
@@ -319,7 +323,7 @@ function notificationRow(notification: unknown): ModuleRow {
 /* Chargement par module                                               */
 /* ------------------------------------------------------------------ */
 
-type Loader = (role: RoleCode) => Promise<ModuleData>;
+type Loader = (role: RoleCode, extraFilters?: Record<string, string>) => Promise<ModuleData>;
 
 const CLIENT_ROLES: readonly RoleCode[] = ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"];
 
@@ -377,8 +381,11 @@ const apiLoaders: Record<string, Loader> = {
       ],
     };
   },
-  stocks: async () => {
-    const produits = await stocksApi.listProduits();
+  stocks: async (_role, extraFilters) => {
+    const filters: stocksApi.ProduitFilters = {};
+    if (extraFilters?.categorie) filters.categorie = extraFilters.categorie;
+    if (extraFilters?.filiale_id) filters.filiale_id = extraFilters.filiale_id;
+    const produits = await stocksApi.listProduits(filters);
     const actifs = produits.filter((p) => p.statut !== "ARCHIVE");
     const alertes = actifs.filter((p) => p.statut !== "DISPONIBLE");
     const valeur = actifs.reduce((sum, p) => sum + Number(p.prix_unitaire) * p.quantite_actuelle, 0);
@@ -677,7 +684,11 @@ const apiLoaders: Record<string, Loader> = {
   },
 };
 
-export async function loadModuleData(slug: string, role: RoleCode): Promise<ModuleLoadResult | null> {
+export async function loadModuleData(
+  slug: string,
+  role: RoleCode,
+  extraFilters?: Record<string, string>
+): Promise<ModuleLoadResult | null> {
   const loader = apiLoaders[slug];
   if (!loader) return null;
 
@@ -685,7 +696,7 @@ export async function loadModuleData(slug: string, role: RoleCode): Promise<Modu
   if (!usableRoles.includes(role)) return null;
 
   try {
-    return { data: await loader(role), source: "api" };
+    return { data: await loader(role, extraFilters), source: "api" };
   } catch {
     return null;
   }

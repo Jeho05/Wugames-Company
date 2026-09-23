@@ -20,6 +20,7 @@ import {
   missionRow,
   produitRow,
 } from "@/app/lib/module-data";
+import { CATEGORIES_PRODUITS } from "@/app/lib/contracts";
 import type { ModuleRow } from "@/app/lib/demo-data";
 
 const CLIENT_CREATE_ROLES = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
@@ -160,23 +161,33 @@ export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
     fields: [
       { name: "nom", label: "Nom du produit", type: "text", required: true, placeholder: "Ciment 35 kg" },
       { name: "reference", label: "Référence", type: "text", required: true, placeholder: "CIM-001" },
-      { name: "description", label: "Description", type: "textarea", placeholder: "Optionnel" },
+      {
+        name: "categorie",
+        label: "Catégorie",
+        type: "select",
+        required: true,
+        options: CATEGORIES_PRODUITS.map((cat) => ({ value: cat, label: cat })),
+      },
       { name: "prix_unitaire", label: "Prix unitaire", type: "number", required: true, min: 0, step: 0.01, placeholder: "6250" },
       { name: "quantite_actuelle", label: "Quantité actuelle", type: "number", min: 0, step: 1, placeholder: "100" },
       { name: "stock_minimum", label: "Seuil minimum", type: "number", min: 0, step: 1, placeholder: "10" },
-      { name: "filiale_id", label: "Filiale", type: "select", required: true, optionsLoader: filialeOptions },
-      { name: "fournisseur_id", label: "Fournisseur", type: "select", optionsLoader: fournisseurOptions, help: "Optionnel" },
+      { name: "filiale_id", label: "Filiale", type: "select", required: false, optionsLoader: filialeOptions, help: "Optionnelle (vide pour Holding Global)" },
+      { name: "fournisseur_id", label: "Fournisseur", type: "select", required: false, optionsLoader: fournisseurOptions, help: "Optionnel" },
+      { name: "image_url", label: "Lien de l'image (URL)", type: "text", placeholder: "https://images.unsplash.com/..." },
+      { name: "description", label: "Description", type: "textarea", placeholder: "Optionnel" },
     ],
     submit: async (values) =>
       stocksApi.createProduit({
         nom: values.nom.trim(),
         reference: values.reference.trim(),
+        categorie: values.categorie || null,
         description: values.description?.trim() || undefined,
         prix_unitaire: num(values, "prix_unitaire") ?? 0,
         quantite_actuelle: num(values, "quantite_actuelle"),
         stock_minimum: num(values, "stock_minimum"),
-        filiale_id: values.filiale_id,
-        fournisseur_id: values.fournisseur_id || null,
+        filiale_id: values.filiale_id && values.filiale_id !== "aucun" ? values.filiale_id : null,
+        fournisseur_id: values.fournisseur_id && values.fournisseur_id !== "aucun" ? values.fournisseur_id : null,
+        image_url: values.image_url?.trim() || null,
       }),
     rowMapper: (entity) => produitRow(entity as Parameters<typeof produitRow>[0]),
   },

@@ -18,6 +18,9 @@ import { loadModuleData, type ModuleDataSource, type ModuleData } from "@/app/li
 import { affecterMission } from "@/app/lib/api/missions";
 import { listUsers } from "@/app/lib/api/users";
 import { resolveNotificationHref } from "@/app/lib/notification-target";
+import { ProduitCreateForm } from "@/app/components/workspace/stocks/produit-create-form";
+import { ProduitEditForm } from "@/app/components/workspace/stocks/produit-edit-form";
+import { CATEGORIES_PRODUITS, type Produit } from "@/app/lib/contracts";
 
 type ModuleDataBridgeProps = {
   definition: ModuleDefinition;
@@ -57,6 +60,8 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   const [affectOuvrierId, setAffectOuvrierId] = useState("");
   const [affectLoading, setAffectLoading] = useState(false);
   const [affectOuvriers, setAffectOuvriers] = useState<{ value: string; label: string }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [editingProduit, setEditingProduit] = useState<Produit | null>(null);
 
   const refresh = useCallback(() => {
     resetApiCache();
@@ -132,11 +137,30 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     setToastMsg("");
   }, []);
 
+  const handleStocksRowClick = useCallback((row: ModuleRow) => {
+    const raw = (row._raw as Produit) ?? null;
+    if (raw) {
+      setEditingProduit(raw);
+    }
+  }, []);
+
   const createConfig = getModuleCreateConfig(slug, user?.role);
 
   function renderCreateForm(props: CreateRenderProps): ReactNode {
     if (slug === "filiales") {
       return <FilialeCreateRenderer {...props} onCreated={refresh} />;
+    }
+    if (slug === "stocks") {
+      return (
+        <ProduitCreateForm
+          onClose={props.onClose}
+          onSubmit={(row) => {
+            props.onSubmit(row);
+            refresh();
+          }}
+          onCreated={refresh}
+        />
+      );
     }
     if (createConfig) {
       return <GenericCreateRenderer config={createConfig} {...props} onCreated={refresh} />;
@@ -149,7 +173,9 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     const role = user?.role;
     if (!role) return;
 
-    loadModuleData(slug, role).then((result) => {
+    const extraFilters = slug === "stocks" && selectedCategory ? { categorie: selectedCategory } : undefined;
+
+    loadModuleData(slug, role, extraFilters).then((result) => {
       if (cancelled) return;
       if (!result) {
         // API indisponible ou slug non géré : afficher un tableau vide plutôt qu'un loader infini
@@ -164,7 +190,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     return () => {
       cancelled = true;
     };
-  }, [slug, user?.role, refreshKey]);
+  }, [slug, user?.role, refreshKey, selectedCategory]);
 
   useEffect(() => {
     if (!affectMissionId) return;
@@ -215,7 +241,44 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
         </div>
       ) : null}
 
-      <ModuleScreen definition={mergedDefinition} renderCreateForm={renderCreateForm} onRowClick={slug === "notifications" ? handleRowClick : slug === "missions" ? handleMissionRowClick : undefined} initialCreateOpen={initialCreateOpen} showCreateButton={slug === "filiales" || !!createConfig} />
+      <ModuleScreen
+        categoryFilter={
+          slug === "stocks"
+            ? {
+                selected: selectedCategory,
+                onSelect: (cat: string) => setSelectedCategory(cat),
+                categories: CATEGORIES_PRODUITS,
+              }
+            : undefined
+        }
+        definition={mergedDefinition}
+        initialCreateOpen={initialCreateOpen}
+        onRowClick={
+          slug === "notifications"
+            ? handleRowClick
+            : slug === "missions"
+              ? handleMissionRowClick
+              : slug === "stocks"
+                ? handleStocksRowClick
+                : undefined
+        }
+        renderCreateForm={renderCreateForm}
+        showCreateButton={slug === "filiales" || slug === "stocks" || !!createConfig}
+      />
+
+      {editingProduit && (
+        <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/40 p-4">
+          <ProduitEditForm
+            onClose={() => setEditingProduit(null)}
+            onUpdated={() => {
+              setEditingProduit(null);
+              refresh();
+              setToastMsg("Produit mis à jour avec succès.");
+            }}
+            produit={editingProduit}
+          />
+        </div>
+      )}
 
       {affectMissionId && (
         <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/40 p-4">

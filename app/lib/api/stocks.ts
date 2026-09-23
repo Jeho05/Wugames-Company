@@ -7,12 +7,14 @@ import type {
   Produit,
   StockAlerte,
   StockAlerteNiveau,
+  UpdateProduitPayload,
 } from "@/app/lib/contracts";
 
 export type ProduitFilters = {
   filiale_id?: string;
   statut?: string;
   fournisseur_id?: string;
+  categorie?: string;
 };
 
 export type AlerteFilters = {
@@ -32,14 +34,38 @@ export async function createProduit(payload: CreateProduitPayload): Promise<Prod
   return apiFetch<Produit>("/stocks/produits", { method: "POST", body: payload });
 }
 
-export type UpdateProduitPayload = Partial<{
-  nom: string;
-  reference: string;
-  description: string;
-  prix_unitaire: number;
-  stock_minimum: number;
-  fournisseur_id: string | null;
-}>;
+export type UploadImageResult = {
+  url: string;
+  relative_url?: string;
+  filename?: string;
+  original_name?: string;
+  size?: number;
+  mimetype?: string;
+};
+
+export async function uploadProduitImage(fileOrUrl: File | string): Promise<UploadImageResult> {
+  if (typeof fileOrUrl === "string") {
+    return apiFetch<UploadImageResult>("/stocks/upload-image", {
+      method: "POST",
+      body: { image_url: fileOrUrl },
+    });
+  }
+  const formData = new FormData();
+  formData.append("image", fileOrUrl);
+  return apiFetch<UploadImageResult>("/stocks/upload-image", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export async function uploadProduitImageDirect(id: string, file: File): Promise<Produit> {
+  const formData = new FormData();
+  formData.append("image", file);
+  return apiFetch<Produit>(`/stocks/produits/${id}/image`, {
+    method: "POST",
+    body: formData,
+  });
+}
 
 export async function updateProduit(id: string, payload: UpdateProduitPayload): Promise<Produit> {
   return apiFetch<Produit>(`/stocks/produits/${id}`, { method: "PATCH", body: payload });

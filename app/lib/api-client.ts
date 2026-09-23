@@ -344,8 +344,9 @@ async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T
   const { method = "GET", body, auth = true, retry = true, signal, timeoutMs = 20_000 } = options;
 
   const session = auth ? getSession() : null;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (body !== undefined && !isFormData) headers["Content-Type"] = "application/json";
   if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
 
   // Timeout : le back serverless peut être lent (cold start), mais on ne veut
@@ -360,7 +361,7 @@ async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T
     response = await fetch(url, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
       signal: controller.signal,
       cache: "no-store",
     });
