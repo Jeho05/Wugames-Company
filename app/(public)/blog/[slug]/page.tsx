@@ -1,23 +1,90 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { BrandMark } from "@/app/components/ui/brand-mark";
 import { Icon } from "@/app/components/ui/app-icon";
-import { blogPosts } from "@/app/lib/content-data";
+import { getBlogPost, listBlogPosts } from "@/app/lib/api/vitrine";
+import type { VitrineBlogPost } from "@/app/lib/api/vitrine";
 
-export default async function BlogArticlePage({
+export default function BlogArticlePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
-  const post = blogPosts.find((candidate) => candidate.slug === slug);
+  const { slug } = use(params);
+  const [post, setPost] = useState<VitrineBlogPost | null | undefined>(undefined);
+  const [related, setRelated] = useState<VitrineBlogPost[]>([]);
 
-  if (!post) {
-    notFound();
+  useEffect(() => {
+    let cancelled = false;
+    void getBlogPost(slug).then((found) => {
+      if (cancelled) return;
+      setPost(found);
+      if (found) {
+        void listBlogPosts().then((all) => {
+          if (!cancelled) setRelated(all.filter((p) => p.slug !== slug && p.is_published).slice(0, 3));
+        });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (post === undefined) {
+    return (
+      <main className="min-h-screen bg-[#fbfcfe] text-[#17294b]">
+        <div className="mx-auto w-full max-w-[820px] px-5 pt-32 sm:px-8">
+          <div className="h-6 w-40 animate-pulse rounded bg-slate-100" />
+          <div className="mt-4 h-10 w-full animate-pulse rounded bg-slate-100" />
+          <div className="mt-4 aspect-[16/9] animate-pulse rounded-2xl bg-slate-100" />
+          <div className="mt-8 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-4 w-full animate-pulse rounded bg-slate-100" />
+            ))}
+          </div>
+        </div>
+      </main>
+    );
   }
 
-  const related = blogPosts.filter((candidate) => candidate.slug !== slug).slice(0, 3);
+  if (post === null) {
+    return (
+      <main className="min-h-screen bg-[#fbfcfe] text-[#17294b]">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#101a2d]">
+          <div className="mx-auto flex h-[76px] w-full max-w-[1240px] items-center justify-between px-5 sm:px-8">
+            <BrandMark href="/" inverse />
+            <Link
+              className="inline-flex items-center gap-2 rounded-xl bg-[#e3a641] px-3.5 py-2.5 text-xs font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653] sm:px-4 sm:text-sm"
+              href="/connexion"
+            >
+              Mon espace <Icon name="arrow-right" size={16} />
+            </Link>
+          </div>
+        </header>
+        <div className="mx-auto grid w-full max-w-[640px] place-items-center px-5 pt-40 text-center sm:px-8">
+          <div className="w-full rounded-2xl border border-dashed border-slate-200 bg-white py-16 shadow-sm">
+            <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-amber-50 text-[#d19331]">
+              <Icon name="file-text" size={24} />
+            </span>
+            <h1 className="mt-4 text-xl font-bold tracking-[-0.03em] text-[#17294b]">Article introuvable</h1>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              Cet article n&apos;est pas publié pour le moment. Il apparaîtra ici dès que le Gérant le publiera depuis l&apos;espace vitrine.
+            </p>
+            <Link
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#243a61]"
+              href="/blog"
+            >
+              <Icon className="rotate-180" name="arrow-right" size={15} />
+              Retour au blog
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#fbfcfe] text-[#17294b]">
@@ -59,7 +126,7 @@ export default async function BlogArticlePage({
         <div className="mt-6 flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-400">
           <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">{post.category}</span>
           <span>{post.date}</span>
-          <span>· {post.readTime} de lecture</span>
+          <span>· {post.read_time} de lecture</span>
         </div>
         <h1 className="mt-4 text-3xl font-bold tracking-[-0.05em] text-[#17294b] sm:text-[42px] sm:leading-[1.15]">
           {post.title}
@@ -100,40 +167,42 @@ export default async function BlogArticlePage({
         </div>
       </article>
 
-      <section className="mx-auto w-full max-w-[1240px] px-5 py-14 sm:px-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-[-0.035em] text-[#17294b]">À lire ensuite</h2>
-          <Link className="inline-flex items-center gap-2 text-xs font-bold text-[#426b95] hover:text-[#17294b]" href="/blog">
-            Tous les articles <Icon name="arrow-right" size={15} />
-          </Link>
-        </div>
-        <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((candidate) => (
-            <Link
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
-              href={"/blog/" + candidate.slug}
-              key={candidate.slug}
-            >
-              <div className="aspect-[16/9] overflow-hidden bg-slate-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img loading="lazy" decoding="async"
-                  alt={candidate.title}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  src={candidate.image}
-                />
-              </div>
-              <div className="p-5">
-                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
-                  {candidate.category}
-                </span>
-                <h3 className="mt-3 text-sm font-bold leading-6 text-[#233856] transition group-hover:text-[#17294b]">
-                  {candidate.title}
-                </h3>
-              </div>
+      {related.length > 0 ? (
+        <section className="mx-auto w-full max-w-[1240px] px-5 py-14 sm:px-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-[-0.035em] text-[#17294b]">À lire ensuite</h2>
+            <Link className="inline-flex items-center gap-2 text-xs font-bold text-[#426b95] hover:text-[#17294b]" href="/blog">
+              Tous les articles <Icon name="arrow-right" size={15} />
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {related.map((candidate) => (
+              <Link
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
+                href={"/blog/" + candidate.slug}
+                key={candidate.slug}
+              >
+                <div className="aspect-[16/9] overflow-hidden bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img loading="lazy" decoding="async"
+                    alt={candidate.title}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    src={candidate.image}
+                  />
+                </div>
+                <div className="p-5">
+                  <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
+                    {candidate.category}
+                  </span>
+                  <h3 className="mt-3 text-sm font-bold leading-6 text-[#233856] transition group-hover:text-[#17294b]">
+                    {candidate.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

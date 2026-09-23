@@ -34,26 +34,9 @@ const siteLinks = [
   { label: "Mode2Vie", href: "/mode2vie" },
 ];
 
-// Fallbacks en dur — conservés, et enrichis dynamiquement via la vitrine
-// La section des 5 filiales/missions reste visible même sans données dynamiques
-const fallbackServices = [
-  { id: "fallback-1", title: "Rénovation & Construction", description: "Rénovation intérieure et extérieure, construction neuve, aménagement complet.", icon: "folder" as const, order: 1 },
-  { id: "fallback-2", title: "Nettoyage & Entretien", description: "Nettoyage professionnel pour résidences, bureaux, complexes médicaux et espaces verts.", icon: "sparkles" as const, order: 2 },
-  { id: "fallback-3", title: "Matériaux & Fournitures", description: "Vente de matériaux de bricolage, de construction et d'entretien, livraison rapide et conseil technique.", icon: "boxes" as const, order: 3 },
-  { id: "fallback-4", title: "Mobilier & Design", description: "Achat, création, conception et restauration de mobilier sur mesure.", icon: "hardhat" as const, order: 4 },
-  { id: "fallback-5", title: "Diriger & Créer d'entreprises", description: "Partenariat et Communauté", icon: "building" as const, order: 5 },
-];
-
-const fallbackGaranties = [
-  { id: "fallback-g1", title: "Garantie de suivi et d'accompagnement", text: "Notre engagement ne s'arrête pas à la fin des travaux. Nous assurons un suivi et restons disponibles pour vous accompagner après la réalisation de votre projet.", icon: "shield" as const, order: 1 },
-  { id: "fallback-g2", title: "Le devis qui vous convient", text: "Nous vous proposons différentes options et vous accompagnons dans la validation de la solution retenue.", icon: "check" as const, order: 2 },
-  { id: "fallback-g3", title: "Respect du calendrier", text: "Nous définissons un calendrier réaliste avec vous. Si vous avez des contraintes de temps, nous pouvons proposer une réalisation express.", icon: "clock" as const, order: 3 },
-  { id: "fallback-g4", title: "Suivi en temps réel", text: "Nous maintenons une communication claire et continue pour vous permettre de suivre l'évolution de votre projet.", icon: "message" as const, order: 4 },
-];
-
-
-
-const fallbackMarquee = ["1 200+ projets livrés", "4,7/5 satisfaction", "Zéro surprise tarifaire", "Garantie décennale 10 ans", "5 filiales spécialisées", "Suivi en temps réel", "Consultation gratuite", "Devis transparent"];
+// 100 % dynamique : aucune donnée en dur.
+// Si la vitrine est vide, chaque section affiche un état « rien pour le moment »
+// professionnel (jamais de mock). Contenu piloté par le Gérant depuis /espace/vitrine.
 
 // Contenu éditorial statique (gardé car rédactionnel, non métier)
 const painPoints = [
@@ -78,39 +61,30 @@ export default function ClientBrandingPage() {
   const { data: garantiesData, loading: garantiesLoading } = useGaranties();
   const { data: marqueeItems, loading: marqueeLoading } = useMarquee();
 
-  // Section des 5 missions/filiales : en dur + dynamique (merge)
+  // Sections 100 % dynamiques : uniquement les contenus publiés par le Gérant.
   const displayServices = (() => {
     if (servicesLoading) return null;
-    const dyn = servicesData ?? [];
-    // En dur toujours présent, dynamique s'ajoute après (évite les doublons sur le titre)
-    const titles = new Set(dyn.map((s) => s.title));
-    const base = fallbackServices.filter((f) => !titles.has(f.title));
-    return [...base, ...dyn].sort((a, b) => a.order - b.order);
+    return [...(servicesData ?? [])].sort((a, b) => a.order - b.order);
   })();
 
   const displayGaranties = (() => {
     if (garantiesLoading) return null;
-    const dyn = garantiesData ?? [];
-    const titles = new Set(dyn.map((g) => g.title));
-    const base = fallbackGaranties.filter((f) => !titles.has(f.title));
-    return [...base, ...dyn].sort((a, b) => a.order - b.order);
+    return [...(garantiesData ?? [])].sort((a, b) => a.order - b.order);
   })();
 
   const displayTemoignages = (() => {
     if (temoignagesLoading) return null;
-    const dyn = temoignagesData ?? [];
-    // Témoignages : uniquement dynamique, sans fallback
-    return dyn;
+    return temoignagesData ?? [];
   })();
 
   const displayMarquee = (() => {
     if (marqueeLoading) return null;
     const dyn = marqueeItems ?? [];
-    return dyn.length > 0 ? dyn.map((m) => m.label) : fallbackMarquee;
+    return dyn.length > 0 ? dyn.map((m) => m.label) : [];
   })();
 
   return (
-    <main className="overflow-x-hidden bg-[#fbfcfe] text-[#17294b]">
+    <main className="overflow-x-clip bg-[#fbfcfe] text-[#17294b]">
 
       {/* ═══ HEADER ═══ */}
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.08] bg-gradient-to-b from-[#0a1420]/98 via-[#0d1829]/96 to-[#0b1526]/95 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl">
@@ -174,16 +148,16 @@ export default function ClientBrandingPage() {
         }}
       />
 
-      {/* ═══ MARQUEE — en dur + dynamique */}
+      {/* ═══ MARQUEE — dynamique uniquement, masqué si vide */}
       {displayMarquee === null ? (
         <div className="border-y border-slate-200/60 bg-[#f0f4f8] py-3">
           <div className="mx-auto max-w-[1240px] px-5">
             <div className="h-5 w-full animate-pulse rounded bg-slate-200/60" />
           </div>
         </div>
-      ) : (
+      ) : displayMarquee.length > 0 ? (
         <Marquee className="border-y border-slate-200/60 bg-[#f0f4f8] py-3" items={displayMarquee} />
-      )}
+      ) : null}
 
       {/* ═══ PROBLÈME ═══ */}
       <section className="bg-white" id="probleme">
@@ -205,7 +179,7 @@ export default function ClientBrandingPage() {
                 </div>
                 <Reveal delay={400}>
                   <p className="mt-6 text-sm leading-7 text-slate-500">
-                    Vous n&apos;êtes pas seul. <span className="font-bold text-[#17294b]">83% des propriétaires</span> ont déjà eu une expérience désagréable avec un artisan. Le résultat ? Du temps perdu, de l&apos;argent gaspillé, et un stress inutile.
+                    Vous n&apos;êtes pas seul. De nombreux propriétaires ont déjà eu une expérience désagréable avec un artisan. Le résultat ? Du temps perdu, de l&apos;argent gaspillé, et un stress inutile.
                   </p>
                   <p className="mt-3 text-sm leading-7 text-slate-500">
                     <span className="font-bold text-[#17294b]">Il existe une meilleure façon de réaliser vos projets.</span> C&apos;est exactement pour cela que WUGAMS existe.
@@ -242,7 +216,7 @@ export default function ClientBrandingPage() {
         </div>
       </section>
 
-      {/* ═══ FILIALES — 5 missions en dur + dynamique (restaurée) */}
+      {/* ═══ FILIALES — dynamique uniquement */}
       {displayServices === null ? (
         <section className="relative border-y border-slate-200 bg-[#eef4fa]" id="solution">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
@@ -283,26 +257,36 @@ export default function ClientBrandingPage() {
                 </p>
               </div>
             </Reveal>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              {displayServices.map((service, i) => (
-                <Reveal delay={i * 100} key={service.id}>
-                  <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5">
-                    <div className="p-5">
-                      <span className={"grid size-11 place-items-center rounded-2xl " + (i % 2 === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
-                        <Icon name={service.icon} size={22} />
-                      </span>
-                      <h3 className="mt-5 text-base font-bold text-[#24395d]">{service.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-500">{service.description}</p>
-                    </div>
-                  </SpotlightCard>
-                </Reveal>
-              ))}
-            </div>
+            {displayServices.length > 0 ? (
+              <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                {displayServices.map((service, i) => (
+                  <Reveal delay={i * 100} key={service.id}>
+                    <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-900/5">
+                      <div className="p-5">
+                        <span className={"grid size-11 place-items-center rounded-2xl " + (i % 2 === 1 ? "bg-amber-50 text-amber-600" : "bg-[#edf3f9] text-[#426b95]")}>
+                          <Icon name={service.icon} size={22} />
+                        </span>
+                        <h3 className="mt-5 text-base font-bold text-[#24395d]">{service.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">{service.description}</p>
+                      </div>
+                    </SpotlightCard>
+                  </Reveal>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-12 grid place-items-center rounded-2xl border border-dashed border-slate-200 bg-white/70 py-12 text-center">
+                <span className="mx-auto grid size-12 place-items-center rounded-xl bg-slate-100 text-slate-400">
+                  <Icon name="building" size={20} />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-[#17294b]">Nos expertises arrivent bientôt</p>
+                <p className="mt-1 max-w-md text-xs leading-5 text-slate-400">Cette section est en cours de publication par le Gérant depuis l&apos;espace vitrine.</p>
+              </div>
+            )}
           </div>
         </section>
       )}
 
-      {/* ═══ ENGAGEMENTS — en dur + dynamique */}
+      {/* ═══ ENGAGEMENTS — dynamique uniquement */}
       {displayGaranties === null ? (
         <section className="bg-white">
           <div className="mx-auto max-w-[1240px] px-5 py-16 sm:px-8 lg:py-24">
@@ -322,19 +306,29 @@ export default function ClientBrandingPage() {
                 <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] sm:text-4xl">Voici les promesses que nous faisons à chacun de nos clients.</h2>
               </div>
             </Reveal>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {displayGaranties.map((item, i) => (
-                <Reveal delay={i * 100} key={item.id}>
-                  <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
-                    <div className="p-5">
-                      <span className="grid size-10 place-items-center rounded-xl bg-[#edf3f9] text-[#426b95]"><Icon name={item.icon} size={20} /></span>
-                      <h3 className="mt-4 text-sm font-bold text-[#24395d]">{item.title}</h3>
-                      <p className="mt-2 text-xs leading-5 text-slate-500">{item.text}</p>
-                    </div>
-                  </SpotlightCard>
-                </Reveal>
-              ))}
-            </div>
+            {displayGaranties.length > 0 ? (
+              <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {displayGaranties.map((item, i) => (
+                  <Reveal delay={i * 100} key={item.id}>
+                    <SpotlightCard className="h-full border border-slate-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
+                      <div className="p-5">
+                        <span className="grid size-10 place-items-center rounded-xl bg-[#edf3f9] text-[#426b95]"><Icon name={item.icon} size={20} /></span>
+                        <h3 className="mt-4 text-sm font-bold text-[#24395d]">{item.title}</h3>
+                        <p className="mt-2 text-xs leading-5 text-slate-500">{item.text}</p>
+                      </div>
+                    </SpotlightCard>
+                  </Reveal>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-12 grid place-items-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                <span className="mx-auto grid size-12 place-items-center rounded-xl bg-white text-slate-400 shadow-sm">
+                  <Icon name="shield" size={20} />
+                </span>
+                <p className="mt-3 text-sm font-semibold text-[#17294b]">Nos engagements arrivent bientôt</p>
+                <p className="mt-1 max-w-md text-xs leading-5 text-slate-400">Cette section est en cours de publication par le Gérant depuis l&apos;espace vitrine.</p>
+              </div>
+            )}
           </div>
         </section>
       )}
