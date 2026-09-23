@@ -12,7 +12,7 @@ export type ModuleColumn = {
   label: string;
 };
 
-export type ModuleRow = Record<string, string | ModuleStatus>;
+export type ModuleRow = Record<string, unknown>;
 
 export type ModuleDefinition = {
   actionLabel: string;
@@ -392,8 +392,10 @@ export const modules: Record<string, ModuleDefinition> = {
   stocks: {
     actionLabel: "Ajouter un produit",
     columns: [
+      { id: "image", label: "Image" },
       { id: "produit", label: "Produit" },
-      { id: "dépôt", label: "Dépôt" },
+      { id: "catégorie", label: "Catégorie" },
+      { id: "dépôt", label: "Dépôt / Filiale" },
       { id: "disponible", label: "Disponible" },
       { id: "seuil", label: "Seuil minimum" },
       { id: "statut", label: "Statut" },
@@ -407,10 +409,10 @@ export const modules: Record<string, ModuleDefinition> = {
       { label: "Valeur du stock", value: "67,4 M" },
     ],
     rows: [
-      { produit: "Peinture blanc mat 25L", dépôt: "Treichville", disponible: "12 unités", seuil: "15 unités", statut: { label: "À commander", tone: "warning" } },
-      { produit: "Ciment 50 kg", dépôt: "Cocody", disponible: "04 unités", seuil: "20 unités", statut: { label: "Rupture proche", tone: "danger" } },
-      { produit: "Câble électrique 2,5 mm", dépôt: "Treichville", disponible: "09 rouleaux", seuil: "12 rouleaux", statut: { label: "À commander", tone: "warning" } },
-      { produit: "Carrelage grès 60x60", dépôt: "Marcory", disponible: "88 cartons", seuil: "30 cartons", statut: { label: "Disponible", tone: "success" } },
+      { image: "", produit: "Peinture blanc mat 25L", catégorie: "PEINTURE & FINITION", dépôt: "Treichville", disponible: "12 unités", seuil: "15 unités", statut: { label: "À commander", tone: "warning" } },
+      { image: "", produit: "Ciment 50 kg", catégorie: "MATÉRIAUX DE CONSTRUCTION", dépôt: "Cocody", disponible: "04 unités", seuil: "20 unités", statut: { label: "Rupture proche", tone: "danger" } },
+      { image: "", produit: "Câble électrique 2,5 mm", catégorie: "ÉCLAIRAGE", dépôt: "Treichville", disponible: "09 rouleaux", seuil: "12 rouleaux", statut: { label: "À commander", tone: "warning" } },
+      { image: "", produit: "Carrelage grès 60x60", catégorie: "MATÉRIAUX DE CONSTRUCTION", dépôt: "Marcory", disponible: "88 cartons", seuil: "30 cartons", statut: { label: "Disponible", tone: "success" } },
     ],
     stats: [
       { label: "Dépôts actifs", value: "06" },

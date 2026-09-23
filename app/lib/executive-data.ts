@@ -540,6 +540,7 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
   }
   const stockCritiqueParFiliale = new Map<string, number>();
   for (const p of stockCritique) {
+    if (!p.filiale_id) continue;
     stockCritiqueParFiliale.set(p.filiale_id, (stockCritiqueParFiliale.get(p.filiale_id) ?? 0) + 1);
   }
   const pointageAVerifierParFiliale = new Map<string, number>();

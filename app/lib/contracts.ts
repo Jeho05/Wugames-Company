@@ -246,6 +246,26 @@ export type CreateFournisseurPayload = {
   longitude?: number;
 };
 
+export const CATEGORIES_PRODUITS = [
+  "QUINCAILLERIE & FIXATION",
+  "OUTILS DE BRICOLAGE & MAÇONNERIE",
+  "PEINTURE & FINITION",
+  "PLOMBERIE & SANITAIRE",
+  "NETTOYAGE, HYGIÈNE & ENTRETIEN",
+  "AUTOMOBILE & LAVAGE",
+  "JARDINAGE",
+  "SÉCURITÉ",
+  "MATÉRIEL DE LABORATOIRE",
+  "MATÉRIAUX DE CONSTRUCTION",
+  "PAPETERIE & FOURNITURES",
+  "ACCESSOIRES DE BUREAU",
+  "ÉQUIPEMENTS DE PROTECTION",
+  "ÉCLAIRAGE",
+  "PETITS ARTICLES POUR LA MAISON",
+] as const;
+
+export type CategorieProduit = (typeof CATEGORIES_PRODUITS)[number];
+
 export type ProduitStatut =
   | "DISPONIBLE"
   | "REAPPROVISIONNEMENT_REQUIS"
@@ -258,19 +278,21 @@ export type MouvementType = "ENTREE" | "SORTIE_VENTE" | "SORTIE_CHANTIER" | "AJU
 export type Produit = {
   id: string;
   nom: string;
-  description: string | null;
+  description?: string | null;
   reference: string;
+  categorie?: string | null;
   prix_unitaire: string | number;
   quantite_actuelle: number;
   stock_minimum: number;
   statut: ProduitStatut;
-  adresse_reference_lat: number | null;
-  adresse_reference_lng: number | null;
-  filiale_id: string;
-  fournisseur_id: string | null;
+  image_url?: string | null;
+  adresse_reference_lat?: number | null;
+  adresse_reference_lng?: number | null;
+  filiale_id?: string | null;
+  fournisseur_id?: string | null;
   created_at: string;
   updated_at: string;
-  filiale?: FilialeLite;
+  filiale?: FilialeLite | null;
   fournisseur?: FournisseurLite | null;
   mouvements?: MouvementStock[];
 };
@@ -290,12 +312,41 @@ export type MouvementStock = {
 export type CreateProduitPayload = {
   nom: string;
   reference: string;
-  description?: string;
+  categorie?: string | null;
   prix_unitaire: number;
   quantite_actuelle?: number;
   stock_minimum?: number;
-  filiale_id: string;
+  description?: string;
+  filiale_id?: string | null;
   fournisseur_id?: string | null;
+  image_url?: string | null;
+};
+
+export type UpdateProduitPayload = Partial<{
+  nom: string;
+  reference: string;
+  categorie: string | null;
+  prix_unitaire: number;
+  quantite_actuelle: number;
+  stock_minimum: number;
+  description: string | null;
+  filiale_id: string | null;
+  fournisseur_id: string | null;
+  image_url: string | null;
+  statut: ProduitStatut;
+}>;
+
+export type ProduitFormData = {
+  nom: string;
+  reference: string;
+  categorie: string;
+  prix_unitaire: number;
+  quantite_actuelle: number;
+  stock_minimum: number;
+  description?: string;
+  filiale_id?: string | null;
+  fournisseur_id?: string | null;
+  image_url?: string | null;
 };
 
 export type CreateMouvementPayload = {

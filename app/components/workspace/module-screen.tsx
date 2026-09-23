@@ -21,10 +21,15 @@ type ModuleScreenProps = {
   onRowClick?: (row: ModuleRow) => void;
   initialCreateOpen?: boolean;
   showCreateButton?: boolean;
+  categoryFilter?: {
+    selected: string;
+    onSelect: (cat: string) => void;
+    categories: readonly string[];
+  };
 };
 
-function isModuleStatus(value: string | ModuleStatus): value is ModuleStatus {
-  return typeof value === "object";
+function isModuleStatus(value: unknown): value is ModuleStatus {
+  return typeof value === "object" && value !== null && "label" in value && "tone" in value;
 }
 
 function exportCsv(rows: ModuleRow[], definition: ModuleDefinition) {
@@ -46,7 +51,14 @@ function exportCsv(rows: ModuleRow[], definition: ModuleDefinition) {
   URL.revokeObjectURL(url);
 }
 
-export function ModuleScreen({ definition, renderCreateForm, onRowClick, initialCreateOpen = false, showCreateButton = true }: ModuleScreenProps) {
+export function ModuleScreen({
+  definition,
+  renderCreateForm,
+  onRowClick,
+  initialCreateOpen = false,
+  showCreateButton = true,
+  categoryFilter,
+}: ModuleScreenProps) {
   const [activeTab, setActiveTab] = useState(definition.tabs[0]);
   const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [query, setQuery] = useState("");
@@ -63,23 +75,30 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
   // Reset page when search or tab changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [query, activeTab]);
+  }, [query, activeTab, categoryFilter?.selected]);
 
   const visibleRows = useMemo(() => {
+    let rows = definition.rows;
+
+    if (categoryFilter?.selected) {
+      rows = rows.filter((r) => String(r.catégorie ?? "") === categoryFilter.selected);
+    }
+
     const normalizedQuery = query.trim().toLocaleLowerCase("fr");
 
     if (!normalizedQuery) {
-      return definition.rows;
+      return rows;
     }
 
-    return definition.rows.filter((row) =>
-      Object.values(row).some((value) =>
-        (isModuleStatus(value) ? value.label : value)
+    return rows.filter((row) =>
+      Object.entries(row).some(([key, value]) => {
+        if (key === "_raw" || key === "image") return false;
+        return (isModuleStatus(value) ? value.label : String(value ?? ""))
           .toLocaleLowerCase("fr")
-          .includes(normalizedQuery)
-      )
+          .includes(normalizedQuery);
+      })
     );
-  }, [definition.rows, query]);
+  }, [definition.rows, query, categoryFilter?.selected]);
 
   const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
   const paginatedRows = useMemo(() => {
@@ -169,17 +188,36 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                   </button>
                 ))}
               </div>
-              <label className="relative block min-w-0 xl:w-[250px]">
-                <span className="sr-only">Rechercher</span>
-                <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" name="search" size={16} />
-                <input
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-xs font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={"Rechercher dans " + definition.title.toLocaleLowerCase("fr")}
-                  type="search"
-                  value={query}
-                />
-              </label>
+
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+                {categoryFilter ? (
+                  <select
+                    aria-label="Filtrer par catégorie"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-700 outline-none transition focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6] sm:w-[220px]"
+                    onChange={(e) => categoryFilter.onSelect(e.target.value)}
+                    value={categoryFilter.selected}
+                  >
+                    <option value="">Toutes les catégories</option>
+                    {categoryFilter.categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+
+                <label className="relative block min-w-0 sm:w-[240px]">
+                  <span className="sr-only">Rechercher</span>
+                  <Icon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" name="search" size={16} />
+                  <input
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-xs font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder={"Rechercher dans " + definition.title.toLocaleLowerCase("fr")}
+                    type="search"
+                    value={query}
+                  />
+                </label>
+              </div>
             </div>
             <div className="mt-5 flex items-center justify-between pb-4 text-[11px]">
               <p className="font-medium text-slate-400">
@@ -201,8 +239,9 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
           {/* Mobile Card List View */}
           <div className="divide-y divide-slate-100 md:hidden">
             {paginatedRows.map((row: ModuleRow, rowIndex) => {
-              const primaryCol = definition.columns[0];
+              const primaryCol = definition.columns.find((c) => c.id !== "image") ?? definition.columns[0];
               const primaryVal = row[primaryCol?.id] ?? "";
+              const imageUrl = (row.image as string) || (row.image_url as string);
 
               return (
                 <div
@@ -210,10 +249,40 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                   key={definition.title + rowIndex}
                   onClick={() => (onRowClick ? onRowClick(row) : undefined)}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-bold text-slate-800">
-                      {isModuleStatus(primaryVal) ? primaryVal.label : primaryVal}
-                    </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {definition.columns.some((c) => c.id === "image") ? (
+                        imageUrl ? (
+                          <div className="size-11 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              alt=""
+                              className="size-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "https://placehold.co/80x80/f1f5f9/64748b?text=Produit";
+                              }}
+                              src={imageUrl}
+                            />
+                          </div>
+                        ) : (
+                          <div className="grid size-11 shrink-0 place-items-center rounded-xl border border-slate-200 bg-slate-100 text-slate-400">
+                            <Icon name="boxes" size={20} />
+                          </div>
+                        )
+                      ) : null}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-800">
+                          {isModuleStatus(primaryVal) ? primaryVal.label : String(primaryVal ?? "")}
+                        </p>
+                        {row.catégorie ? (
+                          <span className="mt-0.5 inline-flex items-center rounded-md border border-sky-100 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">
+                            {String(row.catégorie)}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+
                     {definition.columns.map((col) => {
                       const val = row[col.id];
                       return isModuleStatus(val) ? (
@@ -223,19 +292,27 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                       ) : null;
                     })}
                   </div>
+
                   <div className="grid grid-cols-2 gap-2 pt-1 text-xs text-slate-600">
-                    {definition.columns.slice(1).map((col) => {
-                      const val = row[col.id];
-                      if (isModuleStatus(val)) return null;
-                      return (
-                        <div key={col.id}>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                            {col.label}
-                          </span>
-                          <span className="font-semibold text-slate-700">{val}</span>
-                        </div>
-                      );
-                    })}
+                    {definition.columns
+                      .filter((col) => col.id !== primaryCol?.id && col.id !== "image" && col.id !== "catégorie")
+                      .map((col) => {
+                        const val = row[col.id];
+                        if (isModuleStatus(val)) return null;
+                        const isDepot = col.id === "dépôt";
+                        const isGlobalHolding = isDepot && String(val) === "Holding WUGAMS (Global)";
+
+                        return (
+                          <div key={col.id}>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                              {col.label}
+                            </span>
+                            <span className={`font-semibold ${isGlobalHolding ? "italic text-slate-400 font-normal" : "text-slate-700"}`}>
+                              {String(val ?? "—")}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               );
@@ -248,7 +325,12 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/60 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">
                   {definition.columns.map((column) => (
-                    <th className="px-5 py-3.5 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6" key={column.id}>
+                    <th
+                      className={`px-5 py-3.5 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6 ${
+                        column.id === "image" ? "w-16" : ""
+                      }`}
+                      key={column.id}
+                    >
                       {column.label}
                     </th>
                   ))}
@@ -265,6 +347,55 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                     {definition.columns.map((column, columnIndex) => {
                       const cell = row[column.id];
 
+                      if (column.id === "image") {
+                        const imgUrl = typeof cell === "string" && cell ? cell : ((row.image_url as string) || "");
+                        return (
+                          <td className="px-5 py-3 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6" key={column.id}>
+                            {imgUrl ? (
+                              <div className="size-10 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-2xs">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  alt=""
+                                  className="size-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src =
+                                      "https://placehold.co/80x80/f1f5f9/64748b?text=Produit";
+                                  }}
+                                  src={imgUrl}
+                                />
+                              </div>
+                            ) : (
+                              <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-slate-100 text-slate-400">
+                                <Icon name="boxes" size={18} />
+                              </div>
+                            )}
+                          </td>
+                        );
+                      }
+
+                      if (column.id === "catégorie") {
+                        return (
+                          <td className="px-5 py-4 text-xs font-medium text-slate-600 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6" key={column.id}>
+                            <span className="inline-flex max-w-[220px] truncate items-center rounded-lg border border-sky-100 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+                              {String(cell || "Non catégorisé")}
+                            </span>
+                          </td>
+                        );
+                      }
+
+                      if (column.id === "dépôt") {
+                        const isGlobal = String(cell) === "Holding WUGAMS (Global)";
+                        return (
+                          <td className="px-5 py-4 text-xs text-slate-600 first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6" key={column.id}>
+                            {isGlobal ? (
+                              <span className="italic text-slate-400 font-normal">Holding WUGAMS (Global)</span>
+                            ) : (
+                              <span className="font-medium text-slate-700">{String(cell ?? "—")}</span>
+                            )}
+                          </td>
+                        );
+                      }
+
                       return (
                         <td
                           className={
@@ -276,7 +407,7 @@ export function ModuleScreen({ definition, renderCreateForm, onRowClick, initial
                           {isModuleStatus(cell) ? (
                             <StatusBadge tone={cell.tone}>{cell.label}</StatusBadge>
                           ) : (
-                            cell
+                            String(cell ?? "—")
                           )}
                         </td>
                       );
