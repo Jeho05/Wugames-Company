@@ -52,6 +52,9 @@ export function ScrollExpansionHero({
 }: ScrollExpansionHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const [isCompact, setIsCompact] = useState(false);
+  // Fondu du fond à l'arrivée de l'image : évite le "pop" d'une immense photo nette
+  // qui apparaît d'un coup une fois chargée (l'image de fond doit rester un fond).
+  const [bgLoaded, setBgLoaded] = useState(false);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
 
   useEffect(() => {
@@ -76,9 +79,20 @@ export function ScrollExpansionHero({
     <section className="relative sm:h-[175vh] h-[130vh] bg-[#101c32]" ref={sectionRef}>
       <div className="sticky top-0 h-[100dvh] overflow-hidden">
         <motion.div aria-hidden="true" className="absolute inset-0" style={{ opacity: backgroundOpacity }}>
-          <Image alt="" className="object-cover scale-110 blur-[2px]" fill priority sizes="100vw" src={backgroundSrc} />
-          <div className="absolute inset-0 bg-[#091321]/72" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0%,rgba(9,19,33,0.65)_80%)]" />
+          {/* Fond d'ambiance uniquement : fort flou + overlay dense pour qu'il ne soit
+              jamais perçu comme une image "géante" concurrente du contenu. */}
+          <Image
+            alt=""
+            className={"object-cover scale-110 blur-md transition-opacity duration-700 " + (bgLoaded ? "opacity-100" : "opacity-0")}
+            fill
+            priority
+            quality={60}
+            sizes="100vw"
+            src={backgroundSrc}
+            onLoad={() => setBgLoaded(true)}
+          />
+          <div className="absolute inset-0 bg-[#091321]/80" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,transparent_0%,rgba(9,19,33,0.7)_80%)]" />
         </motion.div>
 
         <motion.div className="absolute inset-0 z-10 overflow-hidden" style={{ clipPath: mediaClip, scale: mediaScale }}>

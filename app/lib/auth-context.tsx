@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import * as authApi from "@/app/lib/api/auth";
 import * as clientSpaceApi from "@/app/lib/api/client-space";
@@ -57,24 +57,53 @@ const USER_CACHE_KEY = "wugams-user-profile";
 function cacheAuthUser(user: AuthUser): void {
   try {
     window.localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+    emitUserCacheChange();
   } catch {
     /* stockage indisponible : on reservera via l'API au prochain chargement */
   }
 }
 
-function readCachedUser(): AuthUser | null {
+/**
+ * Profil en cache vu comme store externe :
+ * - snapshot serveur = null (identique au SSR → pas de hydration mismatch #418) ;
+ * - snapshot client = contenu du localStorage, référence mémoïsée (stable tant que
+ *   la valeur brute ne change pas → pas de boucle de re-renders).
+ */
+let userCacheSnapshot: { raw: string | null; value: AuthUser | null } | undefined;
+function getUserCacheSnapshot(): AuthUser | null {
   if (typeof window === "undefined") return null;
+  let raw: string | null = null;
   try {
-    const raw = window.localStorage.getItem(USER_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
+    raw = window.localStorage.getItem(USER_CACHE_KEY);
   } catch {
-    return null;
+    raw = null;
+  }
+  if (userCacheSnapshot && userCacheSnapshot.raw === raw) return userCacheSnapshot.value;
+  let value: AuthUser | null = null;
+  try {
+    value = raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    value = null;
+  }
+  userCacheSnapshot = { raw, value };
+  return value;
+}
+function subscribeUserCache(onChange: () => void): () => void {
+  window.addEventListener("wugams:user-cache", onChange);
+  return () => window.removeEventListener("wugams:user-cache", onChange);
+}
+function emitUserCacheChange(): void {
+  try {
+    window.dispatchEvent(new Event("wugams:user-cache"));
+  } catch {
+    /* jamais appelé côté serveur */
   }
 }
 
 function clearCachedUser(): void {
   try {
     window.localStorage.removeItem(USER_CACHE_KEY);
+    emitUserCacheChange();
   } catch {
     /* rien à faire */
   }
@@ -213,8 +242,14 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  /* Profil du dernier utilisateur connu : affichage immédiat au retour (récup ). */
-  const [user, setUser] = useState<AuthUser | null>(() => readCachedUser());
+  /* null au premier render (comme le SSR) : le profil en cache arrive via le
+     store externe ci-dessous, après hydratation — jamais pendant le render,
+     sinon contenu différent du HTML serveur → React error #418 + re-render
+     complet (flash). */
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const cachedUser = useSyncExternalStore(subscribeUserCache, getUserCacheSnapshot, () => null);
+  /* Profil affiché : état réseau/local en priorité, cache local en repli. */
+  const displayUser = user ?? cachedUser;
   const [ready, setReady] = useState(false);
   const [pending2fa, setPending2fa] = useState<Pending2fa>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -226,8 +261,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    userRef.current = user;
-  }, [user]);
+    userRef.current = displayUser;
+  }, [displayUser]);
 
   const persistTokens = useCallback(async (tokens: authApi.AuthTokensLike) => {
     const session = {
@@ -446,8 +481,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired, refreshUser }),
-    [user, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired, refreshUser],
+    () => ({ user: displayUser, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired, refreshUser }),
+    [displayUser, ready, pending2fa, sessionExpired, login, verify2fa, logout, clearSessionExpired, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

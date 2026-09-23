@@ -20,14 +20,17 @@ const geistMono = Geist_Mono({
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  // Seule graisse utilisée (logo BrandMark en semibold) : les autres seraient
+  // préchargées sans jamais servir (warning "ressource préchargée inutilisée").
+  weight: ["600"],
   display: "swap",
 });
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  // Idem : seule graisse utilisée (logo BrandMark en semibold).
+  weight: ["600"],
   display: "swap",
 });
 

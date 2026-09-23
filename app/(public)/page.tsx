@@ -14,7 +14,7 @@ import { PulseButton } from "@/app/components/branding/pulse-button";
 import { TestimonialImage } from "@/app/components/branding/images";
 import { MobileNav } from "@/app/components/ui/mobile-nav";
 import { GooeyText } from "@/app/components/ui/gooey-text-morphing";
-import { ScrollChoreography } from "@/app/components/ui/scroll-choreography";
+import { ScrollExpansionHero } from "@/app/components/ui/scroll-expansion-hero";
 import { ContactForm } from "@/app/components/branding/contact-form";
 import { useAuth } from "@/app/lib/auth-context";
 import { useTemoignages, useServices, useGaranties, useMarquee } from "@/app/hooks/use-vitrine";
@@ -139,13 +139,39 @@ export default function ClientBrandingPage() {
       </header>
 
       {/* ═══ HERO ═══ */}
-      <ScrollChoreography
-        images={{
-          topLeft: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=75&w=1200&fm=webp&auto=format&fit=crop",
-          topRight: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=75&w=1200&fm=webp&auto=format&fit=crop",
-          bottomLeft: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=75&w=1200&fm=webp&auto=format&fit=crop",
-          bottomRight: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=75&w=1200&fm=webp&auto=format&fit=crop",
-        }}
+      <ScrollExpansionHero
+        backgroundSrc="https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=60&w=1200&fm=webp&auto=format&fit=crop"
+        mediaSrc="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=75&w=1600&fm=webp&auto=format&fit=crop"
+        mediaAlt="Maison contemporaine"
+        eyebrow={
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#f2c56d] backdrop-blur-sm">
+            WUGAMS Holding Inc.
+          </span>
+        }
+        titleFirstLine="Bâtir, rénover, entreprendre."
+        titleSecondLine="Avec la bonne équipe."
+        description={
+          <p>Construction, rénovation, entretien : une équipe engagée vous accompagne à chaque étape de votre projet.</p>
+        }
+        actions={
+          <div className="flex flex-col items-center gap-3 sm:flex-row">
+            <PulseButton href="#rencontre">
+              Parlons de votre projet
+            </PulseButton>
+            <Link className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:border-white/25 hover:bg-white/[0.12]" href="#solution">
+              Découvrir nos filiales
+            </Link>
+          </div>
+        }
+        proof={
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
+            <span>Devis clair</span>
+            <span aria-hidden="true" className="size-1 rounded-full bg-white/30" />
+            <span>Suivi à chaque étape</span>
+            <span aria-hidden="true" className="size-1 rounded-full bg-white/30" />
+            <span>Garantie d&apos;accompagnement</span>
+          </div>
+        }
       />
 
       {/* ═══ MARQUEE — dynamique uniquement, masqué si vide */}
