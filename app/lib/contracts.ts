@@ -278,7 +278,7 @@ export type MouvementType = "ENTREE" | "SORTIE_VENTE" | "SORTIE_CHANTIER" | "AJU
 export type Produit = {
   id: string;
   nom: string;
-  description: string | null;
+  description?: string | null;
   reference: string;
   categorie?: string | null;
   prix_unitaire: string | number;
@@ -286,10 +286,10 @@ export type Produit = {
   stock_minimum: number;
   statut: ProduitStatut;
   image_url?: string | null;
-  adresse_reference_lat: number | null;
-  adresse_reference_lng: number | null;
-  filiale_id: string | null;
-  fournisseur_id: string | null;
+  adresse_reference_lat?: number | null;
+  adresse_reference_lng?: number | null;
+  filiale_id?: string | null;
+  fournisseur_id?: string | null;
   created_at: string;
   updated_at: string;
   filiale?: FilialeLite | null;
