@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { ModuleCreateForm } from "@/app/components/workspace/module-create-form";
 import { FilialeCreateForm } from "@/app/components/workspace/filiale-create-form";
 import { ModuleScreen } from "@/app/components/workspace/module-screen";
+import { ErrorState, ForbiddenState, LoadingState, OfflineState } from "@/app/components/ui/data-states";
 import { Icon } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
 import { resetApiCache } from "@/app/lib/api-client";
@@ -14,7 +15,7 @@ import { markAsRead } from "@/app/lib/api/notifications";
 import type { ModuleDefinition, ModuleRow } from "@/app/lib/demo-data";
 import type { ModuleCreateConfig } from "@/app/lib/module-create";
 import { getModuleCreateConfig } from "@/app/lib/module-create";
-import { loadModuleData, type ModuleDataSource, type ModuleData } from "@/app/lib/module-data";
+import { loadModuleData, type ModuleDataSource, type ModuleData, type ModuleLoadError } from "@/app/lib/module-data";
 import { affecterMission } from "@/app/lib/api/missions";
 import { listUsers } from "@/app/lib/api/users";
 import { resolveNotificationHref } from "@/app/lib/notification-target";
@@ -54,6 +55,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   const router = useRouter();
   const [data, setData] = useState<ModuleData | null>(null);
   const [source, setSource] = useState<ModuleDataSource | null>(null);
+  const [loadError, setLoadError] = useState<ModuleLoadError | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
   const [affectMissionId, setAffectMissionId] = useState<string | null>(null);
@@ -65,6 +67,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
 
   const refresh = useCallback(() => {
     resetApiCache();
+    setLoadError(null);
     setRefreshKey((key) => key + 1);
   }, []);
 
@@ -103,7 +106,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
           refresh();
         });
     },
-    [slug, refresh, user?.role, router],
+    [slug, refresh, user, router],
   );
 
   const handleMissionRowClick = useCallback(
@@ -175,17 +178,22 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
 
     const extraFilters = slug === "stocks" && selectedCategory ? { categorie: selectedCategory } : undefined;
 
-    loadModuleData(slug, role, extraFilters).then((result) => {
-      if (cancelled) return;
-      if (!result) {
-        // API indisponible ou slug non géré : afficher un tableau vide plutôt qu'un loader infini
+    loadModuleData(slug, role, extraFilters).then(
+      (result) => {
+        if (cancelled) return;
+        setLoadError(null);
+        setData(result.data);
+        setSource(result.source);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        // Échec API : état d'erreur explicite — jamais de données fictives,
+        // jamais de tableau vide silencieux confondu avec « aucune donnée ».
         setData({ rows: [], stats: [], insights: [] });
         setSource(null);
-        return;
-      }
-      setData(result.data);
-      setSource(result.source);
-    });
+        setLoadError(error as ModuleLoadError);
+      },
+    );
 
     return () => {
       cancelled = true;
@@ -222,15 +230,18 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   }, [data, definition]);
 
   // Afficher un loader pendant le chargement des données — APRÈS tous les hooks
-  if (data === null) {
-    return (
-      <div className="grid min-h-[60vh] place-items-center">
-        <div className="flex flex-col items-center gap-4">
-          <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
-          <p className="text-sm font-semibold text-slate-400">Chargement des données…</p>
-        </div>
-      </div>
-    );
+  if (data === null && !loadError) {
+    return <LoadingState />;
+  }
+
+  if (loadError) {
+    if (loadError.kind === "forbidden") {
+      return <ForbiddenState title="Accès refusé" message={loadError.message} actionLabel="Réessayer" onAction={refresh} />;
+    }
+    if (loadError.kind === "offline" || loadError.kind === "timeout") {
+      return <OfflineState title="Serveur injoignable" message={loadError.message} actionLabel="Réessayer" onAction={refresh} />;
+    }
+    return <ErrorState title="Chargement impossible" message={loadError.message} actionLabel="Réessayer" onAction={refresh} />;
   }
 
   return (
@@ -297,7 +308,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
                 <Icon name="close" size={18} />
               </button>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-500">Sélectionnez l'ouvrier à affecter. Laisser vide pour une auto-affectation par rendement.</p>
+            <p className="mt-4 text-sm leading-6 text-slate-500">Sélectionnez l&apos;ouvrier à affecter. Laisser vide pour une auto-affectation par rendement.</p>
             <div className="mt-4">
               <label className="block">
                 <span className="mb-1.5 block text-xs font-bold text-slate-600">Ouvrier</span>

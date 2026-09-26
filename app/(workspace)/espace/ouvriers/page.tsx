@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
+import { ErrorState, LoadingState, OfflineState } from "@/app/components/ui/data-states";
 import { ApiError } from "@/app/lib/api-client";
-import { listEvaluations, updateEvaluation } from "@/app/lib/api/evaluations";
+import { downloadCsv } from "@/app/lib/csv";
+import { createEvaluation, listEvaluations, updateEvaluation } from "@/app/lib/api/evaluations";
 import { listUsers } from "@/app/lib/api/users";
 import { getModuleDefinition, type OuvrierPerformance } from "@/app/lib/demo-data";
 import {
@@ -43,68 +45,92 @@ function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluat
   return { workers, ids };
 }
 
+type WorkerView = OuvrierPerformance & { hasEvaluation: boolean };
+
 export default function OuvriersPage() {
   const definition = getModuleDefinition("ouvriers");
-  const [workers, setWorkers] = useState<OuvrierPerformance[]>([]);
+  const [workers, setWorkers] = useState<WorkerView[]>([]);
   const [evaluationIds, setEvaluationIds] = useState<Record<string, string>>({});
+  const [userIds, setUserIds] = useState<Record<string, string>>({});
+  const [cycleLabel, setCycleLabel] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [scores, setScores] = useState<Record<string, number[]>>({});
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<{ offline: boolean; message: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     Promise.allSettled([listUsers(), listEvaluations()]).then(([usersResult, evalResult]) => {
       if (cancelled) return;
-      
+      setLoading(false);
+
+      if (usersResult.status === "rejected" && evalResult.status === "rejected") {
+        const reason = usersResult.reason;
+        const offline =
+          reason instanceof ApiError
+            ? reason.statusCode === 0
+            : reason instanceof TypeError || (reason instanceof DOMException && reason.name === "AbortError");
+        setLoadError({
+          offline,
+          message: reason instanceof Error && reason.message ? reason.message : "Données ouvriers indisponibles.",
+        });
+        return;
+      }
+
       // Build worker map from users (ROLE_OUVRIER)
-      const userMap = new Map<string, { nom: string; specialite?: string }>();
+      const userMap = new Map<string, { nom: string; userId: string }>();
       if (usersResult.status === "fulfilled") {
         for (const u of usersResult.value) {
           if (u.role === "ROLE_OUVRIER") {
             const nom = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
-            userMap.set(nom, { nom, specialite: u.ouvrier_profile?.specialite ?? undefined });
+            userMap.set(nom, { nom, userId: u.id });
           }
         }
       }
-      
-      // Merge evaluations
+
+      // Merge evaluations (données réelles uniquement)
       const evaluationIds: Record<string, string> = {};
-      const workerMap = new Map<string, OuvrierPerformance>();
-      
+      const userIds: Record<string, string> = {};
+      const workerMap = new Map<string, WorkerView>();
+
       if (evalResult.status === "fulfilled" && evalResult.value.length > 0) {
+        setCycleLabel(evalResult.value[0].cycle_label ?? "");
         const { workers: mapped, ids } = evaluationsToWorkers(evalResult.value);
         for (const w of mapped) {
-          workerMap.set(w.nom, w);
+          workerMap.set(w.nom, { ...w, hasEvaluation: true });
           if (ids[w.nom]) evaluationIds[w.nom] = ids[w.nom];
         }
       }
-      
-      // Add users without evaluations (default scores)
+
+      // Ouvriers sans évaluation : fiche « à évaluer », saisie initiale neutre (7/10),
+      // clairement distinguée des évaluations réelles — aucune note inventée affichée.
       for (const [nom, info] of userMap) {
+        userIds[nom] = info.userId;
         if (!workerMap.has(nom)) {
-          workerMap.set(nom, {
-            nom,
-            noteTexte: 0,
-            semaines: criteria.map(() => 28), // base 40 * 0.7 = 28 default
-          });
+          workerMap.set(nom, { nom, noteTexte: 0, semaines: [], hasEvaluation: false });
         }
       }
-      
+
       const workers = Array.from(workerMap.values());
       if (workers.length === 0) {
         setWorkers([]);
         setEvaluationIds({});
+        setUserIds({});
         return;
       }
       setEvaluationIds(evaluationIds);
+      setUserIds(userIds);
       setWorkers(workers);
       setSelected(workers[0].nom);
       setScores(
         Object.fromEntries(
           workers.map((worker) => [
             worker.nom,
-            criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6),
+            worker.hasEvaluation
+              ? criteria.map((_, index) => (worker.semaines[index] ?? 28) % 10 + 6)
+              : criteria.map(() => 7),
           ])
         )
       );
@@ -117,6 +143,7 @@ export default function OuvriersPage() {
   const ranking = useMemo(
     () =>
       [...workers]
+        .filter((w) => w.hasEvaluation)
         .sort((a, b) => rendement9S(b.semaines) - rendement9S(a.semaines))
         .map((worker) => ({
           nom: worker.nom,
@@ -126,21 +153,27 @@ export default function OuvriersPage() {
   );
 
   function exportGrilleCsv() {
-    const header = ["Ouvrier", ...criteria.map((c) => c.code), "Total S1-S9", "Rendement 9S %", "Rendement texte %", "Global BR-14 %"];
-    const lines = workers.map((w) => {
-      const total = w.semaines.reduce((s, n) => s + n, 0);
-      const r9 = rendement9S(w.semaines).toFixed(1);
-      const rt = rendementTexte(w.noteTexte).toFixed(1);
-      const gl = rendementGlobal(w.semaines, w.noteTexte).toFixed(1);
-      return [w.nom, ...w.semaines.map(String), String(total), r9, rt, gl].join(";");
-    });
-    const csv = "\uFEFF" + [header.join(";"), ...lines].join("\r\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "grille-s1-s9-" + new Date().toISOString().slice(0, 10) + ".csv";
-    link.click();
-    URL.revokeObjectURL(url);
+    const evaluated = workers.filter((w) => w.hasEvaluation);
+    if (evaluated.length === 0) {
+      setToast("Aucune évaluation réelle à exporter.");
+      return;
+    }
+    downloadCsv(
+      `grille-s1-s9-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Ouvrier", ...criteria.map((c) => c.code), "Total S1-S9", "Rendement 9S %", "Rendement texte %", "Global BR-14 %"],
+      evaluated.map((w) => {
+        const total = w.semaines.reduce((s, n) => s + n, 0);
+        return [
+          w.nom,
+          ...w.semaines.map(String),
+          String(total),
+          rendement9S(w.semaines).toFixed(1),
+          rendementTexte(w.noteTexte).toFixed(1),
+          rendementGlobal(w.semaines, w.noteTexte).toFixed(1),
+        ];
+      }),
+    );
+    setToast("Grille S1-S9 exportée (évaluations réelles uniquement).");
   }
 
   if (!definition) {
@@ -149,17 +182,12 @@ export default function OuvriersPage() {
 
   const worker = workers.find((w) => w.nom === selected) ?? workers[0];
 
-  async function handleSave(worker: OuvrierPerformance) {
-    const id = evaluationIds[worker.nom];
-    if (!id) {
-      setToast("Évaluation introuvable pour " + worker.nom + ".");
-      return;
-    }
+  async function handleSave(worker: WorkerView) {
     const current = scores[worker.nom] ?? [];
     if (current.length !== criteria.length) return;
     setSaving(true);
     try {
-      await updateEvaluation(id, {
+      const payload = {
         s1: current[0] * 4,
         s2: current[1] * 4,
         s3: current[2] * 4,
@@ -169,9 +197,28 @@ export default function OuvriersPage() {
         s7: current[6] * 4,
         s8: current[7] * 4,
         s9: current[8] * 4,
-      });
+      };
+      const id = evaluationIds[worker.nom];
+      if (id) {
+        await updateEvaluation(id, payload);
+      } else {
+        // Première évaluation : création réelle via l'API (jamais de note simulée).
+        const personneId = userIds[worker.nom];
+        if (!personneId) {
+          setToast("Impossible de créer l'évaluation : compte ouvrier introuvable.");
+          return;
+        }
+        const created = await createEvaluation({
+          personne_id: personneId,
+          personne_nom: worker.nom,
+          cycle_label: cycleLabel || `Cycle ${new Date().getFullYear()}`,
+          ...payload,
+        });
+        setEvaluationIds((prev) => ({ ...prev, [worker.nom]: created.id }));
+        setWorkers((prev) => prev.map((w) => (w.nom === worker.nom ? { ...w, hasEvaluation: true } : w)));
+      }
       const saved = current.map((score) => score * 4);
-      setWorkers((prev) => prev.map((w) => (w.nom === worker.nom ? { ...w, semaines: saved } : w)));
+      setWorkers((prev) => prev.map((w) => (w.nom === worker.nom ? { ...w, semaines: saved, hasEvaluation: true } : w)));
       setToast("Grille S1-S9 enregistrée pour " + worker.nom + ".");
     } catch (cause) {
       const apiError = cause as ApiError;
@@ -179,6 +226,17 @@ export default function OuvriersPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loading) {
+    return <LoadingState message="Chargement des ouvriers et évaluations…" />;
+  }
+
+  if (loadError) {
+    if (loadError.offline) {
+      return <OfflineState title="Serveur injoignable" message={loadError.message} />;
+    }
+    return <ErrorState title="Ouvriers indisponibles" message={loadError.message} />;
   }
 
   if (!worker) {
@@ -251,7 +309,9 @@ export default function OuvriersPage() {
                       ? prev
                       : {
                           ...prev,
-                          [w.nom]: criteria.map((_, index) => (w.semaines[index] ?? 28) % 10 + 6),
+                          [w.nom]: w.hasEvaluation
+                            ? criteria.map((_, index) => (w.semaines[index] ?? 28) % 10 + 6)
+                            : criteria.map(() => 7),
                         }
                   );
                 }}
@@ -268,27 +328,42 @@ export default function OuvriersPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-bold text-[#1a2943]">{worker.nom}</p>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#edf3f9] px-2.5 py-1 text-[11px] font-bold text-[#426b95]">
-                  Rang BR-08 : <span className="text-[#17294b]">n°{rank} / {workers.length}</span>
-                </span>
-                <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-[#a06a1e]">
-                  Global : <span className="text-[#17294b]">{global.toFixed(1)} %</span>
-                </span>
+                {!worker.hasEvaluation ? (
+                  <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-[#a06a1e]">
+                    À évaluer — saisie initiale
+                  </span>
+                ) : (
+                  <>
+                    <span className="rounded-full bg-[#edf3f9] px-2.5 py-1 text-[11px] font-bold text-[#426b95]">
+                      Rang BR-08 : <span className="text-[#17294b]">n°{rank} / {ranking.length}</span>
+                    </span>
+                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-[#a06a1e]">
+                      Global : <span className="text-[#17294b]">{global.toFixed(1)} %</span>
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              {[
-                { label: "Total S1-S9 (Σ)", value: String(totalSemaines) + " / " + String(TOTAL_BASE) },
-                { label: "Rendement 9S (BR-08)", value: rend9S.toFixed(1) + " %" },
-                { label: "Rendement texte /50", value: rendTexte.toFixed(1) + " %" },
-              ].map((stat) => (
-                <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5" key={stat.label}>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
-                  <p className="mt-1 text-lg font-bold text-[#17294b]">{stat.value}</p>
-                </div>
-              ))}
-            </div>
+            {!worker.hasEvaluation ? (
+              <p className="mt-4 rounded-xl border border-dashed border-amber-200 bg-amber-50/60 p-4 text-xs leading-5 text-amber-800">
+                Aucune évaluation publiée pour {worker.nom}. Ajustez la saisie initiale ci-dessous
+                puis enregistrez : la première grille sera <strong>créée via l&apos;API</strong>.
+              </p>
+            ) : (
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Total S1-S9 (Σ)", value: String(totalSemaines) + " / " + String(TOTAL_BASE) },
+                  { label: "Rendement 9S (BR-08)", value: rend9S.toFixed(1) + " %" },
+                  { label: "Rendement texte /50", value: rendTexte.toFixed(1) + " %" },
+                ].map((stat) => (
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5" key={stat.label}>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
+                    <p className="mt-1 text-lg font-bold text-[#17294b]">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-5 space-y-3.5">
               {criteria.map((criterion, index) => {
@@ -352,7 +427,8 @@ export default function OuvriersPage() {
                 Classement du cycle (BR-08)
               </p>
               <div className="mt-3 space-y-2">
-                {ranking.map((entry, index) => (
+                {ranking.length > 0 ? (
+                  ranking.map((entry, index) => (
                   <div
                     className={
                       "flex items-center justify-between rounded-lg px-3 py-2 text-xs " +
@@ -368,7 +444,12 @@ export default function OuvriersPage() {
                     </span>
                     <span className="font-semibold text-slate-500">{entry.rang.toFixed(1)} %</span>
                   </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="rounded-lg bg-white/80 px-3 py-3 text-center text-[11px] text-slate-400">
+                    Aucune évaluation publiée pour ce cycle.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -377,15 +458,21 @@ export default function OuvriersPage() {
                 Tendance 9 semaines
               </p>
               <div className="mt-4 flex h-36 items-end gap-1.5">
-                {worker.semaines.map((value, index) => (
-                  <div className="flex flex-1 flex-col items-center gap-1.5" key={index}>
-                    <div
-                      className="w-full rounded-t-md bg-[#7ba3cc] transition-all duration-300"
-                      style={{ height: (value / WEEK_BASE) * 100 + "%", minHeight: 8 }}
-                    />
-                    <span className="text-[9px] font-bold text-slate-400">S{index + 1}</span>
-                  </div>
-                ))}
+                {worker.hasEvaluation && worker.semaines.length > 0 ? (
+                  worker.semaines.map((value, index) => (
+                    <div className="flex flex-1 flex-col items-center gap-1.5" key={index}>
+                      <div
+                        className="w-full rounded-t-md bg-[#7ba3cc] transition-all duration-300"
+                        style={{ height: (value / WEEK_BASE) * 100 + "%", minHeight: 8 }}
+                      />
+                      <span className="text-[9px] font-bold text-slate-400">S{index + 1}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="w-full self-center text-center text-[11px] text-slate-400">
+                    Tendance disponible après la première évaluation.
+                  </p>
+                )}
               </div>
               <p className="mt-4 rounded-lg bg-white p-3 text-[11px] leading-5 text-slate-500 shadow-sm">
                 Rendement global (BR-14) = 70 % × Rendement_9S + 30 % × Rendement_Texte. Il alimente

@@ -1,6 +1,5 @@
 import type { RoleCode } from "@/app/lib/contracts";
 import type { AuthUser } from "@/app/lib/auth-context";
-import { canManageVitrine } from "@/app/lib/vitrine-store";
 
 export type SearchEntry = {
   href: string;
@@ -9,9 +8,10 @@ export type SearchEntry = {
 };
 
 /**
- * Source de vérité RBAC côté front (miroir du back).
+ * Source de vérité RBAC côté front (miroir du back — affichage/navigation uniquement).
  * Chaque href correspond à une page ou un module.
  * On autorise par rôle ; le back reste le garde-fou final (403).
+ * Aucune permission n'est lue depuis le navigateur : permission inconnue = refusée.
  */
 
 const ROLE_GERANT: RoleCode = "ROLE_GERANT";
@@ -57,15 +57,18 @@ const MODULE_ROLES: Record<string, RoleCode[]> = {
   "/espace/vitrine": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"], // + délégués via canManageVitrine
 };
 
-export function canAccessHref(href: string, user: AuthUser | null): boolean {
+export function canAccessHref(href: string, user: AuthUser | null, delegatedVitrineIds: readonly string[] = []): boolean {
   if (!user) return false;
 
   // Public toujours OK (mais on ne les montre dans la recherche que si pertinent)
   if (PUBLIC_HREFS.has(href)) return true;
 
-  // Vitrine : Gérant + délégués
+  // Vitrine : Gérant / Dev Digital + délégués CONNUS VIA L'API uniquement.
+  // `delegatedVitrineIds` doit provenir de GET /vitrine/permissions ; à défaut
+  // (liste inconnue) la délégation est refusée. Le backend tranche via 403.
   if (href === "/espace/vitrine") {
-    return canManageVitrine(user) || user.role === ROLE_DEV_DIGITAL;
+    if (user.role === ROLE_GERANT || user.role === ROLE_DEV_DIGITAL) return true;
+    return delegatedVitrineIds.includes(user.id);
   }
 
   // Normalise les hrefs avec query/hashtag

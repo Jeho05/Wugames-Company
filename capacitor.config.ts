@@ -1,13 +1,13 @@
-// @ts-ignore - @capacitor/cli not required for web build, only for `npx cap` CLI
+// @ts-expect-error - @capacitor/cli requis uniquement pour `npx cap`, pas pour le build web
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.wugams.erp",
   appName: "WUGAMS",
   webDir: "out",
-  // En dev on pointe vers la prod (live updates). En build natif on sert depuis webDir si offline.
+  // Domaine officiel de production : https://wugames-company.vercel.app
   server: {
-    url: "https://wugams.vercel.app",
+    url: "https://wugames-company.vercel.app",
     cleartext: false,
     androidScheme: "https",
   },

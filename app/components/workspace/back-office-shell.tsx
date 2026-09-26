@@ -331,7 +331,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                     />
                     <div className="absolute left-0 mt-2 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10">
                       <div className="px-3 py-2 border-b border-slate-100">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Périmètre d'analyse</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Périmètre d&apos;analyse</p>
                         <p className="text-xs font-semibold text-slate-700 mt-0.5">Filtrer les indicateurs et rapports</p>
                       </div>
                       <div className="mt-1 space-y-0.5 max-h-60 overflow-y-auto">

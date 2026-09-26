@@ -11,7 +11,6 @@ export function useApiData<T>(fetcher: () => Promise<T>, deps: unknown[] = []): 
   const [state, setState] = useState<ApiDataState<T>>({ status: "loading", data: null, error: null });
   const mountedRef = useRef(true);
   const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
 
   const run = useCallback(() => {
     setState({ status: "loading", data: null, error: null });
@@ -26,9 +25,14 @@ export function useApiData<T>(fetcher: () => Promise<T>, deps: unknown[] = []): 
 
   useEffect(() => {
     mountedRef.current = true;
+    fetcherRef.current = fetcher;
+    // Chargement initial (fetch dans l'effet, usage canonique).
+    /* eslint-disable react-hooks/set-state-in-effect -- fetch initial, état loading */
     run();
+    /* eslint-enable react-hooks/set-state-in-effect */
     return () => { mountedRef.current = false; };
-  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 
   return { ...state, refetch: run };
 }

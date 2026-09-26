@@ -66,16 +66,14 @@ export function ModuleScreen({
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Synchronise l'ouverture initiale pilotée par le parent (prop → état local).
+  /* eslint-disable react-hooks/set-state-in-effect -- sync prop initiale → état local */
   useEffect(() => {
     if (initialCreateOpen && renderCreateForm) {
       setCreateOpen(true);
     }
   }, [initialCreateOpen, renderCreateForm]);
-
-  // Reset page when search or tab changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [query, activeTab, categoryFilter?.selected]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const visibleRows = useMemo(() => {
     let rows = definition.rows;
@@ -98,13 +96,17 @@ export function ModuleScreen({
           .includes(normalizedQuery);
       })
     );
-  }, [definition.rows, query, categoryFilter?.selected]);
+  }, [definition.rows, query, categoryFilter]);
 
   const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+  // Ajustement pendant le rendu (pattern React recommandé) : quand les filtres
+  // réduisent le nombre de pages, on retombe sur une page valide sans effet
+  // (ni rendu en cascade). Couvre aussi les filtres pilotés par le parent.
+  const safePage = Math.min(currentPage, totalPages);
   const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (safePage - 1) * pageSize;
     return visibleRows.slice(start, start + pageSize);
-  }, [visibleRows, currentPage, pageSize]);
+  }, [visibleRows, safePage, pageSize]);
 
   return (
     <div className="space-y-6">
@@ -426,8 +428,8 @@ export function ModuleScreen({
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 sm:px-6">
               <div className="flex items-center gap-3 text-xs text-slate-500">
                 <span>
-                  Affichage de <strong>{(currentPage - 1) * pageSize + 1}</strong> à{" "}
-                  <strong>{Math.min(currentPage * pageSize, visibleRows.length)}</strong> sur{" "}
+                  Affichage de <strong>{(safePage - 1) * pageSize + 1}</strong> à{" "}
+                  <strong>{Math.min(safePage * pageSize, visibleRows.length)}</strong> sur{" "}
                   <strong>{visibleRows.length}</strong>
                 </span>
                 <div className="flex items-center gap-1.5">
@@ -450,8 +452,8 @@ export function ModuleScreen({
               {totalPages > 1 && (
                 <div className="flex items-center gap-1">
                   <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={safePage === 1}
+                    onClick={() => setCurrentPage(Math.max(1, safePage - 1))}
                     type="button"
                     className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -464,12 +466,12 @@ export function ModuleScreen({
                       let pageNum: number;
                       if (totalPages <= 5) {
                         pageNum = i + 1;
-                      } else if (currentPage <= 3) {
+                      } else if (safePage <= 3) {
                         pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
+                      } else if (safePage >= totalPages - 2) {
                         pageNum = totalPages - 4 + i;
                       } else {
-                        pageNum = currentPage - 2 + i;
+                        pageNum = safePage - 2 + i;
                       }
 
                       return (
@@ -478,7 +480,7 @@ export function ModuleScreen({
                           onClick={() => setCurrentPage(pageNum)}
                           type="button"
                           className={`size-7 rounded-lg text-xs font-bold transition ${
-                            currentPage === pageNum
+                            safePage === pageNum
                               ? "bg-[#0c1424] text-white shadow-xs"
                               : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                           }`}
@@ -490,8 +492,8 @@ export function ModuleScreen({
                   </div>
 
                   <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={safePage === totalPages}
+                    onClick={() => setCurrentPage(Math.min(totalPages, safePage + 1))}
                     type="button"
                     className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 shadow-xs transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
                   >

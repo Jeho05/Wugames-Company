@@ -6,7 +6,9 @@ import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
 import { listChantiers } from "@/app/lib/api/chantiers";
 import { listPointages } from "@/app/lib/api/pointages";
-import { mapSites, pointagesHistory } from "@/app/lib/demo-data";
+import { ApiError } from "@/app/lib/api-client";
+import { downloadCsv } from "@/app/lib/csv";
+import { ErrorState, LoadingState, OfflineState } from "@/app/components/ui/data-states";
 import type { MapSite, PointageRecord, StatusTone } from "@/app/lib/demo-data";
 import type { Chantier, PointageHistorique } from "@/app/lib/contracts";
 
@@ -84,39 +86,61 @@ export default function CarteTerrainPage() {
   const [selected, setSelected] = useState<MapSite | null>(null);
   const [filiale, setFiliale] = useState("Toutes");
   const [toast, setToast] = useState("");
-  const [live, setLive] = useState<boolean | null>(null);
-  const [sites, setSites] = useState<MapSite[]>(mapSites);
-  const [pointages, setPointages] = useState<PointageRecord[]>(pointagesHistory);
+  // PRODUCTION — démarrage vide : aucun site fictif affiché avant la réponse API.
+  const [sites, setSites] = useState<MapSite[] | null>(null);
+  const [pointages, setPointages] = useState<PointageRecord[]>([]);
+  const [loadError, setLoadError] = useState<{ offline: boolean; message: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([listChantiers(), listPointages()])
       .then(([chantiers, pointagesApi]) => {
         if (cancelled) return;
-        if (chantiers.length === 0) return;
         setSites(chantiers.map(chantierToSite));
         setPointages(pointagesApi.map(pointageToRecord));
-        setLive(true);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (cancelled) return;
-        setLive(false);
+        const offline =
+          error instanceof ApiError
+            ? error.statusCode === 0
+            : error instanceof TypeError || (error instanceof DOMException && error.name === "AbortError");
+        setSites([]);
+        setLoadError({
+          offline,
+          message:
+            error instanceof Error && error.message
+              ? error.message
+              : "Les données terrain sont indisponibles.",
+        });
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const filiales = useMemo(() => ["Toutes", ...Array.from(new Set(sites.map((s) => s.filiale)).values()).filter(Boolean)], [sites]);
+  const sitesList = sites ?? [];
+  const filiales = useMemo(() => ["Toutes", ...Array.from(new Set(sitesList.map((s) => s.filiale)).values()).filter(Boolean)], [sitesList]);
 
   const visibleSites = useMemo(
-    () => (filiale === "Toutes" ? sites : sites.filter((site) => site.filiale === filiale)),
-    [filiale, sites],
+    () => (filiale === "Toutes" ? sitesList : sitesList.filter((site) => site.filiale === filiale)),
+    [filiale, sitesList],
   );
 
-  const activeSites = sites.filter((site) => site.tone !== "neutral").length;
-  const equipes = Array.from(new Set(sites.map((s) => s.equipe)).values()).length;
-  const effectif = sites.reduce((total, site) => total + site.effectif, 0);
+  const activeSites = sitesList.filter((site) => site.tone !== "neutral").length;
+  const equipes = Array.from(new Set(sitesList.map((s) => s.equipe)).values()).length;
+  const effectif = sitesList.reduce((total, site) => total + site.effectif, 0);
+
+  if (sites === null) {
+    return <LoadingState message="Chargement de la carte terrain…" />;
+  }
+
+  if (loadError) {
+    if (loadError.offline) {
+      return <OfflineState title="Serveur injoignable" message={loadError.message} />;
+    }
+    return <ErrorState title="Carte indisponible" message={loadError.message} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -157,9 +181,10 @@ export default function CarteTerrainPage() {
               </button>
             ))}
           </div>
-          {live !== null ? (
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-400">
             <span className="size-1.5 rounded-full bg-emerald-400" />
-          ) : null}
+            Données en direct
+          </span>
         </div>
       </section>
 
@@ -383,7 +408,18 @@ export default function CarteTerrainPage() {
             </div>
             <button
               className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#426b95] hover:text-[#17294b]"
-              onClick={() => setToast("Historique complet des pointages disponible après branchement API.")}
+              onClick={() => {
+                if (pointages.length === 0) {
+                  setToast("Aucun pointage à exporter.");
+                  return;
+                }
+                downloadCsv(
+                  `wugams_pointages_${new Date().toISOString().slice(0, 10)}.csv`,
+                  ["Ouvrier", "Mission", "Type", "Horodatage", "Latitude", "Longitude", "Statut"],
+                  pointages.map((p) => [p.ouvrier, p.mission, p.type, p.horodatage, p.lat, p.lng, p.statut]),
+                );
+                setToast("Historique des pointages exporté (données en direct).");
+              }}
               type="button"
             >
               <Icon name="download" size={15} />

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
 import { useAuth } from "@/app/lib/auth-context";
-import { canManageVitrine, getDelegatedIds, setDelegatedIds } from "@/app/lib/vitrine-store";
+import { ApiError } from "@/app/lib/api-client";
+import { canManageVitrine } from "@/app/lib/vitrine-store";
 import * as vitrineApi from "@/app/lib/api/vitrine";
 import type {
   VitrineTemoignage,
@@ -22,15 +23,109 @@ type Tab = (typeof tabs)[number];
 
 const iconOptions: IconName[] = ["folder", "sparkles", "boxes", "hardhat", "building", "shield", "check", "clock", "message", "users", "activity", "info"];
 
+/** Message utilisateur distinguant vide / erreur / accès / hors-ligne. */
+function vitrineErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.statusCode === 404) return "Endpoint vitrine indisponible côté backend — contenu non administrable pour le moment.";
+    if (error.statusCode === 401) return "Session expirée — reconnectez-vous.";
+    if (error.statusCode === 403) return "Accès refusé par le serveur.";
+    if (error.statusCode === 0) return "Serveur injoignable — vérifiez votre connexion.";
+    return error.message;
+  }
+  return error instanceof Error ? error.message : "Opération impossible — réessayez.";
+}
+
+/** Liste vitrine 100 % API : erreur explicite, jamais de contenu local simulé. */
+function usePanelList<T>(load: () => Promise<T[]>) {
+  const [list, setList] = useState<T[]>([]);
+  const [error, setError] = useState("");
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
+  });
+  const refresh = useCallback(async () => {
+    try {
+      setList(await loadRef.current());
+      setError("");
+    } catch (e) {
+      setList([]);
+      setError(vitrineErrorMessage(e));
+    }
+  }, []);
+  useEffect(() => {
+    void refresh();
+    const h = () => void refresh();
+    window.addEventListener("wugams:vitrine:change", h);
+    return () => window.removeEventListener("wugams:vitrine:change", h);
+  }, [refresh]);
+  return { list, error, refresh };
+}
+
+function PanelError({ message }: { message: string }) {
+  if (!message) return null;
+  return (
+    <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-800">
+      <Icon name="warning" size={16} className="mt-0.5 shrink-0" />
+      <span>{message}</span>
+    </div>
+  );
+}
+
+/** Mutation vitrine : succès → toast + rafraîchit ; échec → toast d'erreur explicite. */
+async function mutateVitrine(
+  onToast: (m: string) => void,
+  success: string,
+  task: () => Promise<unknown>,
+): Promise<boolean> {
+  try {
+    await task();
+    onToast(success);
+    return true;
+  } catch (e) {
+    onToast(vitrineErrorMessage(e));
+    return false;
+  }
+}
+
 export default function VitrineAdminPage() {
   const { user } = useAuth();
   const [active, setActive] = useState<Tab>("Témoignages");
   const [toast, setToast] = useState("");
+  // Délégation : source de vérité = API uniquement. `null` = chargement,
+  // `[]` = aucune délégation connue → refusée (permission inconnue = refusée).
+  const [delegated, setDelegated] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    vitrineApi
+      .listVitrinePermissions()
+      .then((ids) => {
+        if (!cancelled) setDelegated(ids);
+      })
+      .catch(() => {
+        if (!cancelled) setDelegated([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!user) return null;
 
-  const allowed = canManageVitrine(user);
+  // Garde UX d'affichage — le backend tranche réellement via 403.
+  const allowed = canManageVitrine(user, delegated ?? []);
   const isGerant = user.role === "ROLE_GERANT";
+
+  if (delegated === null) {
+    return (
+      <div className="grid min-h-[40vh] place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="size-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e3a641]" />
+          <p className="text-sm font-semibold text-slate-400">Vérification des permissions…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!allowed) {
     return (
@@ -104,12 +199,13 @@ export default function VitrineAdminPage() {
         {active === "Permissions" ? <PermissionsPanel isGerant={isGerant} onToast={setToast} currentUser={user} /> : null}
       </div>
 
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-        <p className="font-bold">Note backend</p>
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600">
+        <p className="font-bold text-[#17294b]">Source de vérité : le backend</p>
         <p className="mt-1">
-          Tant que le backend n&apos;expose pas <code className="rounded bg-white px-1 py-0.5 font-mono text-[11px]">/api/v1/vitrine/*</code>, les données sont stockées en localStorage et restent parfaitement dynamiques.
-          Dès que le backend répondra, aucune modif front ne sera nécessaire — la couche <code className="font-mono">app/lib/api/vitrine.ts</code> basculera automatiquement sur l&apos;API.
-          Le cahier des besoins complet est disponible dans <code className="font-mono">SPEC-VITRINE.md</code>.
+          Tout le contenu est lu et écrit via <code className="rounded bg-white px-1 py-0.5 font-mono text-[11px]">/api/v1/vitrine/*</code>.
+          Si un endpoint n&apos;est pas exposé, la section affiche un état « indisponible » explicite :
+          rien n&apos;est stocké ni simulé dans le navigateur. Le cahier des besoins complet est
+          disponible dans <code className="font-mono">SPEC-VITRINE.md</code>.
         </p>
       </div>
     </div>
@@ -121,28 +217,21 @@ export default function VitrineAdminPage() {
 // ------------------------------------------------------------------
 
 function TemoignagesPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [list, setList] = useState<VitrineTemoignage[]>([]);
+  const { list, error, refresh } = usePanelList(() => vitrineApi.listTemoignages());
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VitrineTemoignage | null>(null);
   const [form, setForm] = useState({ name: "", role: "", text: "", image: "", rating: 5 });
 
-  const refresh = async () => setList(await vitrineApi.listTemoignages());
-  useEffect(() => {
-    void refresh();
-    const h = () => void refresh();
-    window.addEventListener("wugams:vitrine:change", h);
-    return () => window.removeEventListener("wugams:vitrine:change", h);
-  }, []);
-
   const submit = async () => {
     if (!form.name.trim() || !form.text.trim()) return onToast("Nom et témoignage requis.");
-    if (editing) {
-      await vitrineApi.updateTemoignage(editing.id, { ...form, rating: Number(form.rating) });
-      onToast("Témoignage modifié.");
-    } else {
-      await vitrineApi.createTemoignage({ ...form, rating: Number(form.rating), is_published: true });
-      onToast("Témoignage créé — visible sur la page d’accueil.");
-    }
+    const ok = editing
+      ? await mutateVitrine(onToast, "Témoignage modifié.", () =>
+          vitrineApi.updateTemoignage(editing.id, { ...form, rating: Number(form.rating) }),
+        )
+      : await mutateVitrine(onToast, "Témoignage créé — visible sur la page d’accueil.", () =>
+          vitrineApi.createTemoignage({ ...form, rating: Number(form.rating), is_published: true }),
+        );
+    if (!ok) return;
     setOpen(false);
     setEditing(null);
     setForm({ name: "", role: "", text: "", image: "", rating: 5 });
@@ -166,6 +255,7 @@ function TemoignagesPanel({ onToast }: { onToast: (m: string) => void }) {
         </button>
       </div>
       <p className="text-xs leading-5 text-slate-500">Chaque témoignage affiche le nom, le rôle, le texte, la photo (URL Unsplash) et la note de 1 à 5 étoiles. Masqué automatiquement si vide.</p>
+      <PanelError message={error} />
 
       {list.length === 0 ? (
         <div className="grid place-items-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
@@ -204,9 +294,8 @@ function TemoignagesPanel({ onToast }: { onToast: (m: string) => void }) {
                 <button
                   className="rounded-lg border border-red-200 px-2.5 py-1.5 text-[11px] font-bold text-red-600 hover:bg-red-50"
                   onClick={async () => {
-                    await vitrineApi.deleteTemoignage(t.id);
-                    onToast("Témoignage supprimé.");
-                    void refresh();
+                    const ok = await mutateVitrine(onToast, "Témoignage supprimé.", () => vitrineApi.deleteTemoignage(t.id));
+                    if (ok) void refresh();
                   }}
                   type="button"
                 >
@@ -271,28 +360,17 @@ function TemoignagesPanel({ onToast }: { onToast: (m: string) => void }) {
 }
 
 function ServicesPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [list, setList] = useState<VitrineService[]>([]);
+  const { list, error, refresh } = usePanelList(() => vitrineApi.listServices());
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VitrineService | null>(null);
   const [form, setForm] = useState({ title: "", description: "", icon: "folder" as IconName, order: 1 });
 
-  const refresh = async () => setList(await vitrineApi.listServices());
-  useEffect(() => {
-    void refresh();
-    const h = () => void refresh();
-    window.addEventListener("wugams:vitrine:change", h);
-    return () => window.removeEventListener("wugams:vitrine:change", h);
-  }, []);
-
   const submit = async () => {
     if (!form.title.trim() || !form.description.trim()) return onToast("Titre et description requis.");
-    if (editing) {
-      await vitrineApi.updateService(editing.id, form);
-      onToast("Service modifié.");
-    } else {
-      await vitrineApi.createService({ ...form, is_published: true });
-      onToast("Service créé.");
-    }
+    const ok = editing
+      ? await mutateVitrine(onToast, "Service modifié.", () => vitrineApi.updateService(editing.id, form))
+      : await mutateVitrine(onToast, "Service créé.", () => vitrineApi.createService({ ...form, is_published: true }));
+    if (!ok) return;
     setOpen(false);
     setEditing(null);
     void refresh();
@@ -307,6 +385,7 @@ function ServicesPanel({ onToast }: { onToast: (m: string) => void }) {
         </button>
       </div>
       <p className="text-xs leading-5 text-slate-500">Gère la section &quot;Une équipe, cinq expertises&quot;. Masquée si vide — conserve les cartes existantes.</p>
+      <PanelError message={error} />
       <div className="grid gap-3 sm:grid-cols-2">
         {list.map((s) => (
           <div key={s.id} className="rounded-xl border border-slate-200 p-4">
@@ -322,7 +401,7 @@ function ServicesPanel({ onToast }: { onToast: (m: string) => void }) {
               <button className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-bold text-slate-600" onClick={() => { setEditing(s); setForm({ title: s.title, description: s.description, icon: s.icon, order: s.order }); setOpen(true); }} type="button">
                 Modifier
               </button>
-              <button className="rounded-lg border border-red-200 px-2.5 py-1.5 text-[11px] font-bold text-red-600" onClick={async () => { await vitrineApi.deleteService(s.id); onToast("Service supprimé."); void refresh(); }} type="button">
+              <button className="rounded-lg border border-red-200 px-2.5 py-1.5 text-[11px] font-bold text-red-600" onClick={async () => { const ok = await mutateVitrine(onToast, "Service supprimé.", () => vitrineApi.deleteService(s.id)); if (ok) void refresh(); }} type="button">
                 Supprimer
               </button>
             </div>
@@ -375,28 +454,17 @@ function ServicesPanel({ onToast }: { onToast: (m: string) => void }) {
 }
 
 function GarantiesPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [list, setList] = useState<VitrineGarantie[]>([]);
+  const { list, error, refresh } = usePanelList(() => vitrineApi.listGaranties());
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VitrineGarantie | null>(null);
   const [form, setForm] = useState({ title: "", text: "", icon: "shield" as IconName, order: 1 });
 
-  const refresh = async () => setList(await vitrineApi.listGaranties());
-  useEffect(() => {
-    void refresh();
-    const h = () => void refresh();
-    window.addEventListener("wugams:vitrine:change", h);
-    return () => window.removeEventListener("wugams:vitrine:change", h);
-  }, []);
-
   const submit = async () => {
     if (!form.title.trim()) return onToast("Titre requis.");
-    if (editing) {
-      await vitrineApi.updateGarantie(editing.id, form);
-      onToast("Engagement modifié.");
-    } else {
-      await vitrineApi.createGarantie({ ...form, is_published: true });
-      onToast("Engagement créé.");
-    }
+    const ok = editing
+      ? await mutateVitrine(onToast, "Engagement modifié.", () => vitrineApi.updateGarantie(editing.id, form))
+      : await mutateVitrine(onToast, "Engagement créé.", () => vitrineApi.createGarantie({ ...form, is_published: true }));
+    if (!ok) return;
     setOpen(false);
     setEditing(null);
     void refresh();
@@ -422,13 +490,14 @@ function GarantiesPanel({ onToast }: { onToast: (m: string) => void }) {
               <button className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-bold text-slate-600" onClick={() => { setEditing(g); setForm({ title: g.title, text: g.text, icon: g.icon, order: g.order }); setOpen(true); }} type="button">
                 Modifier
               </button>
-              <button className="rounded-lg border border-red-200 px-2.5 py-1.5 text-[11px] font-bold text-red-600" onClick={async () => { await vitrineApi.deleteGarantie(g.id); onToast("Supprimé."); void refresh(); }} type="button">
+              <button className="rounded-lg border border-red-200 px-2.5 py-1.5 text-[11px] font-bold text-red-600" onClick={async () => { const ok = await mutateVitrine(onToast, "Supprimé.", () => vitrineApi.deleteGarantie(g.id)); if (ok) void refresh(); }} type="button">
                 Supprimer
               </button>
             </div>
           </div>
         ))}
       </div>
+      <PanelError message={error} />
       {list.length === 0 ? <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-8 text-center text-xs text-slate-400">Aucun engagement — section masquée.</div> : null}
       {open ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 p-4">
@@ -470,21 +539,13 @@ function GarantiesPanel({ onToast }: { onToast: (m: string) => void }) {
 }
 
 function RealisationsPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [list, setList] = useState<VitrineRealisation[]>([]);
+  const { list, error, refresh } = usePanelList(() => vitrineApi.listRealisations());
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VitrineRealisation | null>(null);
   const [form, setForm] = useState({ title: "", filiale: "Rénovation", client: "", location: "", value: "", year: "2026", image: "", tags: "", description: "" });
 
-  const refresh = async () => setList(await vitrineApi.listRealisations());
-  useEffect(() => {
-    void refresh();
-    const h = () => void refresh();
-    window.addEventListener("wugams:vitrine:change", h);
-    return () => window.removeEventListener("wugams:vitrine:change", h);
-  }, []);
-
   const submit = async () => {
-    if (!form.title.trim()) return onToast("Titre requis.");
+    if (form.title.trim() === "") return onToast("Titre requis.");
     const payload = {
       title: form.title,
       filiale: form.filiale,
@@ -498,11 +559,11 @@ function RealisationsPanel({ onToast }: { onToast: (m: string) => void }) {
       is_published: true,
     };
     if (editing) {
-      await vitrineApi.updateRealisation(editing.id, payload);
-      onToast("Réalisation modifiée.");
+      const ok = await mutateVitrine(onToast, "Réalisation modifiée.", () => vitrineApi.updateRealisation(editing.id, payload));
+      if (!ok) return;
     } else {
-      await vitrineApi.createRealisation(payload);
-      onToast("Réalisation créée.");
+      const ok = await mutateVitrine(onToast, "Réalisation créée.", () => vitrineApi.createRealisation(payload));
+      if (!ok) return;
     }
     setOpen(false);
     setEditing(null);
@@ -517,6 +578,7 @@ function RealisationsPanel({ onToast }: { onToast: (m: string) => void }) {
           <Icon name="plus" size={14} /> Ajouter
         </button>
       </div>
+      <PanelError message={error} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((r) => (
           <div key={r.id} className="overflow-hidden rounded-xl border border-slate-200">
@@ -533,7 +595,7 @@ function RealisationsPanel({ onToast }: { onToast: (m: string) => void }) {
                 <button className="rounded-lg border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-600" onClick={() => { setEditing(r); setForm({ title: r.title, filiale: r.filiale, client: r.client, location: r.location, value: r.value, year: r.year, image: r.image, tags: r.tags.join(", "), description: r.description }); setOpen(true); }} type="button">
                   Modifier
                 </button>
-                <button className="rounded-lg border border-red-200 px-2.5 py-1 text-[11px] font-bold text-red-600" onClick={async () => { await vitrineApi.deleteRealisation(r.id); onToast("Supprimée."); void refresh(); }} type="button">
+                <button className="rounded-lg border border-red-200 px-2.5 py-1 text-[11px] font-bold text-red-600" onClick={async () => { const ok = await mutateVitrine(onToast, "Supprimée.", () => vitrineApi.deleteRealisation(r.id)); if (ok) void refresh(); }} type="button">
                   Supprimer
                 </button>
               </div>
@@ -592,18 +654,10 @@ function RealisationsPanel({ onToast }: { onToast: (m: string) => void }) {
 }
 
 function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
-  const [list, setList] = useState<VitrineBlogPost[]>([]);
+  const { list, error, refresh } = usePanelList(() => vitrineApi.listBlogPosts());
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<VitrineBlogPost | null>(null);
   const [form, setForm] = useState({ slug: "", title: "", category: "Conseils", author: "", date: "", read_time: "4 min", excerpt: "", image: "", content: "" });
-
-  const refresh = async () => setList(await vitrineApi.listBlogPosts());
-  useEffect(() => {
-    void refresh();
-    const h = () => void refresh();
-    window.addEventListener("wugams:vitrine:change", h);
-    return () => window.removeEventListener("wugams:vitrine:change", h);
-  }, []);
 
   const submit = async () => {
     if (!form.title.trim()) return onToast("Titre requis.");
@@ -619,13 +673,14 @@ function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
       is_published: true,
     };
     if (form.slug.trim()) (payload as Record<string, unknown>).slug = form.slug.trim();
-    if (editing) {
-      await vitrineApi.updateBlogPost(editing.id, payload as unknown as Partial<VitrineBlogPost>);
-      onToast("Article modifié.");
-    } else {
-      await vitrineApi.createBlogPost(payload as unknown as Omit<VitrineBlogPost, "id" | "created_at">);
-      onToast("Article créé.");
-    }
+    const ok = editing
+      ? await mutateVitrine(onToast, "Article modifié.", () =>
+          vitrineApi.updateBlogPost(editing.id, payload as unknown as Partial<VitrineBlogPost>),
+        )
+      : await mutateVitrine(onToast, "Article créé.", () =>
+          vitrineApi.createBlogPost(payload as unknown as Omit<VitrineBlogPost, "id" | "created_at">),
+        );
+    if (!ok) return;
     setOpen(false);
     setEditing(null);
     void refresh();
@@ -639,6 +694,7 @@ function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
           <Icon name="plus" size={14} /> Nouvel article
         </button>
       </div>
+      <PanelError message={error} />
       <div className="space-y-2">
         {list.map((p) => (
           <div key={p.id} className="flex items-center justify-between rounded-xl border border-slate-200 p-4">
@@ -652,7 +708,7 @@ function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
               <button className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600" onClick={() => { setEditing(p); setForm({ slug: p.slug, title: p.title, category: p.category, author: p.author, date: p.date, read_time: p.read_time, excerpt: p.excerpt, image: p.image, content: p.content.join("\n") }); setOpen(true); }} type="button">
                 Modifier
               </button>
-              <button className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-bold text-red-600" onClick={async () => { await vitrineApi.deleteBlogPost(p.id); onToast("Supprimé."); void refresh(); }} type="button">
+              <button className="rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-bold text-red-600" onClick={async () => { const ok = await mutateVitrine(onToast, "Supprimé.", () => vitrineApi.deleteBlogPost(p.id)); if (ok) void refresh(); }} type="button">
                 Supprimer
               </button>
             </div>
@@ -710,27 +766,27 @@ function BlogPanel({ onToast }: { onToast: (m: string) => void }) {
 
 function PermissionsPanel({ isGerant, onToast, currentUser }: { isGerant: boolean; onToast: (m: string) => void; currentUser: { id: string; role: string } }) {
   const [users, setUsers] = useState<User[]>([]);
-  const [delegated, setDelegated] = useState<string[]>([]);
+  // Source de vérité : API uniquement. `null` = chargement, `[]` = aucune
+  // délégation connue → refusée (permission inconnue = permission refusée).
+  const [delegated, setDelegated] = useState<string[] | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    // Tente d'abord l'API (source de vérité), fallback local
-    import("@/app/lib/api/vitrine").then(({ listVitrinePermissions }) =>
-      listVitrinePermissions()
-        .then((ids) => {
-          if (!cancelled) {
-            setDelegated(ids);
-            // Sync local cache
-            try {
-              const { writeLocal } = require("@/app/lib/vitrine-store");
-              writeLocal("wugams:vitrine:permissions", ids);
-            } catch {}
-          }
-        })
-        .catch(() => {
-          if (!cancelled) setDelegated(getDelegatedIds());
-        })
-    );
+    vitrineApi
+      .listVitrinePermissions()
+      .then((ids) => {
+        if (!cancelled) {
+          setDelegated(ids);
+          setError("");
+        }
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setDelegated([]);
+          setError(vitrineErrorMessage(e));
+        }
+      });
     listUsers()
       .then(setUsers)
       .catch(() => setUsers([]));
@@ -741,19 +797,17 @@ function PermissionsPanel({ isGerant, onToast, currentUser }: { isGerant: boolea
 
   const toggle = async (userId: string) => {
     if (!isGerant) return onToast("Seul le Gérant peut déléguer.");
-    const isAdding = !delegated.includes(userId);
-    const next = isAdding ? [...delegated, userId] : delegated.filter((id) => id !== userId);
-    // Optimiste UI
-    setDelegated(next);
-    setDelegatedIds(next);
+    const current = delegated ?? [];
+    const isAdding = !current.includes(userId);
     try {
-      const { grantVitrinePermission, revokeVitrinePermission } = await import("@/app/lib/api/vitrine");
-      if (isAdding) await grantVitrinePermission(userId);
-      else await revokeVitrinePermission(userId);
-      onToast(isAdding ? "Permission accordée (API)." : "Permission retirée (API).");
-    } catch {
-      // Fallback local déjà fait, on informe
-      onToast(isAdding ? "Permission accordée (local, API indisponible)." : "Permission retirée (local).");
+      if (isAdding) await vitrineApi.grantVitrinePermission(userId);
+      else await vitrineApi.revokeVitrinePermission(userId);
+      setDelegated(isAdding ? [...current, userId] : current.filter((id) => id !== userId));
+      setError("");
+      onToast(isAdding ? "Permission accordée." : "Permission retirée.");
+    } catch (e) {
+      // Échec API : l'UI reste sur l'état serveur connu, aucune bascule locale simulée.
+      onToast(vitrineErrorMessage(e));
     }
   };
 
@@ -763,7 +817,12 @@ function PermissionsPanel({ isGerant, onToast, currentUser }: { isGerant: boolea
       <p className="text-xs leading-5 text-slate-500">
         Le <strong>Gérant</strong> peut déléguer la gestion de la vitrine à n&apos;importe quel autre rôle (Secrétaire, Manager, Dev Digital, etc.).
         Les personnes autorisées verront le même atelier vitrine. Le Gérant reste le seul à pouvoir retirer/donner cette permission.
+        Les délégations sont lues et écrites via l&apos;API uniquement.
       </p>
+      <PanelError message={error} />
+      {delegated === null ? (
+        <p className="rounded-xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">Chargement des permissions…</p>
+      ) : null}
       {!isGerant ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">Vous êtes délégué : vous pouvez gérer les contenus, mais pas les permissions.</p> : null}
       <div className="overflow-hidden rounded-xl border border-slate-200">
         <table className="w-full text-left">
@@ -778,7 +837,7 @@ function PermissionsPanel({ isGerant, onToast, currentUser }: { isGerant: boolea
             {users.map((u) => {
               const name = [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
               const isG = u.role === "ROLE_GERANT";
-              const checked = isG || delegated.includes(u.id);
+              const checked = isG || (delegated ?? []).includes(u.id);
               const isSelf = u.id === currentUser.id;
               return (
                 <tr key={u.id} className="border-b border-slate-100 last:border-0">

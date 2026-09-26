@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   images: {
+    // Liste contrôlée des hébergeurs d'images (production) : pas de wildcard
+    // `hostname: "**"` — toute nouvelle source doit être ajoutée ici explicitement.
+    // Les images vitrine saisies par URL absolue passent par `img-src https:`
+    // côté CSP mais `next/image` n'optimise que ces domaines.
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
@@ -17,8 +21,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.supabase.co" },
       { protocol: "https", hostname: "**.cloudinary.com" },
       { protocol: "https", hostname: "**.amazonaws.com" },
-      // Fallback permissif : toute image https (vitrine administrable, témoignages, réalisations)
-      { protocol: "https", hostname: "**" },
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,

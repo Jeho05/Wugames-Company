@@ -8,6 +8,8 @@ import { StatusBadge } from "@/app/components/ui/status-badge";
 import { CreateAccountForm } from "@/app/components/workspace/create-account-form";
 import { EditAccountForm } from "@/app/components/workspace/edit-account-form";
 import { useAuth } from "@/app/lib/auth-context";
+import { ApiError } from "@/app/lib/api-client";
+import { downloadCsv } from "@/app/lib/csv";
 import { listAuditLogs } from "@/app/lib/api/audit-logs";
 import { listFiliales } from "@/app/lib/api/filiales";
 import { listUsers } from "@/app/lib/api/users";
@@ -39,23 +41,57 @@ const auditActionLabels: Record<AuditLog["action"], string> = {
 const tabs = ["Comptes & rôles", "Audit & journaux", "Paramètres"] as const;
 type TabType = (typeof tabs)[number];
 
-interface AdminSettings {
-  stockAlerts: boolean;
-  gpsClocking: boolean;
-  managerPerimeters: boolean;
-  mobileMoneyPayments: boolean;
-  realtimeSSE: boolean;
-  autoBackups: boolean;
-}
-
-const DEFAULT_SETTINGS: AdminSettings = {
-  stockAlerts: true,
-  gpsClocking: true,
-  managerPerimeters: true,
-  mobileMoneyPayments: true,
-  realtimeSSE: true,
-  autoBackups: true,
-};
+/**
+ * PRODUCTION (Cas B) — le backend n'expose aucun endpoint de paramètres système :
+ * seuils de stock, GPS, périmètres, Mobile Money, SSE, sauvegardes. Ces réglages
+ * sont donc affichés DÉSACTIVÉS avec un message explicite. Aucune bascule n'est
+ * persistée dans le navigateur : simuler une option système en localStorage
+ * ferait croire à une administration réelle qui n'existe pas.
+ */
+const SYSTEM_SETTINGS: { id: string; title: string; desc: string; icon: "boxes" | "map" | "users" | "shopping-bag" | "refresh" | "shield"; badge: string }[] = [
+  {
+    id: "stockAlerts",
+    title: "Seuils de stock critiques (BR-03 / BR-04)",
+    desc: "Déclenche automatiquement les alertes urgentes dès qu'un article passe sous 20 % du stock d'alerte configuré.",
+    icon: "boxes",
+    badge: "BR-03",
+  },
+  {
+    id: "gpsClocking",
+    title: "Pointage géolocalisé strict (BR-12)",
+    desc: "Exige les coordonnées GPS et rejette les pointages ouvriers à plus de 50 mètres de la filiale.",
+    icon: "map",
+    badge: "BR-12",
+  },
+  {
+    id: "managerPerimeters",
+    title: "Périmètre de filiale strict (RBAC)",
+    desc: "Restreint automatiquement la vue des managers aux données (missions, stock, factures) de leur filiale attitrée.",
+    icon: "users",
+    badge: "RBAC",
+  },
+  {
+    id: "mobileMoneyPayments",
+    title: "Passerelle Mobile Money (BR-13)",
+    desc: "Active le paiement instantané MTN Mobile Money et Moov Money pour les acomptes devis et factures boutique.",
+    icon: "shopping-bag",
+    badge: "BR-13",
+  },
+  {
+    id: "realtimeSSE",
+    title: "Flux temps réel SSE (Server-Sent Events)",
+    desc: "Diffuse les notifications de pointage, missions et alertes de stock en continu sans rechargement de page.",
+    icon: "refresh",
+    badge: "STREAM",
+  },
+  {
+    id: "autoBackups",
+    title: "Sauvegardes automatiques et intégrité",
+    desc: "Active l'archivage quotidien de l'audit log et des transactions de consolidation financière.",
+    icon: "shield",
+    badge: "BACKUP",
+  },
+];
 
 function formatAuditDate(value: string): string {
   const date = new Date(value);
@@ -80,6 +116,7 @@ function AdministrationContent() {
   });
 
   const [toast, setToast] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [filiales, setFiliales] = useState<Filiale[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -96,18 +133,9 @@ function AdministrationContent() {
   const [auditActionFilter, setAuditActionFilter] = useState<string>("ALL");
   const [auditSearchQuery, setAuditSearchQuery] = useState("");
 
-  // System settings
-  const [settings, setSettings] = useState<AdminSettings>(() => {
-    if (typeof window === "undefined") return DEFAULT_SETTINGS;
-    try {
-      const saved = localStorage.getItem("wugams:admin:settings");
-      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
-
-  // Handle URL query params (e.g. ?creer=1 or ?onglet=audit)
+  // Handle URL query params (e.g. ?creer=1 or ?onglet=audit) — synchronise l'URL
+  // (système externe) vers l'état local, usage canonique des effets.
+  /* eslint-disable react-hooks/set-state-in-effect -- sync URL externe → état local */
   useEffect(() => {
     if (searchParams.get("creer") === "1") {
       setShowCreate(true);
@@ -116,37 +144,42 @@ function AdministrationContent() {
     if (tab === "audit") setActiveTab("Audit & journaux");
     if (tab === "parametres") setActiveTab("Paramètres");
   }, [searchParams]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Load users, filiales, and audit logs
+  // Load users, filiales, and audit logs — erreurs réelles visibles, jamais silencieuses.
   const refreshData = () => {
     if (!user || !adminRoles.has(user.role)) return;
     setLoading(true);
+    setLoadError("");
     Promise.allSettled([listUsers(), listFiliales(), listAuditLogs()]).then(
       ([usersRes, filialesRes, auditRes]) => {
         if (usersRes.status === "fulfilled") setUsers(usersRes.value);
         if (filialesRes.status === "fulfilled") setFiliales(filialesRes.value);
         if (auditRes.status === "fulfilled") setAuditLogs(auditRes.value);
+        const failures = [usersRes, filialesRes, auditRes].filter((r) => r.status === "rejected");
+        if (failures.length > 0) {
+          const first = failures[0];
+          const reason = first.status === "rejected" ? first.reason : null;
+          setLoadError(
+            reason instanceof ApiError
+              ? reason.statusCode === 403
+                ? "Accès refusé par le serveur pour une ou plusieurs ressources."
+                : reason.message
+              : "Serveur injoignable — certaines listes n'ont pas pu être chargées.",
+          );
+        }
         setLoading(false);
       },
     );
   };
 
   useEffect(() => {
+    // Chargement initial des listes (fetch dans l'effet, usage canonique).
+    /* eslint-disable react-hooks/set-state-in-effect -- fetch initial, état loading */
     refreshData();
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  function handleToggleSetting(key: keyof AdminSettings) {
-    setSettings((prev) => {
-      const updated = { ...prev, [key]: !prev[key] };
-      try {
-        localStorage.setItem("wugams:admin:settings", JSON.stringify(updated));
-      } catch {
-        // ignore
-      }
-      setToast(`Paramètre "${key}" mis à jour.`);
-      return updated;
-    });
-  }
 
   function handleExportAuditCSV() {
     if (!auditLogs.length) {
@@ -154,36 +187,19 @@ function AdministrationContent() {
       return;
     }
 
-    const headers = ["ID", "Date", "Action", "Table Cible", "Utilisateur", "Email", "IP", "Payload"];
-    const rows = auditLogs.map((log) => {
-      const userName = log.user
-        ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ")
-        : "Système";
-      const userEmail = log.user?.email || "—";
-      const payload = log.valeur_apres ?? log.valeur_avant ?? log.details;
-      const payloadStr = payload ? JSON.stringify(payload).replace(/"/g, '""') : "";
-      return [
-        `"${log.id}"`,
-        `"${log.created_at}"`,
-        `"${log.action}"`,
-        `"${log.table_cible}"`,
-        `"${userName}"`,
-        `"${userEmail}"`,
-        `"${log.ip || ""}"`,
-        `"${payloadStr}"`,
-      ].join(";");
-    });
-
-    const csvContent = "\uFEFF" + [headers.join(";"), ...rows].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `wugams_audit_logs_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Données RÉELLES reçues de l'API, échappement RFC 4180 (guillemets, `;`, retours ligne).
+    downloadCsv(
+      `wugams_audit_logs_${new Date().toISOString().slice(0, 10)}.csv`,
+      ["ID", "Date", "Action", "Table Cible", "Utilisateur", "Email", "IP", "Payload"],
+      auditLogs.map((log) => {
+        const userName = log.user
+          ? [log.user.first_name, log.user.last_name].filter(Boolean).join(" ")
+          : "Système";
+        const userEmail = log.user?.email || "—";
+        const payload = log.valeur_apres ?? log.valeur_avant ?? log.details;
+        return [log.id, log.created_at, log.action, log.table_cible, userName, userEmail, log.ip || "", payload ?? ""];
+      }),
+    );
     setToast("Journal d'audit exporté au format CSV avec succès.");
   }
 
@@ -195,14 +211,32 @@ function AdministrationContent() {
   const [auditPage, setAuditPage] = useState(1);
   const [auditPageSize, setAuditPageSize] = useState(10);
 
-  // Reset pagination when filters change
-  useEffect(() => {
+  // Réinitialise la pagination directement dans les gestionnaires de filtres
+  // (évite les rendus en cascade des effets de synchronisation).
+  function updateAccountQuery(value: string) {
+    setAccountQuery(value);
     setAccountPage(1);
-  }, [accountQuery, filterRole, filterFiliale]);
+  }
 
-  useEffect(() => {
+  function updateFilterRole(value: string) {
+    setFilterRole(value);
+    setAccountPage(1);
+  }
+
+  function updateFilterFiliale(value: string) {
+    setFilterFiliale(value);
+    setAccountPage(1);
+  }
+
+  function updateAuditSearchQuery(value: string) {
+    setAuditSearchQuery(value);
     setAuditPage(1);
-  }, [auditSearchQuery, auditActionFilter]);
+  }
+
+  function updateAuditActionFilter(value: string) {
+    setAuditActionFilter(value);
+    setAuditPage(1);
+  }
 
   // Filtered accounts
   const filteredUsers = useMemo(() => {
@@ -336,6 +370,24 @@ function AdministrationContent() {
         </div>
       ) : null}
 
+      {/* Erreur API visible — distincte de « aucune donnée » */}
+      {loadError ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-800 shadow-sm">
+          <span className="flex items-center gap-2">
+            <Icon name="warning" size={16} />
+            {loadError}
+          </span>
+          <button
+            aria-label="Fermer le message d'erreur"
+            className="rounded-md p-1 text-red-700 hover:bg-red-100"
+            onClick={() => setLoadError("")}
+            type="button"
+          >
+            <Icon name="close" size={14} />
+          </button>
+        </div>
+      ) : null}
+
       {/* Quick KPI stats in Flowdash cards */}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[
@@ -438,11 +490,11 @@ function AdministrationContent() {
                   type="text"
                   placeholder="Rechercher par nom, prénom ou email..."
                   value={accountQuery}
-                  onChange={(e) => setAccountQuery(e.target.value)}
+                  onChange={(e) => updateAccountQuery(e.target.value)}
                   className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
                 />
                 {accountQuery ? (
-                  <button onClick={() => setAccountQuery("")} className="text-slate-400 hover:text-slate-600">
+                  <button onClick={() => updateAccountQuery("")} className="text-slate-400 hover:text-slate-600">
                     <Icon name="close" size={12} />
                   </button>
                 ) : null}
@@ -451,7 +503,7 @@ function AdministrationContent() {
               <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={filterRole}
-                  onChange={(e) => setFilterRole(e.target.value)}
+                  onChange={(e) => updateFilterRole(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:outline-none"
                 >
                   <option value="ALL">Tous les rôles ({users.length})</option>
@@ -464,7 +516,7 @@ function AdministrationContent() {
 
                 <select
                   value={filterFiliale}
-                  onChange={(e) => setFilterFiliale(e.target.value)}
+                  onChange={(e) => updateFilterFiliale(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:outline-none"
                 >
                   <option value="ALL">Toutes les filiales</option>
@@ -674,7 +726,7 @@ function AdministrationContent() {
                   type="text"
                   placeholder="Rechercher par table, utilisateur..."
                   value={auditSearchQuery}
-                  onChange={(e) => setAuditSearchQuery(e.target.value)}
+                  onChange={(e) => updateAuditSearchQuery(e.target.value)}
                   className="w-full bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none"
                 />
               </div>
@@ -682,7 +734,7 @@ function AdministrationContent() {
               <div className="flex items-center gap-2">
                 <select
                   value={auditActionFilter}
-                  onChange={(e) => setAuditActionFilter(e.target.value)}
+                  onChange={(e) => updateAuditActionFilter(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:outline-none"
                 >
                   <option value="ALL">Toutes les actions</option>
@@ -863,7 +915,7 @@ function AdministrationContent() {
           </div>
         ) : null}
 
-        {/* TAB 3: PARAMÈTRES */}
+        {/* TAB 3: PARAMÈTRES — backend requis, aucune simulation locale */}
         {activeTab === "Paramètres" ? (
           <div className="p-5 sm:p-6 space-y-6">
             <div>
@@ -871,69 +923,31 @@ function AdministrationContent() {
                 Règles de Gestion Opérationnelles & Sécurité
               </h2>
               <p className="mt-0.5 text-xs text-slate-500">
-                Configurez les contraintes métier du système WUGAMS Holding. Les réglages sont persistés.
+                Ces réglages sont des paramètres système : ils ne peuvent être administrés que
+                via le backend. Aucun endpoint ne les expose actuellement.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
+              <Icon name="warning" size={16} className="mt-0.5 shrink-0" />
+              <p>
+                <strong>Configuration backend indisponible.</strong> Les commandes ci-dessous sont
+                désactivées : les activer localement simulerait une administration système qui
+                n&apos;aurait aucun effet réel. Contactez l&apos;équipe backend pour exposer
+                l&apos;endpoint de paramètres système.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                {
-                  id: "stockAlerts" as const,
-                  title: "Seuils de stock critiques (BR-03 / BR-04)",
-                  desc: "Déclenche automatiquement les alertes urgentes dès qu'un article passe sous 20 % du stock d'alerte configuré.",
-                  icon: "boxes" as const,
-                  badge: "BR-03",
-                },
-                {
-                  id: "gpsClocking" as const,
-                  title: "Pointage géolocalisé strict (BR-12)",
-                  desc: "Exige les coordonnées GPS et rejette les pointages ouvriers à plus de 50 mètres de la filiale.",
-                  icon: "map" as const,
-                  badge: "BR-12",
-                },
-                {
-                  id: "managerPerimeters" as const,
-                  title: "Périmètre de filiale strict (RBAC)",
-                  desc: "Restreint automatiquement la vue des managers aux données (missions, stock, factures) de leur filiale attitrée.",
-                  icon: "users" as const,
-                  badge: "RBAC",
-                },
-                {
-                  id: "mobileMoneyPayments" as const,
-                  title: "Passerelle Mobile Money (BR-13)",
-                  desc: "Active le paiement instantané MTN Mobile Money et Moov Money pour les acomptes devis et factures boutique.",
-                  icon: "shopping-bag" as const,
-                  badge: "BR-13",
-                },
-                {
-                  id: "realtimeSSE" as const,
-                  title: "Flux temps réel SSE (Server-Sent Events)",
-                  desc: "Diffuse les notifications de pointage, missions et alertes de stock en continu sans rechargement de page.",
-                  icon: "refresh" as const,
-                  badge: "STREAM",
-                },
-                {
-                  id: "autoBackups" as const,
-                  title: "Sauvegardes automatiques et intégrité",
-                  desc: "Active l'archivage quotidien de l'audit log et des transactions de consolidation financière.",
-                  icon: "shield" as const,
-                  badge: "BACKUP",
-                },
-              ].map((setting) => {
-                const isEnabled = settings[setting.id];
+              {SYSTEM_SETTINGS.map((setting) => {
                 return (
                   <div
                     key={setting.id}
-                    className={`flex items-start justify-between gap-4 rounded-xl border p-4 transition ${
-                      isEnabled ? "border-amber-200/80 bg-amber-50/20" : "border-slate-200 bg-slate-50/40"
-                    }`}
+                    className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/40 p-4"
+                    aria-disabled="true"
                   >
                     <div className="flex items-start gap-3">
-                      <span
-                        className={`grid size-9 shrink-0 place-items-center rounded-xl shadow-sm ${
-                          isEnabled ? "bg-[#0c1424] text-[#e3a641]" : "bg-slate-200 text-slate-500"
-                        }`}
-                      >
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-200 text-slate-500 shadow-sm">
                         <Icon name={setting.icon} size={18} />
                       </span>
                       <div>
@@ -950,17 +964,13 @@ function AdministrationContent() {
                     <button
                       type="button"
                       role="switch"
-                      aria-checked={isEnabled}
-                      onClick={() => handleToggleSetting(setting.id)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isEnabled ? "bg-[#e3a641]" : "bg-slate-300"
-                      }`}
+                      aria-checked={false}
+                      aria-label={`${setting.title} — indisponible (backend requis)`}
+                      title="Indisponible : configuration backend requise"
+                      disabled
+                      className="relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-slate-300 opacity-60"
                     >
-                      <span
-                        className={`pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                          isEnabled ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      />
+                      <span className="pointer-events-none inline-block size-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out translate-x-0" />
                     </button>
                   </div>
                 );

@@ -17,6 +17,7 @@ import type {
   RoleCode,
 } from "@/app/lib/contracts";
 import type { ModuleRow, ModuleStatus, StatusTone } from "@/app/lib/demo-data";
+import { ApiError } from "@/app/lib/api-client";
 import { formatFcfa } from "@/app/lib/store-data";
 import * as clientsApi from "@/app/lib/api/clients";
 import * as fournisseursApi from "@/app/lib/api/fournisseurs";
@@ -39,9 +40,66 @@ export type ModuleData = {
   insights: { label: string; value: string }[];
 };
 
-export type ModuleDataSource = "api" | "demo";
+/**
+ * PRODUCTION — seule source : l'API backend.
+ * Le type historique `"demo"` est supprimé : aucune route de production ne
+ * doit recevoir de données fictives, même en cas de panne API.
+ */
+export type ModuleDataSource = "api";
 
 export type ModuleLoadResult = { data: ModuleData; source: ModuleDataSource };
+
+/** Erreur typée permettant à l'UI de distinguer vide / erreur / accès / hors-ligne. */
+export type ModuleLoadErrorKind =
+  | "unauthorized"
+  | "forbidden"
+  | "not-found"
+  | "offline"
+  | "timeout"
+  | "server"
+  | "unknown";
+
+export class ModuleLoadError extends Error {
+  readonly kind: ModuleLoadErrorKind;
+  readonly statusCode: number | null;
+
+  constructor(kind: ModuleLoadErrorKind, message: string, statusCode: number | null = null) {
+    super(message);
+    this.name = "ModuleLoadError";
+    this.kind = kind;
+    this.statusCode = statusCode;
+  }
+}
+
+export function toModuleLoadError(slug: string, error: unknown): ModuleLoadError {
+  if (error instanceof ModuleLoadError) return error;
+  if (error instanceof ApiError) {
+    const status = error.statusCode;
+    if (status === 401) return new ModuleLoadError("unauthorized", "Session expirée — reconnectez-vous.", 401);
+    if (status === 403) return new ModuleLoadError("forbidden", "Accès refusé par le serveur pour ce module.", 403);
+    if (status === 404) return new ModuleLoadError("not-found", `Module « ${slug} » introuvable côté serveur.`, 404);
+    if (status === 0) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes("temps") || msg.includes("timeout")) {
+        return new ModuleLoadError("timeout", "Le serveur met trop de temps à répondre.", 0);
+      }
+      return new ModuleLoadError("offline", "Serveur injoignable — vérifiez votre connexion.", 0);
+    }
+    if (status >= 500) return new ModuleLoadError("server", "Erreur serveur — réessayez dans un moment.", status);
+    return new ModuleLoadError("unknown", error.message || "Échec du chargement du module.", status);
+  }
+  if (error instanceof TypeError) {
+    return new ModuleLoadError("offline", "Serveur injoignable — vérifiez votre connexion.", null);
+  }
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return new ModuleLoadError("timeout", "Chargement interrompu (timeout).", null);
+  }
+  return new ModuleLoadError(
+    "unknown",
+    error instanceof Error ? error.message : "Échec du chargement du module.",
+    null,
+  );
+}
 
 function status(label: string, tone: StatusTone): ModuleStatus {
   return { label, tone };
@@ -684,20 +742,28 @@ const apiLoaders: Record<string, Loader> = {
   },
 };
 
+/**
+ * PRODUCTION — charge exclusivement depuis l'API.
+ * - succès (même `[]`) → `{ data, source: "api" }` ;
+ * - slug inconnu / rôle non autorisé côté front → `ModuleLoadError("not-found"|"forbidden")` ;
+ * - échec API → `ModuleLoadError` typée (jamais `null` silencieux, jamais de démo).
+ */
 export async function loadModuleData(
   slug: string,
   role: RoleCode,
   extraFilters?: Record<string, string>
-): Promise<ModuleLoadResult | null> {
+): Promise<ModuleLoadResult> {
   const loader = apiLoaders[slug];
-  if (!loader) return null;
+  if (!loader) throw new ModuleLoadError("not-found", `Module « ${slug} » inconnu.`);
 
   const usableRoles: RoleCode[] = ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_DEV_DIGITAL", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"];
-  if (!usableRoles.includes(role)) return null;
+  if (!usableRoles.includes(role)) {
+    throw new ModuleLoadError("forbidden", "Votre rôle ne permet pas d'accéder à ce module.", 403);
+  }
 
   try {
     return { data: await loader(role, extraFilters), source: "api" };
-  } catch {
-    return null;
+  } catch (error) {
+    throw toModuleLoadError(slug, error);
   }
 }

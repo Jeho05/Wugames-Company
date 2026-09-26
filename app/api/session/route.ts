@@ -1,5 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+/**
+ * Miroir de session HttpOnly pour le middleware (défense en profondeur).
+ * Ne stocke que l'access token : le contrat backend impose `refresh_token`
+ * dans le corps de `POST /auth/refresh`, donc le refresh token reste côté
+ * client (localStorage, rotation à chaque refresh) — voir `api-client.ts`.
+ * Purge complète sur DELETE (logout / session expirée).
+ */
+
 const COOKIE_NAME = "wugams_session";
 const MAX_AGE = 7 * 24 * 60 * 60; // 7d
 

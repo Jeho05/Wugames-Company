@@ -122,7 +122,6 @@ function CinematicSceneLayer({
             priority={index === 0}
             sizes="100vw"
             quality={75}
-            // @ts-ignore Next 16: fetchPriority pour la première image critique
             fetchPriority={index === 0 ? "high" : "low"}
             loading={index === 0 ? "eager" : "lazy"}
             src={scene.image}

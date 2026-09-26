@@ -1,4 +1,4 @@
-const CACHE_NAME = "wugams-v5"; // v5: launcher + splash alignés sur le vrai logo (emblème exact)
+const CACHE_NAME = "wugams-v6"; // v6: harmonisation domaine prod wugames-company.vercel.app (purge v5)
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {

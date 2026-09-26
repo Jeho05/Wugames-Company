@@ -35,6 +35,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  // Domaine officiel de production : résout les URLs absolues (OG, canonical).
+  metadataBase: new URL("https://wugames-company.vercel.app"),
   description: "Plateforme web de pilotage multi-filiales de WUGAMS Holding Inc.",
   title: {
     default: "WUGAMS | Pilotage multi-filiales",

@@ -215,7 +215,7 @@ export function EditAccountForm({ account, filiales = [], onClose, onUpdated, on
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Filiale d'affectation
+                Filiale d&apos;affectation
               </label>
               <select
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-800 transition focus:border-[#e3a641] focus:bg-white focus:outline-hidden"

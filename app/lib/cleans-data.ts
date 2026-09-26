@@ -1,6 +1,9 @@
 /* ------------------------------------------------------------------ */
-/* Wugams Cleans — abonnements & services rendus (front, données démo) */
+/* Wugams Cleans — abonnements & services rendus (données API)       */
 /* Complément du Doc Technique ERP v2.0 — WUGAMS HOLDING INC.          */
+/* PRODUCTION — aucune donnée fictive : le catalogue des plans est un  */
+/* contenu commercial statique, les abonnements/services viennent de   */
+/* l'API (`loadCleansOverview`) ou d'un état vide explicite.           */
 /* ------------------------------------------------------------------ */
 
 export type CleansServiceStatut = "PLANIFIE" | "REALISE" | "VALIDE";
@@ -46,7 +49,7 @@ export type CleansAbonnement = {
 };
 
 export type CleansOverview = {
-  source: "demo";
+  source: "api" | "empty";
   abonnement: CleansAbonnement;
   services: CleansService[];
 };
@@ -113,109 +116,6 @@ export const cleansPlans: CleansPlan[] = [
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/* Données de démonstration                                            */
-/* ------------------------------------------------------------------ */
-
-const demoAbonnement: CleansAbonnement = {
-  statut: "ACTIF",
-  planId: "plan-a",
-  planNom: "Plan A – Résidences & Maisons",
-  nbToilettes: 2,
-  prixMensuel: 7_500,
-  dateDebut: "1er juillet 2026",
-  prochainPaiement: "1er septembre 2026",
-  prochainPassage: "Mercredi 13 août · 08:00",
-  localisation: "Bénin, Porto-Novo / Dowa Saint-Paul C/31",
-};
-
-const demoServices: CleansService[] = [
-  {
-    id: "cs1",
-    date: "12 août 2026",
-    heure: "08:00",
-    adresse: "Dowa Saint-Paul C/31 · Résidence",
-    cleaner: "Marina H. · Wugams Cleaner",
-    statut: "REALISE",
-    photoAvant: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop",
-    photoApres: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=75&auto=format&fit=crop",
-    note: "Nettoyage complet des 2 équipements. Produit détergent désinfectant appliqué.",
-    toiletteNumero: 1,
-    notesTravailleur: "Joint de chasse d'eau à remplacer. robinet à serrage à resserrer.",
-  },
-  {
-    id: "cs2",
-    date: "12 août 2026",
-    heure: "08:30",
-    adresse: "Dowa Saint-Paul C/31 · Résidence",
-    cleaner: "Marina H. · Wugams Cleaner",
-    statut: "REALISE",
-    photoAvant: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=75&auto=format&fit=crop",
-    photoApres: "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?w=800&q=75&auto=format&fit=crop",
-    note: "Entretien hebdomadaire. Recommandation : renouveler les pastilles WC la semaine prochaine.",
-    toiletteNumero: 2,
-    notesTravailleur: "Peinture écaillée près du sol — à repeindre. Acheter des pastilles WC.",
-  },
-  {
-    id: "cs3",
-    date: "5 août 2026",
-    heure: "09:30",
-    adresse: "Dowa Saint-Paul C/31 · Résidence",
-    cleaner: "Marina H. · Wugams Cleaner",
-    statut: "VALIDE",
-    photoAvant: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=75&auto=format&fit=crop",
-    photoApres: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=75&auto=format&fit=crop",
-    note: "Désinfection complète. Aucune anomalie constatée.",
-    toiletteNumero: 1,
-    notesTravailleur: "RAS — tout est en bon état.",
-  },
-  {
-    id: "cs4",
-    date: "5 août 2026",
-    heure: "10:00",
-    adresse: "Dowa Saint-Paul C/31 · Résidence",
-    cleaner: "Marina H. · Wugams Cleaner",
-    statut: "VALIDE",
-    photoAvant: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=75&auto=format&fit=crop",
-    photoApres: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=75&auto=format&fit=crop",
-    note: "Nettoyage standard effectué.",
-    toiletteNumero: 2,
-    notesTravailleur: "Carrelage fissuré près de la douche — à réparer. Produit assainissant à racheter.",
-  },
-  {
-    id: "cs5",
-    date: "29 juillet 2026",
-    heure: "08:15",
-    adresse: "Dowa Saint-Paul C/31 · Résidence",
-    cleaner: "Marina H. · Wugams Cleaner",
-    statut: "VALIDE",
-    photoAvant: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=75&auto=format&fit=crop",
-    photoApres: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=75&auto=format&fit=crop",
-    note: "Désinfection complète. Aucune anomalie constatée.",
-    toiletteNumero: 2,
-    notesTravailleur: "RAS.",
-  },
-  {
-    id: "cs6",
-    date: "13 août 2026",
-    heure: "08:00",
-    adresse: "Dowa Saint-Paul C/31 · Résidence",
-    cleaner: "Marina H. · Wugams Cleaner",
-    statut: "PLANIFIE",
-    photoAvant: null,
-    photoApres: null,
-    note: null,
-    toiletteNumero: 1,
-    notesTravailleur: null,
-  },
-];
-
-export const demoCleansOverview: CleansOverview = {
-  source: "demo",
-  abonnement: demoAbonnement,
-  services: demoServices,
-};
-
 export const cleansServiceStatutMeta: Record<CleansServiceStatut, { label: string; tone: string }> = {
   PLANIFIE: { label: "Planifié", tone: "border-sky-200 bg-sky-50 text-sky-700" },
   REALISE: { label: "Réalisé", tone: "border-amber-200 bg-amber-50 text-amber-700" },
@@ -261,12 +161,11 @@ export function groupServicesByDay(services: CleansService[]): CleansDayGroup[] 
 }
 
 /* ------------------------------------------------------------------ */
-/* État initial — nouveau client = SANS abonnement                     */
-/* Le client choisit ensuite son plan (A / B / C) depuis l'UI.         */
+/* État vide — aucun abonnement fictif affiché                         */
 /* ------------------------------------------------------------------ */
 
 export const emptyCleansOverview: CleansOverview = {
-  source: "demo",
+  source: "empty",
   abonnement: {
     statut: "AUCUN",
     planId: null,
@@ -289,7 +188,9 @@ export async function loadCleansOverview(): Promise<CleansOverview> {
   try {
     const { apiFetch } = await import("@/app/lib/api-client");
     const data = await apiFetch<CleansOverview>("/cleans/overview", { cacheTtlMs: 0 });
-    if (data && Array.isArray((data as unknown as { services?: unknown }).services)) return data;
+    if (data && Array.isArray((data as unknown as { services?: unknown }).services)) {
+      return { ...data, source: "api" };
+    }
   } catch {
     /* API non dispo — nouveau client reste SANS abonnement, pas de mock */
   }

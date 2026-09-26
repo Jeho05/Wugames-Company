@@ -59,7 +59,8 @@ export function ExecutiveCommandCenter() {
     setRefreshing(false);
   }, [selectedFilialeId]);
 
-  // Load data whenever selectedFilialeId changes
+  // Load data whenever selectedFilialeId changes (fetch dans l'effet, usage canonique).
+  /* eslint-disable react-hooks/set-state-in-effect -- fetch initial, état loading */
   useEffect(() => {
     let cancelled = false;
     setRefreshing(true);
@@ -73,6 +74,7 @@ export function ExecutiveCommandCenter() {
       cancelled = true;
     };
   }, [selectedFilialeId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 

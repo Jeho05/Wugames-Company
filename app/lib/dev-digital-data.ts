@@ -161,7 +161,7 @@ export async function loadDevDigitalOverview(firstName?: string | null): Promise
 
   let logs: AuditLog[] = [];
   let auditError: DevDigitalOverview["auditError"] = null;
-  const source: "api" = "api";
+  const source = "api" as const;
 
   if (logsResult.status === "fulfilled") {
     logs = logsResult.value;

@@ -4,7 +4,20 @@
  * - Sérialisation JSON + injection du jeton Bearer.
  * - Enveloppe d'erreur NestJS normalisée ({ statusCode, message, error, timestamp }).
  * - Refresh automatique (single-flight) du jeton sur 401, puis retry une fois.
- * - Session persistée dans localStorage, observable par l'UI (auth-context).
+ * - 403 = refus d'autorisation métier (jamais traité comme un problème de session).
+ * - 5xx / réseau / timeout = erreurs propagées, JAMAIS converties en données de repli.
+ *
+ * Modèle de session (contrainte du contrat backend actuel : `POST /auth/refresh`
+ * exige `refresh_token` dans le corps, donc le refresh ne peut pas être 100 %
+ * HttpOnly sans évolution backend) :
+ * - `accessToken` + `refreshToken` conservés dans `localStorage` (clé `wugams-session`),
+ *   avec rotation du refresh token à chaque refresh réussi quand le backend en
+ *   fournit un nouveau ;
+ * - miroir `HttpOnly; Secure (prod); SameSite=Strict` du seul access token via
+ *   `/api/session`, lu par le middleware pour la navigation (défense en profondeur) ;
+ * - purge complète (local + cookie) à la déconnexion et sur 401/403 du refresh.
+ * Seules ces deux valeurs de session vivent dans le stockage navigateur ; aucun
+ * autre secret, aucune permission, aucune donnée métier n'y est conservée.
  */
 
 export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "/api/v1").replace(/\/+$/, "");
@@ -392,8 +405,23 @@ async function performFetch<T>(url: string, options: ApiFetchOptions): Promise<T
     return undefined as T;
   }
 
+  // Ne jamais supposer que toute réponse 2xx est JSON : on vérifie le
+  // Content-Type avant de parser, sinon erreur explicite (jamais de donnée bricolée).
+  const contentType = response.headers.get("content-type") ?? "";
   const text = await response.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+  if (!text) return undefined as T;
+  if (!contentType.includes("application/json")) {
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      throw new ApiError(response.status, "Réponse inattendue du serveur (format non-JSON).");
+    }
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiError(response.status, "Réponse inattendue du serveur (JSON invalide).");
+  }
 }
 
 /** Variante sans token (login, 2FA, refresh, santé). */

@@ -23,9 +23,11 @@ function useVitrineResource<T>(fetcher: () => Promise<T[]>, filter?: (items: T[]
       setData(f ? f(list) : list);
       setError(null);
     } catch (e) {
-      console.error("[vitrine]", e);
+      // Contenu public : la section est masquée (état vide) mais l'erreur reste
+      // exposée aux consommateurs via `error` — jamais de contenu de substitution.
+      if (typeof console !== "undefined") console.error("[vitrine]", e);
       setData([]);
-      setError(e instanceof Error ? e.message : "Erreur");
+      setError(e instanceof Error ? e.message : "Contenu indisponible");
     }
   }, []);
 
@@ -37,12 +39,12 @@ function useVitrineResource<T>(fetcher: () => Promise<T[]>, filter?: (items: T[]
     };
     window.addEventListener("wugams:vitrine:change", onChange);
     // Garde-fou : le back serverless peut mettre ~10s à sortir d'un cold start.
-    // On ne force le fallback local qu'après 12s pour laisser une chance au réseau.
+    // Passé 12s sans réponse, on expose un état d'erreur explicite (section masquée).
     const t = setTimeout(() => {
       if (!cancelled) {
         setData((prev) => {
           if (prev === null) {
-            setError("Timeout");
+            setError("Délai dépassé — contenu indisponible pour le moment.");
             return [];
           }
           return prev;

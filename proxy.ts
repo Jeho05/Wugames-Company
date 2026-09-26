@@ -1,5 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+/**
+ * Middleware / proxy frontend — NAVIGATION + UX + DÉFENSE EN PROFONDEUR.
+ *
+ * Ce middleware n'est PAS l'autorité de sécurité :
+ * - le décodage du payload JWT ci-dessous (`decodeJwtPayload`) ne vérifie AUCUNE
+ *   signature : il sert uniquement à expirer proprement la navigation côté UX ;
+ * - les rôles lus ici masquent des routes pour éviter des navigations inutiles ;
+ * - le BACKEND reste la seule autorité RBAC métier (403) et de session (401).
+ */
+
 const PUBLIC_PATHS = new Set(["/", "/connexion", "/connexion-travailleur", "/inscription", "/blog", "/realisations", "/boutique", "/mode2vie", "/vitrine", "/horizon", "/cinematic-hero"]);
 const PUBLIC_PREFIXES = ["/_next", "/api/session", "/favicon.ico"];
 
