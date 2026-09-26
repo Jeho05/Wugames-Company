@@ -296,11 +296,11 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
       {/* Main Content Area */}
       <div className="min-h-screen overflow-x-hidden lg:pl-[264px]">
         {/* Flowdash Light Top Navbar */}
-        <header className="sticky top-0 z-30 flex h-[68px] items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-md xl:px-8 shadow-xs">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 flex h-[68px] items-center justify-between gap-1.5 border-b border-slate-200 bg-white/95 px-2 backdrop-blur-md min-[380px]:px-3 sm:gap-2 sm:px-4 xl:px-8 shadow-xs">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
             <button
               aria-label="Ouvrir le menu"
-              className="grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 shadow-xs lg:hidden"
+              className="grid size-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 shadow-xs lg:hidden"
               onClick={() => setMobileOpen(true)}
               type="button"
             >
@@ -309,18 +309,18 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
 
             {/* Filiale Switcher Dropdown (Flowdash Multi-Tenancy Selector) */}
             {!isClient && (
-              <div className="relative">
+              <div className="relative min-w-0">
                 <button
                   type="button"
                   onClick={() => setFilialeDropdownOpen((prev) => !prev)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition"
+                  className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition sm:px-3"
                   title="Changer de filiale ou voir le groupe consolidé"
                 >
-                  <span className="size-2 rounded-full bg-[#e3a641]" />
-                  <span className="max-w-[180px] truncate sm:max-w-[240px] font-bold text-[#17294b]">
+                  <span className="size-2 shrink-0 rounded-full bg-[#e3a641]" />
+                  <span className="max-w-[24vw] truncate font-bold text-[#17294b] min-[480px]:max-w-[140px] sm:max-w-[240px]">
                     {currentFilialeLabel}
                   </span>
-                  <Icon name="chevron-down" size={13} className="text-slate-400" />
+                  <Icon name="chevron-down" size={13} className="shrink-0 text-slate-400" />
                 </button>
 
                 {filialeDropdownOpen && (
@@ -329,7 +329,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                       className="fixed inset-0 z-40"
                       onClick={() => setFilialeDropdownOpen(false)}
                     />
-                    <div className="absolute left-0 mt-2 z-50 w-72 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10">
+                    <div className="absolute left-0 mt-2 z-50 w-[calc(100vw-2rem)] max-w-72 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10">
                       <div className="px-3 py-2 border-b border-slate-100">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Périmètre d&apos;analyse</p>
                         <p className="text-xs font-semibold text-slate-700 mt-0.5">Filtrer les indicateurs et rapports</p>
@@ -382,17 +382,18 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
           </div>
 
           {/* Right Topbar Actions */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2.5">
             {/* Flowdash Quick Search Trigger */}
             <WorkspaceCommandSearch />
 
-            {/* Quick Action (+) Dropdown Button */}
+            {/* Quick Action (+) Dropdown Button — masqué sur très petit écran :
+                chaque module expose déjà son propre bouton de création. */}
             {!isClient && (
-              <div className="relative">
+              <div className="relative hidden min-[480px]:block">
                 <button
                   type="button"
                   onClick={() => setQuickActionsOpen((prev) => !prev)}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#e3a641] px-3 py-2 text-xs font-bold text-[#0c1424] shadow-sm hover:bg-[#efb653] transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#e3a641] px-2.5 py-2 text-xs font-bold text-[#0c1424] shadow-sm hover:bg-[#efb653] transition sm:px-3"
                   title="Créer rapidement une ressource"
                 >
                   <Icon name="plus" size={15} />
@@ -461,7 +462,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
             {!isClient && (
               <Link
                 aria-label="Notifications"
-                className="relative grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-xs transition hover:border-slate-300 hover:text-[#17294b]"
+                className="relative grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-xs transition hover:border-slate-300 hover:text-[#17294b] sm:size-10"
                 href="/espace/notifications"
                 title={streamState === "live" ? "Notifications en direct" : "Notifications"}
               >
@@ -487,7 +488,7 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                 />
               ) : null}
               <button
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-2.5 shadow-xs transition hover:border-slate-300"
+                className="flex shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-1.5 pr-2 shadow-xs transition hover:border-slate-300 sm:pr-2.5"
                 type="button"
                 onClick={() => setUserMenuOpen((open) => !open)}
                 title="Menu du compte"
