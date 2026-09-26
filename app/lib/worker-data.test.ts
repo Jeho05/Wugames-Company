@@ -69,8 +69,16 @@ describe("actionForMission", () => {
     expect(actionForMission(mission("EN_COURS"), true, false)).toEqual({ kind: "rediger_rapport" });
   });
 
-  it("propose de soumettre le rapport une fois photo et brouillon prêts", () => {
-    expect(actionForMission(mission("EN_COURS"), true, true)).toEqual({ kind: "soumettre_rapport" });
+  it("propose de soumettre le rapport une fois photo, brouillon et sortie prêts", () => {
+    expect(actionForMission(mission("EN_COURS"), true, true, true)).toEqual({ kind: "soumettre_rapport" });
+  });
+
+  it("rend la sortie atteignable avant la soumission (workflow non bloqué)", () => {
+    expect(actionForMission(mission("EN_COURS"), true, true, false)).toEqual({ kind: "pointer_sortie" });
+  });
+
+  it("met la mission planifiée en attente (pas d'acceptation avant notification)", () => {
+    expect(actionForMission(mission("PLANIFIE"), false, false)).toEqual({ kind: "attente_validation" });
   });
 
   it("attend la validation pour les statuts à vérifier", () => {

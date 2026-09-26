@@ -62,6 +62,11 @@ export type WorkerOverview = {
   twoFactor: boolean;
   email: string;
   phone: string;
+  /** false quand l'identité ouvrier n'est pas résolue : aucune mission d'autrui ne doit être affichée. */
+  identityOk: boolean;
+  /** true si au moins une source API a échoué (données partielles, pas "0"). */
+  partial: boolean;
+  loadErrors: string[];
 };
 
 export type WorkerMissionAction =
@@ -102,8 +107,16 @@ const statutProgression: Record<MissionStatut, number> = {
   TERMINE: 100,
 };
 
-export function actionForMission(mission: WorkerMission, hasPhotos: boolean, hasDraft: boolean): WorkerMissionAction {
+export function actionForMission(
+  mission: WorkerMission,
+  hasPhotos: boolean,
+  hasDraft: boolean,
+  hasSortie: boolean = true,
+): WorkerMissionAction {
   switch (mission.statut) {
+    case "PLANIFIE":
+      // Pas encore notifiée à l'ouvrier : en attente, aucune action.
+      return { kind: "attente_validation" };
     case "NOTIFIE":
       return { kind: "accepter" };
     case "ACCEPTE":
@@ -111,6 +124,9 @@ export function actionForMission(mission: WorkerMission, hasPhotos: boolean, has
     case "EN_COURS":
       if (!hasPhotos) return { kind: "ajouter_photo" };
       if (!hasDraft) return { kind: "rediger_rapport" };
+      // La sortie est une étape explicite du workflow : elle doit rester
+      // atteignable avant la soumission du rapport.
+      if (!hasSortie) return { kind: "pointer_sortie" };
       return { kind: "soumettre_rapport" };
     case "POINTAGE_A_VERIFIER":
       return { kind: "attente_validation" };
@@ -178,44 +194,88 @@ export function toWorkerMission(mission: Mission): WorkerMission {
 /* Chargement — uniquement les missions de cet ouvrier                 */
 /* ------------------------------------------------------------------ */
 
-export async function loadWorkerOverview(userId: string | null, ouvrierId: string | null): Promise<WorkerOverview> {
+export type WorkerProfileInput = {
+  nom?: string | null;
+  matricule?: string | null;
+  specialite?: string | null;
+  filiale?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  twoFactor?: boolean | null;
+} | null | undefined;
+
+/* ------------------------------------------------------------------ */
+/* Chargement — uniquement les missions de cet ouvrier                 */
+/* ------------------------------------------------------------------ */
+
+export async function loadWorkerOverview(
+  userId: string | null,
+  ouvrierId: string | null,
+  profile?: WorkerProfileInput,
+): Promise<WorkerOverview> {
   const now = Date.now();
-  const [missionsResult, notificationsResult, rankingResult] = await Promise.allSettled([
+  const [missionsResult, notificationsResult, rankingResult, evaluationsResult] = await Promise.allSettled([
     missionsApi.listMissions(),
     notificationsApi.listNotifications(),
     evaluationsApi.evaluationRanking(),
+    evaluationsApi.listEvaluations(),
   ]);
+
+  const loadErrors: string[] = [];
+  if (missionsResult.status === "rejected") loadErrors.push("missions");
+  if (notificationsResult.status === "rejected") loadErrors.push("notifications");
+  if (rankingResult.status === "rejected") loadErrors.push("ranking");
 
   const allMissions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
   const allNotifications = notificationsResult.status === "fulfilled" ? notificationsResult.value : [];
 
-  /* Isolation stricte : uniquement les missions de cet ouvrier */
-  const missions = ouvrierId
+  /* Isolation stricte : sans identité ouvrier résolue, on n'affiche AUCUNE
+     mission (jamais celles d'autres ouvriers). Le backend reste l'autorité,
+     mais le frontend doit être défensif. */
+  const identityOk = Boolean(ouvrierId);
+  const missions = identityOk
     ? allMissions.filter((mission) => mission.ouvrier_id === ouvrierId)
-    : allMissions.filter((mission) => (mission.ouvrier_id ?? "").length > 0).slice(0, 6);
+    : [];
 
   const view = missions
     .sort((a, b) => new Date(a.date_planifiee ?? a.created_at).getTime() - new Date(b.date_planifiee ?? b.created_at).getTime())
     .map(toWorkerMission);
 
+  // Les notifications sont servies par le backend scopé à l'utilisateur
+  // connecté (SPEC-BACKEND §4.9 : stream + GET par destinataire). Sans champ
+  // destinataire dans le contrat, aucun filtrage local n'est inventé ici.
   const unread = allNotifications.filter((notification) => !notification.lu).length;
 
+  // Classement : identifié par l'identité réelle (user.id / ouvrier_profile.id
+  // via personne_id), jamais par un nom en dur. Sans correspondance fiable,
+  // le classement reste indisponible (null) au lieu d'un rang inventé.
   let ranking: WorkerRanking | null = null;
   if (rankingResult.status === "fulfilled" && rankingResult.value) {
     const data = rankingResult.value;
-    const maPlace = data.evaluations.findIndex((entry) => entry.personne_nom.toLowerCase().includes("kouassi"));
-    if (data.evaluations.length > 0) {
-      const place = maPlace >= 0 ? maPlace + 1 : Math.min(data.evaluations.length, 3);
-      const entry = data.evaluations[Math.min(maPlace >= 0 ? maPlace : data.evaluations.length - 1, data.evaluations.length - 1)];
+    const ordered = [...data.evaluations].sort((a, b) => Number(b.rendement_9s) - Number(a.rendement_9s));
+    let myIndex = -1;
+    if (evaluationsResult.status === "fulfilled") {
+      const mine = evaluationsResult.value.find(
+        (entry) => entry.personne_id === userId || entry.personne_id === ouvrierId,
+      );
+      if (mine) {
+        myIndex = ordered.findIndex((entry) => entry.personne_nom === mine.personne_nom);
+      }
+    }
+    if (myIndex >= 0) {
+      const entry = ordered[myIndex];
+      const place = myIndex + 1;
       ranking = {
         rendement: Math.round(Number(entry.rendement_9s)),
         rang: place,
-        totalParticipants: data.evaluations.length,
+        totalParticipants: ordered.length,
         cycle: data.cycles[data.cycles.length - 1]?.label ?? "Cycle en cours",
         evolution: place <= 3 ? "up" : "stable",
         positions: Math.max(place - 1, 0),
-        meilleureNote: `Rang ${place} / ${data.evaluations.length} sur le cycle`,
+        meilleureNote: `Rang ${place} / ${ordered.length} sur le cycle`,
       };
+    } else {
+      ranking = null;
     }
   }
 
@@ -225,11 +285,18 @@ export async function loadWorkerOverview(userId: string | null, ouvrierId: strin
     missions: view,
     notifications: { list: allNotifications.slice(0, 12), unread },
     ranking,
-    worker: { nom: "Ouvrier", matricule: "—", specialite: "—" },
-    filiale: missions.find((mission) => mission.filiale?.nom)?.filiale?.nom ?? "WUGAMS",
-    twoFactor: false,
-    email: "",
-    phone: "",
+    worker: {
+      nom: profile?.nom?.trim() || "Non renseigné",
+      matricule: profile?.matricule?.trim() || "Non renseigné",
+      specialite: profile?.specialite?.trim() || "Non renseigné",
+    },
+    filiale: profile?.filiale?.trim() || missions.find((mission) => mission.filiale?.nom)?.filiale?.nom || "Non renseigné",
+    twoFactor: profile?.twoFactor ?? false,
+    email: profile?.email ?? "",
+    phone: profile?.phone ?? "",
+    identityOk,
+    partial: loadErrors.length > 0,
+    loadErrors,
   };
 }
 

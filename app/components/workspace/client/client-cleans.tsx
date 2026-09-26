@@ -7,6 +7,7 @@ import { Icon } from "@/app/components/ui/app-icon";
 import { ClientSection } from "@/app/components/workspace/client/client-section";
 import { WugamsCleanCatalog } from "@/app/components/branding/wugams-clean-catalog";
 import { cleansPlans, cleansServiceStatutMeta, formatFcfa, groupServicesByDay } from "@/app/lib/cleans-data";
+import { BUSINESS_CONFIG } from "@/app/lib/business-config";
 import type { CleansOverview, CleansService, CleansDayGroup } from "@/app/lib/cleans-data";
 
 type ClientCleansProps = {
@@ -16,8 +17,10 @@ type ClientCleansProps = {
 };
 
 export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = false }: ClientCleansProps) {
-  const [abonnement, setAbonnement] = useState(cleans.abonnement);
-  const [services, setServices] = useState(cleans.services);
+  // L'abonnement et les services viennent de l'API (props `cleans`) ; aucun
+  // état local ne simule une activation métier (voir `activer` ci-dessous).
+  const [abonnement] = useState(cleans.abonnement);
+  const [services] = useState(cleans.services);
   const [choosing, setChoosing] = useState(false);
   const [proof, setProof] = useState<CleansService | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -28,26 +31,22 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
   const valides = services.filter((s) => s.statut === "VALIDE").length;
   const dayGroups = groupServicesByDay(services);
 
+  // PRODUCTION : l'activation d'un abonnement est une opération métier
+  // (API → confirmation serveur → nouvel état). Aucun endpoint backend
+  // n'existe pour /cleans (état "empty" explicite côté loadCleansOverview) :
+  // le bouton n'active donc rien en local et renvoie vers le contact.
+  // Dès qu'un endpoint exists, brancher ici POST + confirmation serveur.
   function activer(planId: string) {
     const plan = cleansPlans.find((candidate) => candidate.id === planId);
     if (!plan) return;
-    setAbonnement({
-      statut: "ACTIF",
-      planId: plan.id,
-      planNom: plan.nom,
-      nbToilettes: plan.nbToilettes,
-      prixMensuel: plan.prixMensuel,
-      dateDebut: "Vendredi 1er août 2026",
-      prochainPaiement: "1er mois suivant activation",
-      prochainPassage: "Demain · 08:00",
-      localisation: abonnement.localisation,
-    });
     setChoosing(false);
-    setMessage(`Abonnement ${plan.nom} confirmé. Nos Cleaners vous rendent visite dès demain à 08:00.`);
+    setMessage(
+      `L'activation en ligne du ${plan.nom} n'est pas encore disponible (fonctionnalité indisponible — configuration backend requise). Contactez ${BUSINESS_CONFIG.contactLabel} au ${BUSINESS_CONFIG.contactPhone} pour activer votre abonnement.`,
+    );
   }
 
   function handleContactWugams() {
-    setMessage("Veuillez contacter WUGAMS au +229 97 00 00 00 pour changer de plan.");
+    setMessage(`Veuillez contacter ${BUSINESS_CONFIG.contactLabel} au ${BUSINESS_CONFIG.contactPhone} pour changer de plan.`);
   }
 
   const cleansContent = (
@@ -337,7 +336,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                   <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">
                     {actif
                       ? "Pour changer de plan, contactez WUGAMS."
-                      : "Confirmez votre choix : nos Cleaners commencent dès demain matin."}
+                      : "Consultez nos formules ci-dessous, puis contactez WUGAMS pour activer votre abonnement."}
                   </p>
                 </div>
                 <button
@@ -389,7 +388,7 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
                 </div>
               ) : (
                 <p className="mt-4 text-[11px] font-medium leading-5 text-slate-500 dark:text-slate-300">
-                  Paiement par carte ou Mobile Money (MTN MoMo, Moov Money). Résiliable à tout moment.
+                  Activation auprès de nos équipes (paiement carte ou Mobile Money : MTN MoMo, Moov Money). Résiliable à tout moment.
                 </p>
               )}
             </motion.div>

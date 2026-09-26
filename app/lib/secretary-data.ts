@@ -81,6 +81,9 @@ export type SecretaryOverview = {
   fournisseurs: FournisseurProfile[];
   users: User[];
   unread: number;
+  /** true si au moins une source API a échoué (panne ≠ "0"). */
+  partial: boolean;
+  loadErrors: string[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -190,6 +193,9 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
   const monthKeys = months.map((m) => m.key);
 
   /* --- Séries mensuelles réelles ----------------------------------- */
+  // PRODUCTION : les buckets sont les créations réelles par mois. Quand tout
+  // est à zéro, on garde la série réelle (ligne plate honnête) — jamais de
+  // faux historique ascendant.
   const clientBuckets = bucketByMonth(clients.map((c) => ({ date: c.created_at, value: 1 })), monthKeys);
   const fournisseurBuckets = bucketByMonth(fournisseurs.map((f) => ({ date: f.created_at, value: 1 })), monthKeys);
   const userBuckets = bucketByMonth(users.map((u) => ({ date: u.created_at, value: 1 })), monthKeys);
@@ -198,7 +204,22 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
     monthKeys,
   );
 
-  const documentBucketsFixed = documentBuckets.length === 0 ? [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] : documentBuckets;
+  // Créations quotidiennes réelles sur 12 jours (pour le KPI "nouveaux").
+  const dayKeys: string[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dayKeys.push(d.toISOString().slice(0, 10));
+  }
+  const creationsQuotidiennes = dayKeys.map((key) => {
+    const countIn = (dates: (string | null | undefined)[]) =>
+      dates.filter((date) => (date ?? "").slice(0, 10) === key).length;
+    return (
+      countIn(clients.map((c) => c.created_at)) +
+      countIn(fournisseurs.map((f) => f.created_at)) +
+      countIn(users.map((u) => u.created_at))
+    );
+  });
 
   /* --- Nouveaux aujourd'hui ---------------------------------------- */
   const nouveauxClients = clients.filter((c) => isToday(c.created_at)).length;
@@ -256,7 +277,7 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
       change: clientChange ?? "stables",
       trend: clientChange ? (clientChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "users",
-      spark: clientBuckets.every((v) => v === 0) ? [20, 22, 24, 23, 26, 25, 28, 30, 29, 32, 34, 36] : clientBuckets,
+      spark: clientBuckets,
       caption: "fiches actives",
     },
     {
@@ -266,7 +287,7 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
       change: fournisseurChange ?? "stables",
       trend: fournisseurChange ? (fournisseurChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "truck",
-      spark: fournisseurBuckets.every((v) => v === 0) ? [10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16] : fournisseurBuckets,
+      spark: fournisseurBuckets,
       caption: "référencés",
     },
     {
@@ -276,7 +297,7 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
       change: userChange ?? "stables",
       trend: userChange ? (userChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "hardhat",
-      spark: userBuckets.every((v) => v === 0) ? [30, 31, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44] : userBuckets,
+      spark: userBuckets,
       caption: "comptes ERP",
     },
     {
@@ -286,39 +307,42 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
       change: `${nouveauxClients} client(s) · ${nouveauxFournisseurs} fournisseur(s) · ${nouveauxUsers} user(s)`,
       trend: nouveauxTotal > 0 ? "up" : "flat",
       icon: "sparkles",
-      spark: [1, 2, 1, 3, 2, 2, 4, 3, 3, 5, 4, 5],
-      caption: "créés ce jour",
+      spark: creationsQuotidiennes,
+      caption: "créés par jour (12 derniers jours)",
     },
     {
       key: "demandes",
-      label: "Demandes en attente",
+      label: "Notifications non lues",
       value: formatNumber(unread + fichesIncompletes),
       change: `${unread} notification(s) · ${fichesIncompletes} fiche(s) à compléter`,
       trend: unread + fichesIncompletes > 0 ? "flat" : "down",
       icon: "clipboard",
-      spark: [6, 7, 5, 8, 6, 7, 9, 8, 7, 9, 8, 7],
+      spark: [],
       caption: "à traiter",
     },
     {
       key: "documents",
       label: "Documents créés",
-      value: formatNumber(documentBucketsFixed[documentBucketsFixed.length - 1]),
+      value: formatNumber(documentBuckets[documentBuckets.length - 1]),
       change: documentChange ?? "ce mois",
       trend: documentChange ? (documentChange.startsWith("-") ? "down" : "up") : "flat",
       icon: "file-text",
-      spark: documentBucketsFixed.every((v) => v === 0) ? [14, 15, 17, 16, 18, 19, 21, 20, 22, 24, 23, 26] : documentBucketsFixed,
+      spark: documentBuckets,
       caption: "créations journalisées",
     },
   ];
 
   /* --- Tâches du jour ----------------------------------------------- */
+  // PRODUCTION : dérivées de compteurs réels, intitulés honnêtes (une
+  // notification non lue n'est PAS une "demande à valider" sans preuve).
+  // Heures fixes supprimées : échéance "Aujourd'hui".
   const tasks: SecretaryTask[] = [
     ...(fichesIncompletes > 0
       ? [{
           id: "tk-fiches",
           title: "Fiches à compléter",
           detail: `${fichesIncompletes} fiche(s) sans téléphone ou adresse`,
-          time: "09:00",
+          time: "Aujourd'hui",
           priority: "high" as const,
           category: "dossier" as const,
         }]
@@ -326,11 +350,11 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
     ...(unread > 0
       ? [{
           id: "tk-notif",
-          title: "Valider les demandes",
-          detail: `${unread} notification(s) à traiter`,
-          time: "10:30",
+          title: "Traiter les notifications",
+          detail: `${unread} notification(s) non lue(s)`,
+          time: "Aujourd'hui",
           priority: "high" as const,
-          category: "validation" as const,
+          category: "rappel" as const,
         }]
       : []),
     ...(nouveauxTotal > 0
@@ -338,7 +362,7 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
           id: "tk-nouveaux",
           title: "Compléter les nouveaux profils",
           detail: `${nouveauxTotal} profil(s) créé(s) aujourd'hui`,
-          time: "11:00",
+          time: "Aujourd'hui",
           priority: "medium" as const,
           category: "dossier" as const,
         }]
@@ -430,6 +454,19 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
     fournisseurs,
     users,
     unread,
+    partial:
+      clientsRes.status === "rejected" ||
+      fournisseursRes.status === "rejected" ||
+      usersRes.status === "rejected" ||
+      notifRes.status === "rejected" ||
+      auditRes.status === "rejected",
+    loadErrors: [
+      ...(clientsRes.status === "rejected" ? ["clients"] : []),
+      ...(fournisseursRes.status === "rejected" ? ["fournisseurs"] : []),
+      ...(usersRes.status === "rejected" ? ["users"] : []),
+      ...(notifRes.status === "rejected" ? ["notifications"] : []),
+      ...(auditRes.status === "rejected" ? ["audit"] : []),
+    ],
   };
 }
 

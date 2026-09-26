@@ -31,9 +31,9 @@ function PhotoGrid({
             </span>
             <span
               className="absolute bottom-1.5 right-1.5 rounded px-1 py-0.5 font-mono text-[8px] font-bold tabular-nums"
-              style={{ backgroundColor: photo.statut >= 97 ? "#3ddc97" : photo.statut >= 92 ? "#f5b84d" : "#ff8ba0", color: "#081020" }}
+              style={{ backgroundColor: photo.statut == null ? "#5c6889" : photo.statut >= 97 ? "#3ddc97" : photo.statut >= 92 ? "#f5b84d" : "#ff8ba0", color: "#081020" }}
             >
-              {photo.statut}% · {photo.size}
+              {photo.statut == null ? "qualité —" : `${photo.statut}% · ${photo.size}`}
             </span>
           </span>
           <span className="text-[10px] font-semibold leading-4 text-[#8b96b3]">{photo.label}</span>

@@ -23,6 +23,21 @@ describe("loadModuleData (production)", () => {
     });
   });
 
+  it("refuse le module interdit à CE rôle sans appeler l'API (ForbiddenState immédiat)", async () => {
+    await expect(loadModuleData("stocks", "ROLE_OUVRIER")).rejects.toMatchObject({
+      name: "ModuleLoadError",
+      kind: "forbidden",
+    });
+    await expect(loadModuleData("factures", "ROLE_OUVRIER")).rejects.toMatchObject({
+      name: "ModuleLoadError",
+      kind: "forbidden",
+    });
+    await expect(loadModuleData("clients", "ROLE_FOURNISSEUR")).rejects.toMatchObject({
+      name: "ModuleLoadError",
+      kind: "forbidden",
+    });
+  });
+
   it("ne retourne jamais source demo", async () => {
     // Seul un slug inconnu est testable sans réseau ; il doit lever, pas retomber en démo.
     const err = await loadModuleData("inexistant", "ROLE_GERANT").catch((e: unknown) => e);

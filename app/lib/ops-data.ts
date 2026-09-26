@@ -191,13 +191,6 @@ function elapsedSince(iso: string): string {
   return `${hours} h ${String(minutes).padStart(2, "0")} min`;
 }
 
-function hashCode(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash * 31 + input.charCodeAt(i)) % 997;
-  }
-  return hash;
-}
 
 function priorityOf(mission: Mission): OpsMissionRow["priorite"] {
   if (isRetard(mission)) return "urgente";
@@ -239,9 +232,9 @@ export async function loadOpsOverview(): Promise<OpsOverview | null> {
   const actives = missions.filter(isActive);
   const planifiees = missions.filter((mission) => mission.statut === "PLANIFIE" || mission.statut === "NOTIFIE");
 
-  const todayKey = monthKeyOf(new Date());
+  const todayKey = new Date().toISOString().slice(0, 10);
   const missionsToday = missions.filter(
-    (mission) => monthKeyOf(new Date(mission.date_planifiee ?? mission.created_at)) === todayKey,
+    (mission) => (mission.date_planifiee ?? mission.created_at ?? "").slice(0, 10) === todayKey,
   ).length;
 
   const incidentsCount = missions.reduce(
@@ -256,16 +249,47 @@ export async function loadOpsOverview(): Promise<OpsOverview | null> {
 
   const tauxReussite = missions.length > 0 ? (terminees.length / missions.length) * 100 : 0;
 
+  // PRODUCTION : sparklines = séries mensuelles réelles ( bucket par mois ),
+  // jamais 11 nombres inventés + valeur réelle. Sans historique → [].
+  const opsMonthKeys = lastMonthKeys(6).map((entry) => entry.key);
+  const countMissionsByMonth = (list: typeof missions): number[] => {
+    const buckets = new Array(opsMonthKeys.length).fill(0) as number[];
+    for (const mission of list) {
+      const parsed = new Date(mission.created_at);
+      if (Number.isNaN(parsed.getTime())) continue;
+      const index = opsMonthKeys.indexOf(monthKeyOf(parsed));
+      if (index !== -1) buckets[index] += 1;
+    }
+    return buckets;
+  };
+  const incidentsByMonth = (() => {
+    const buckets = new Array(opsMonthKeys.length).fill(0) as number[];
+    for (const mission of missions) {
+      for (const pointage of mission.pointages ?? []) {
+        if (!pointage.hors_rayon) continue;
+        const parsed = new Date(pointage.horodatage);
+        if (Number.isNaN(parsed.getTime())) continue;
+        const index = opsMonthKeys.indexOf(monthKeyOf(parsed));
+        if (index !== -1) buckets[index] += 1;
+      }
+    }
+    return buckets;
+  })();
+  // Équipes disponibles : ouvriers actifs sans mission EN_COURS (réel, pas "—" fixe).
+  const ouvriersActifs = users.filter((user) => user.role === "ROLE_OUVRIER" && user.is_active);
+  const ouvriersEnCours = new Set(enCours.map((mission) => mission.ouvrier_id).filter(Boolean));
+  const equipesDispo = ouvriersActifs.filter((user) => !ouvriersEnCours.has(user.id) && !ouvriersEnCours.has(user.ouvrier_profile?.id ?? ""));
+
   /* --- KPIs ----------------------------------------------------------- */
   const kpis: OpsKpi[] = [
-    { key: "en_cours", label: "Missions en cours", value: formatNumber(enCours.length), change: formatNumber(actives.length), trend: "up", icon: "hardhat", spark: [8, 9, 11, 10, 12, 11, 13, 12, 14, 13, 15, enCours.length], caption: `${missions.length} missions au total` },
-    { key: "terminees", label: "Missions terminées", value: formatNumber(terminees.length), change: `${((terminees.length / Math.max(missions.length, 1)) * 100).toFixed(1).replace(".", ",")} % du total`, trend: "up", icon: "check", spark: [8, 10, 9, 12, 11, 14, 13, 16, 15, 18, 17, terminees.length], caption: "validées & clôturées" },
-    { key: "retard", label: "Missions en retard", value: formatNumber(enRetard.length), change: `${enRetard.filter((mission) => mission.statut === "POINTAGE_A_VERIFIER").length} pointage(s) à vérifier`, trend: enRetard.length > 0 ? "up" : "flat", icon: "warning", spark: [4, 3, 5, 4, 3, 6, 4, 5, 3, 4, 5, enRetard.length], caption: "à traiter en priorité" },
-    { key: "equipes_dispo", label: "Équipes disponibles", value: "—", change: "—", trend: "flat", icon: "users", spark: [4, 4, 3, 5, 4, 3, 4, 4, 3, 5, 4, 4], caption: "dérivé des affectations terrain" },
-    { key: "equipes_terrain", label: "Équipes sur le terrain", value: formatNumber(enCours.length), change: formatNumber(planifiees.length), trend: "up", icon: "map", spark: [3, 4, 4, 5, 5, 6, 5, 7, 6, 8, 7, enCours.length], caption: "missions actives" },
-    { key: "productivite", label: "Productivité", value: productivite !== null ? `${productivite.toFixed(1).replace(".", ",")} %` : "—", change: productivite !== null ? "rendement S1-S9" : "données indisponibles", trend: "up", icon: "chart", spark: [70, 74, 72, 78, 76, 80, 79, 82, 81, 84, 83, productivite ?? 0], caption: "moyenne des évaluations" },
-    { key: "incidents", label: "Incidents", value: formatNumber(incidentsCount), change: "pointages hors rayon", trend: incidentsCount > 0 ? "up" : "down", icon: "warning", spark: [3, 2, 4, 3, 5, 4, 3, 2, 4, 3, 2, incidentsCount], caption: "détectés en temps réel" },
-    { key: "taux_reussite", label: "Taux de réussite", value: `${tauxReussite.toFixed(1).replace(".", ",")} %`, change: `${formatNumber(terminees.length)} terminées`, trend: "up", icon: "sparkles", spark: [80, 82, 81, 85, 84, 86, 87, 86, 89, 88, 90, tauxReussite], caption: "missions validées" },
+    { key: "en_cours", label: "Missions en cours", value: formatNumber(enCours.length), change: formatNumber(actives.length), trend: "up", icon: "hardhat", spark: countMissionsByMonth(missions), caption: `${missions.length} missions au total` },
+    { key: "terminees", label: "Missions terminées", value: formatNumber(terminees.length), change: `${((terminees.length / Math.max(missions.length, 1)) * 100).toFixed(1).replace(".", ",")} % du total`, trend: "up", icon: "check", spark: countMissionsByMonth(terminees), caption: "validées & clôturées" },
+    { key: "retard", label: "Missions en retard", value: formatNumber(enRetard.length), change: `${enRetard.filter((mission) => mission.statut === "POINTAGE_A_VERIFIER").length} pointage(s) à vérifier`, trend: enRetard.length > 0 ? "up" : "flat", icon: "warning", spark: [], caption: "à traiter en priorité" },
+    { key: "equipes_dispo", label: "Équipes disponibles", value: usersResult.status === "fulfilled" ? formatNumber(equipesDispo.length) : "—", change: usersResult.status === "fulfilled" ? `${formatNumber(ouvriersActifs.length)} ouvriers actifs` : "données indisponibles", trend: "flat", icon: "users", spark: [], caption: "ouvriers sans mission en cours" },
+    { key: "equipes_terrain", label: "Équipes sur le terrain", value: formatNumber(enCours.length), change: formatNumber(planifiees.length), trend: "up", icon: "map", spark: [], caption: "missions actives" },
+    { key: "productivite", label: "Productivité", value: productivite !== null ? `${productivite.toFixed(1).replace(".", ",")} %` : "—", change: productivite !== null ? "rendement S1-S9" : "données indisponibles", trend: "up", icon: "chart", spark: [], caption: "moyenne des évaluations" },
+    { key: "incidents", label: "Incidents", value: formatNumber(incidentsCount), change: "pointages hors rayon", trend: incidentsCount > 0 ? "up" : "down", icon: "warning", spark: incidentsByMonth, caption: "détectés en temps réel" },
+    { key: "taux_reussite", label: "Taux de réussite", value: `${tauxReussite.toFixed(1).replace(".", ",")} %`, change: `${formatNumber(terminees.length)} terminées`, trend: "up", icon: "sparkles", spark: [], caption: "missions validées" },
   ];
 
   /* --- Carte ----------------------------------------------------------- */
@@ -278,13 +302,20 @@ export async function loadOpsOverview(): Promise<OpsOverview | null> {
 
   const mapMissions: MapMission[] = missions
     .filter(isActive)
+    // PRODUCTION : seules les missions réellement géolocalisées figurent sur
+    // la carte. Aucune position dérivée d'un hash n'est inventée.
+    .filter((mission) => {
+      const lat = Number(mission.adresse_lat);
+      const lng = Number(mission.adresse_lng);
+      return Number.isFinite(lat) && Number.isFinite(lng);
+    })
     .slice(0, 12)
     .map((mission) => {
       const lat = Number(mission.adresse_lat);
       const lng = Number(mission.adresse_lng);
       const tone = toneOf(mission);
-      const x = !Number.isNaN(lng) && maxLng > minLng ? ((lng - minLng) / (maxLng - minLng)) * 84 + 8 : 14 + (hashCode(mission.id) % 72);
-      const y = !Number.isNaN(lat) && maxLat > minLat ? ((maxLat - lat) / (maxLat - minLat)) * 72 + 12 : 12 + (hashCode(mission.id) % 70);
+      const x = maxLng > minLng ? ((lng - minLng) / (maxLng - minLng)) * 84 + 8 : 50;
+      const y = maxLat > minLat ? ((maxLat - lat) / (maxLat - minLat)) * 72 + 12 : 48;
       return {
         id: mission.id,
         titre: mission.titre,

@@ -59,6 +59,7 @@ export const navigationGroups: {
       { href: "/espace/ouvriers", icon: "hardhat", label: "Ouvriers" },
       { href: "/espace/carte", icon: "map", label: "Carte terrain" },
       { href: "/espace/devis", icon: "file-text", label: "Devis & factures" },
+      { href: "/espace/factures", icon: "chart", label: "Factures" },
     ],
   },
   {

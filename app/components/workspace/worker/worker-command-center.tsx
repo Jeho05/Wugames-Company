@@ -91,7 +91,15 @@ export function WorkerCommandCenter() {
 
   const refresh = useCallback(async () => {
     const ouvrierId = fullUser?.ouvrier_profile?.id ?? null;
-    const result = await loadWorkerOverview(fullUser?.id ?? user?.id ?? null, ouvrierId);
+    const result = await loadWorkerOverview(fullUser?.id ?? user?.id ?? null, ouvrierId, {
+      nom: fullUser ? [fullUser.first_name, fullUser.last_name].filter(Boolean).join(" ") || fullUser.email : (user?.name ?? null),
+      matricule: fullUser?.ouvrier_profile?.matricule ?? null,
+      specialite: fullUser?.ouvrier_profile?.specialite ?? null,
+      filiale: fullUser?.filiale?.nom ?? user?.filiale ?? null,
+      email: fullUser?.email ?? user?.email ?? null,
+      phone: fullUser?.phone ?? user?.phone ?? null,
+      twoFactor: fullUser?.two_factor_enabled ?? null,
+    });
     setOverview(result);
     setPendingCount(getPendingActions().length);
     return result;
@@ -116,7 +124,15 @@ export function WorkerCommandCenter() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    loadWorkerOverview(user.id, fullUser?.ouvrier_profile?.id ?? null).then((overview) => {
+    loadWorkerOverview(user.id, fullUser?.ouvrier_profile?.id ?? null, {
+      nom: fullUser ? [fullUser.first_name, fullUser.last_name].filter(Boolean).join(" ") || fullUser.email : (user?.name ?? null),
+      matricule: fullUser?.ouvrier_profile?.matricule ?? null,
+      specialite: fullUser?.ouvrier_profile?.specialite ?? null,
+      filiale: fullUser?.filiale?.nom ?? user?.filiale ?? null,
+      email: fullUser?.email ?? user?.email ?? null,
+      phone: fullUser?.phone ?? user?.phone ?? null,
+      twoFactor: fullUser?.two_factor_enabled ?? null,
+    }).then((overview) => {
       if (cancelled) return;
       setOverview(overview);
       setPendingCount(getPendingActions().length);
@@ -308,7 +324,7 @@ export function WorkerCommandCenter() {
 
   const fab = useMemo(() => {
     if (!activeMission) return null;
-    const action = actionForMission(activeMission, activePhotos.length > 0, activeDraft.length > 0);
+    const action = actionForMission(activeMission, activePhotos.length > 0, activeDraft.length > 0, activeMission.sortiePointee);
     if (action.kind === "attente_validation" || action.kind === "terminee") return null;
     const meta = actionMeta[action.kind];
     return {
@@ -371,6 +387,16 @@ export function WorkerCommandCenter() {
             <div className="mt-2.5">
               <OfflineSyncBanner pendingCount={pendingCount} state={online ? (syncingLabel ? "syncing" : "online") : "offline"} syncingLabel={syncingLabel} />
             </div>
+            {!overview.identityOk ? (
+              <p className="mt-2.5 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-amber-800" role="status">
+                Profil ouvrier non résolu — vos missions ne peuvent pas être affichées pour le moment. Reconnectez-vous ou contactez votre responsable.
+              </p>
+            ) : null}
+            {overview.partial ? (
+              <p className="mt-2.5 rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-sky-800" role="status">
+                Données partielles ({overview.loadErrors.join(", ")}) — certaines informations n&apos;ont pas pu être chargées.
+              </p>
+            ) : null}
           </div>
         </header>
 

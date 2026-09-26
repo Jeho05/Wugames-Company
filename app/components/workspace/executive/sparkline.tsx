@@ -15,6 +15,16 @@ export function Sparkline({ data, color = "#e3a641", width = 96, height = 32, fi
   const gradientId = useId().replace(/:/g, "");
   const reduce = useReducedMotion();
 
+  // PRODUCTION : sans historique réel (moins de 2 points), on affiche un état
+  // "historique indisponible" au lieu d'un faux graphe ou d'un crash.
+  if (!Array.isArray(data) || data.length < 2 || data.some((value) => !Number.isFinite(value))) {
+    return (
+      <span className="inline-block text-[10px] font-semibold text-slate-400" aria-label="Historique indisponible">
+        Historique indisponible
+      </span>
+    );
+  }
+
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;

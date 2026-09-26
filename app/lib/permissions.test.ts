@@ -42,3 +42,40 @@ describe("canAccessHref — vitrine (production)", () => {
     expect(canAccessHref("/espace/vitrine", null)).toBe(false);
   });
 });
+
+describe("canAccessHref — matrice modules (sidebar = recherche)", () => {
+  it("interdit les modules ERP à l'ouvrier (Pilotage, Stocks, Factures…)", () => {
+    expect(canAccessHref("/espace/stocks", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/factures", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/clients", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/rapports", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/administration", user("ROLE_OUVRIER"))).toBe(false);
+  });
+
+  it("autorise l'ouvrier sur son périmètre (missions, carte, notifications)", () => {
+    expect(canAccessHref("/espace/missions", user("ROLE_OUVRIER"))).toBe(true);
+    expect(canAccessHref("/espace/carte", user("ROLE_OUVRIER"))).toBe(true);
+    expect(canAccessHref("/espace/notifications", user("ROLE_OUVRIER"))).toBe(true);
+  });
+
+  it("expose les factures aux rôles autorisés (sidebar + recherche cohérentes)", () => {
+    expect(canAccessHref("/espace/factures", user("ROLE_GERANT"))).toBe(true);
+    expect(canAccessHref("/espace/factures", user("ROLE_COMPTABLE"))).toBe(true);
+    expect(canAccessHref("/espace/factures", user("ROLE_MGR_PARTENAIRE"))).toBe(false);
+    expect(canAccessHref("/espace/factures", user("ROLE_RESP_OUVRIERS"))).toBe(false);
+  });
+
+  it("autorise Mode2Vie aux clients uniquement", () => {
+    expect(canAccessHref("/espace/mode2vie", user("ROLE_CLIENT_STD"))).toBe(true);
+    expect(canAccessHref("/espace/mode2vie", user("ROLE_CLIENT_MEMBRE"))).toBe(true);
+    expect(canAccessHref("/espace/mode2vie", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/mode2vie", user("ROLE_SECRETAIRE"))).toBe(false);
+  });
+
+  it("restreint l'administration au Gérant et Dev Digital", () => {
+    expect(canAccessHref("/espace/administration", user("ROLE_GERANT"))).toBe(true);
+    expect(canAccessHref("/espace/administration", user("ROLE_DEV_DIGITAL"))).toBe(true);
+    expect(canAccessHref("/espace/administration", user("ROLE_SECRETAIRE"))).toBe(false);
+    expect(canAccessHref("/espace/administration", user("ROLE_COMPTABLE"))).toBe(false);
+  });
+});

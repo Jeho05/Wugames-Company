@@ -368,5 +368,33 @@ export function getModuleCreateConfig(slug: string, role?: string): ModuleCreate
   if (role && CLIENT_CREATE_ROLES.has(role)) {
     if (slug === "factures" || slug === "commandes" || slug === "documents") return null;
   }
+  // Matrice de création (ADMIN_DASHBOARD_API_GUIDE §5) : lecture ≠ création.
+  // Un rôle peut lire un module sans avoir le droit d'y créer.
+  const createRoles: Record<string, string[]> = {
+    clients: ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
+    fournisseurs: ["ROLE_GERANT", "ROLE_MGR_PARTENAIRE"],
+    stocks: ["ROLE_GERANT", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
+    missions: ["ROLE_GERANT", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
+    factures: ["ROLE_GERANT", "ROLE_COMPTABLE"],
+    devis: ["ROLE_GERANT", "ROLE_COMPTABLE", "ROLE_SECRETAIRE"],
+    chantiers: ["ROLE_GERANT", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
+    filiales: ["ROLE_GERANT"],
+    commandes: ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+    demandes: ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+    projets: ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+    messages: [
+      "ROLE_GERANT",
+      "ROLE_DEV_DIGITAL",
+      "ROLE_SECRETAIRE",
+      "ROLE_MGR_OPS",
+      "ROLE_MGR_PARTENAIRE",
+      "ROLE_MGR_FILIALE",
+      "ROLE_RESP_OUVRIERS",
+      "ROLE_CLIENT_STD",
+      "ROLE_CLIENT_MEMBRE",
+      "ROLE_FOURNISSEUR",
+    ],
+  };
+  if (role && slug in createRoles && !createRoles[slug].includes(role)) return null;
   return moduleCreateConfigs[slug] ?? null;
 }

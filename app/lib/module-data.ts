@@ -747,6 +747,9 @@ const apiLoaders: Record<string, Loader> = {
  * - succès (même `[]`) → `{ data, source: "api" }` ;
  * - slug inconnu / rôle non autorisé côté front → `ModuleLoadError("not-found"|"forbidden")` ;
  * - échec API → `ModuleLoadError` typée (jamais `null` silencieux, jamais de démo).
+ * Garde RBAC par module : le frontend refuse immédiatement (ForbiddenState,
+ * sans appels métier) quand CE rôle n'a pas accès à CE module — il ne se
+ * contente pas de vérifier que le rôle est "utilisable".
  */
 export async function loadModuleData(
   slug: string,
@@ -758,6 +761,29 @@ export async function loadModuleData(
 
   const usableRoles: RoleCode[] = ["ROLE_GERANT", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_DEV_DIGITAL", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"];
   if (!usableRoles.includes(role)) {
+    throw new ModuleLoadError("forbidden", "Votre rôle ne permet pas d'accéder à ce module.", 403);
+  }
+
+  // Garde par module : ce rôle a-t-il accès à CE module précis ?
+  // Évite les appels métier inutiles et produit un ForbiddenState immédiat.
+  const { canAccessHref } = await import("@/app/lib/permissions");
+  const probe = {
+    id: "guard",
+    email: "guard@wugams.local",
+    filiale: "Siège",
+    filialeId: null,
+    initials: "··",
+    name: "guard",
+    role,
+    profileId: null,
+    firstName: null,
+    lastName: null,
+    phone: null,
+    adresse: null,
+    clientProfileId: null,
+    twoFactorEnabled: false,
+  } as const;
+  if (!canAccessHref(`/espace/${slug}`, probe)) {
     throw new ModuleLoadError("forbidden", "Votre rôle ne permet pas d'accéder à ce module.", 403);
   }
 

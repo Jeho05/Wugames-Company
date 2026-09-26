@@ -60,13 +60,15 @@ export function PartnerDeliveries({ deliveries }: PartnerDeliveriesProps) {
                     <div className="flex items-center gap-2">
                       <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200/70">
                         <motion.div
-                          animate={{ width: `${delivery.progression}%` }}
+                          animate={{ width: `${delivery.progression ?? 0}%` }}
                           className={"h-full rounded-full " + meta.bar}
                           initial={{ width: 0 }}
                           transition={{ delay: 0.15 + index * 0.05, duration: 0.6 }}
                         />
                       </div>
-                      <span className="text-[10px] font-bold tabular-nums text-slate-500">{delivery.progression} %</span>
+                      <span className="text-[10px] font-bold tabular-nums text-slate-500">
+                        {delivery.progression == null ? "—" : `${delivery.progression} %`}
+                      </span>
                     </div>
                   </td>
                   <td className="py-3.5 text-right">

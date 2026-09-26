@@ -38,8 +38,10 @@ export type PartnerCard = {
   nom: string;
   produits: number;
   livraisons: number;
-  performance: number;
-  fiabilite: number;
+  /** Score composite : aucune règle métier officielle → null (affiché "—"). */
+  performance: number | null;
+  /** % de produits non en rupture, ou null si aucun produit (jamais 85 par défaut). */
+  fiabilite: number | null;
   statut: "actif" | "en_retard" | "nouveau";
 };
 
@@ -57,7 +59,8 @@ export type DeliveryRow = {
   fournisseur: string;
   prevue: string;
   statut: "livree" | "en_attente" | "retard";
-  progression: number;
+  /** Avancement : 100 = livrée (factuel), null = non suivi par l'API (jamais 25+index*15). */
+  progression: number | null;
 };
 
 export type PartnerAlert = {
@@ -142,20 +145,23 @@ const mouvementMeta: Record<MouvementType, { kind: MovementEvent["kind"]; label:
   AJUSTEMENT: { kind: "correction", label: "Correction d'inventaire" },
 };
 
+// Seuils alignés sur la règle backend (SPEC-BACKEND §4.5 : q=0 → RUPTURE,
+// 0<q<min → réappro) ; la marge "faible" (< 1,5×seuil) est une convention
+// d'affichage documentée ici, pas une donnée serveur.
 function bucketOf(produit: Produit): StockBucket["key"] {
   const quantite = toNumber(produit.quantite_actuelle);
   const seuil = Math.max(toNumber(produit.stock_minimum), 1);
   if (quantite <= 0) return "rupture";
-  if (quantite < seuil * 0.5) return "critique";
-  if (quantite < seuil * 2) return "faible";
+  if (quantite < seuil) return "critique";
+  if (quantite < seuil * 1.5) return "faible";
   return "eleve";
 }
 
 function priorityOf(produit: Produit): CriticalProduct["priorite"] {
   const quantite = toNumber(produit.quantite_actuelle);
   const seuil = Math.max(toNumber(produit.stock_minimum), 1);
-  if (quantite <= 0 || quantite < seuil * 0.25) return "urgente";
-  if (quantite < seuil * 0.6) return "haute";
+  if (quantite <= 0) return "urgente";
+  if (quantite < seuil) return "haute";
   return "moyenne";
 }
 
@@ -184,27 +190,52 @@ export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
   const critiques = actifs.filter((produit) => toNumber(produit.quantite_actuelle) <= toNumber(produit.stock_minimum));
   const ruptures = actifs.filter((produit) => produit.statut === "RUPTURE" || toNumber(produit.quantite_actuelle) <= 0);
 
-  const todayKey = monthKeyOf(new Date());
+  const todayKey = new Date().toISOString().slice(0, 10);
   const tousMouvements = actifs.flatMap((produit) =>
     (produit.mouvements ?? []).map((mouvement) => ({ ...mouvement, produitNom: produit.nom })),
   );
   const entreesAujourdhui = tousMouvements.filter(
-    (mouvement) => mouvement.type === "ENTREE" && monthKeyOf(new Date(mouvement.created_at)) === todayKey,
+    (mouvement) => mouvement.type === "ENTREE" && (mouvement.created_at ?? "").slice(0, 10) === todayKey,
   );
   const sortiesAujourdhui = tousMouvements.filter(
-    (mouvement) => (mouvement.type === "SORTIE_VENTE" || mouvement.type === "SORTIE_CHANTIER") && monthKeyOf(new Date(mouvement.created_at)) === todayKey,
+    (mouvement) => (mouvement.type === "SORTIE_VENTE" || mouvement.type === "SORTIE_CHANTIER") && (mouvement.created_at ?? "").slice(0, 10) === todayKey,
   );
+
+  // Séries mensuelles réelles pour les sparklines (jamais de faux historique).
+  const partnerMonthKeys = lastMonthKeys(6).map((entry) => entry.key);
+  const bucketMouvements = (types: string[]): number[] => {
+    const buckets = new Array(partnerMonthKeys.length).fill(0) as number[];
+    for (const mouvement of tousMouvements) {
+      if (!types.includes(mouvement.type)) continue;
+      const parsed = new Date(mouvement.created_at);
+      if (Number.isNaN(parsed.getTime())) continue;
+      const index = partnerMonthKeys.indexOf(monthKeyOf(parsed));
+      if (index !== -1) buckets[index] += 1;
+    }
+    return buckets;
+  };
+  const bucketCreations = (dates: (string | null | undefined)[]): number[] => {
+    const buckets = new Array(partnerMonthKeys.length).fill(0) as number[];
+    for (const date of dates) {
+      if (!date) continue;
+      const parsed = new Date(date);
+      if (Number.isNaN(parsed.getTime())) continue;
+      const index = partnerMonthKeys.indexOf(monthKeyOf(parsed));
+      if (index !== -1) buckets[index] += 1;
+    }
+    return buckets;
+  };
 
   /* --- KPIs ----------------------------------------------------------- */
   const kpis: PartnerKpi[] = [
-    { key: "produits", label: "Produits", value: formatNumber(actifs.length), change: formatNumber(ruptures.length), trend: "up", icon: "package", spark: [40, 44, 47, 50, 53, 56, 58, 61, 64, 66, 69, actifs.length], caption: "au catalogue" },
-    { key: "stock", label: "Stock disponible", value: formatNumber(Math.round(stockTotal)), change: `${formatNumber(critiques.length)} critiques`, trend: "up", icon: "boxes", spark: [30, 33, 31, 36, 35, 38, 37, 40, 39, 42, 41, stockTotal / 1000], caption: "unités en entrepôt" },
-    { key: "critiques", label: "Produits critiques", value: formatNumber(critiques.length), change: `${formatNumber(ruptures.length)} rupture(s)`, trend: critiques.length > 0 ? "up" : "down", icon: "warning", spark: [8, 7, 9, 8, 6, 7, 5, 6, 4, 5, 6, critiques.length], caption: "sous le seuil minimum" },
-    { key: "partenaires", label: "Partenaires actifs", value: formatNumber(fournisseurs.length), change: "réseau fournisseurs", trend: "up", icon: "building", spark: [10, 12, 11, 13, 14, 13, 15, 16, 15, 17, 18, fournisseurs.length], caption: "référencés" },
-    { key: "fournisseurs", label: "Fournisseurs actifs", value: formatNumber(fournisseurs.length), change: `${formatNumber(actifs.filter((produit) => produit.fournisseur_id).length)} produits liés`, trend: "up", icon: "truck", spark: [10, 12, 11, 13, 14, 13, 15, 16, 15, 17, 18, fournisseurs.length], caption: "contrats en cours" },
-    { key: "entrees", label: "Entrées aujourd'hui", value: formatNumber(entreesAujourdhui.length), change: `${formatNumber(tousMouvements.length)} mouvements`, trend: "up", icon: "arrow-down", spark: [4, 5, 6, 5, 7, 6, 8, 7, 9, 8, 7, entreesAujourdhui.length], caption: "réceptions comptabilisées" },
-    { key: "sorties", label: "Sorties aujourd'hui", value: formatNumber(sortiesAujourdhui.length), change: `${formatNumber(tousMouvements.length - entreesAujourdhui.length)} sorties`, trend: "up", icon: "arrow-up", spark: [8, 9, 8, 11, 10, 12, 11, 13, 12, 14, 13, sortiesAujourdhui.length], caption: "chantiers et ventes" },
-    { key: "valeur", label: "Valeur totale du stock", value: new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(valeurTotale) + " FCFA", change: formatNumber(actifs.length) + " références", trend: "up", icon: "chart", spark: [40, 45, 43, 48, 47, 51, 50, 54, 53, 57, 56, valeurTotale / 1_000_000], caption: "au prix d'achat" },
+    { key: "produits", label: "Produits", value: formatNumber(actifs.length), change: formatNumber(ruptures.length), trend: "up", icon: "package", spark: bucketCreations(actifs.map((p) => p.created_at)), caption: "au catalogue" },
+    { key: "stock", label: "Stock disponible", value: formatNumber(Math.round(stockTotal)), change: `${formatNumber(critiques.length)} critiques`, trend: "up", icon: "boxes", spark: [], caption: "unités en entrepôt" },
+    { key: "critiques", label: "Produits critiques", value: formatNumber(critiques.length), change: `${formatNumber(ruptures.length)} rupture(s)`, trend: critiques.length > 0 ? "up" : "down", icon: "warning", spark: [], caption: "sous le seuil minimum" },
+    { key: "partenaires", label: "Partenaires actifs", value: formatNumber(fournisseurs.length), change: "réseau fournisseurs", trend: "up", icon: "building", spark: bucketCreations(fournisseurs.map((f) => f.created_at)), caption: "référencés" },
+    { key: "fournisseurs", label: "Fournisseurs actifs", value: formatNumber(fournisseurs.length), change: `${formatNumber(actifs.filter((produit) => produit.fournisseur_id).length)} produits liés`, trend: "up", icon: "truck", spark: bucketCreations(fournisseurs.map((f) => f.created_at)), caption: "contrats en cours" },
+    { key: "entrees", label: "Entrées aujourd'hui", value: formatNumber(entreesAujourdhui.length), change: `${formatNumber(tousMouvements.length)} mouvements`, trend: "up", icon: "arrow-down", spark: bucketMouvements(["ENTREE"]), caption: "réceptions comptabilisées" },
+    { key: "sorties", label: "Sorties aujourd'hui", value: formatNumber(sortiesAujourdhui.length), change: `${formatNumber(tousMouvements.length - entreesAujourdhui.length)} sorties`, trend: "up", icon: "arrow-up", spark: bucketMouvements(["SORTIE_VENTE", "SORTIE_CHANTIER"]), caption: "chantiers et ventes" },
+    { key: "valeur", label: "Valeur totale du stock", value: new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 }).format(valeurTotale) + " FCFA", change: formatNumber(actifs.length) + " références", trend: "up", icon: "chart", spark: [], caption: "au prix d'achat" },
   ];
 
   /* --- Buckets d'état -------------------------------------------------- */
@@ -240,6 +271,9 @@ export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
     });
 
   /* --- Partenaires ------------------------------------------------------ */
+  // Scores honnêtes : fiabilité = part de produits non en rupture (agrégat
+  // déterministe documenté ici) ; performance = null sans règle métier
+  // officielle (aucun 70+liv*0.4+fiab*0.2, aucun 85 par défaut).
   const partners: PartnerCard[] = fournisseurs.slice(0, 6).map((fournisseur) => {
     const produitsFournisseur = actifs.filter((produit) => produit.fournisseur_id === fournisseur.id);
     const livraisons = produitsFournisseur.reduce(
@@ -247,16 +281,15 @@ export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
       0,
     );
     const enRupture = produitsFournisseur.filter((produit) => produit.statut === "RUPTURE" || toNumber(produit.quantite_actuelle) <= 0).length;
-    const fiabilite = produitsFournisseur.length > 0 ? 100 - Math.round((enRupture / produitsFournisseur.length) * 100) : 85;
-    const performance = Math.max(Math.min(Math.round(70 + livraisons * 0.4 + fiabilite * 0.2), 99), 60);
+    const fiabilite = produitsFournisseur.length > 0 ? 100 - Math.round((enRupture / produitsFournisseur.length) * 100) : null;
     return {
       id: fournisseur.id,
       nom: fournisseur.raison_sociale ?? "Fournisseur",
       produits: produitsFournisseur.length,
       livraisons,
-      performance,
+      performance: null,
       fiabilite,
-      statut: fiabilite >= 90 ? "actif" : fiabilite >= 75 ? "en_retard" : "nouveau",
+      statut: produitsFournisseur.length === 0 ? "nouveau" : (fiabilite ?? 0) >= 90 ? "actif" : (fiabilite ?? 0) >= 75 ? "en_retard" : "nouveau",
     };
   });
 
@@ -282,17 +315,18 @@ export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 3);
   const deliveries: DeliveryRow[] = [
-    ...enCommande.slice(0, 3).map((produit, index) => ({
+    ...enCommande.slice(0, 3).map((produit) => ({
       id: `cmd-${produit.id}`,
-      commande: `CMD-${new Date().getFullYear()}-${String(100 + index).padStart(4, "0")}`,
+      // L'API stock ne fournit aucun numéro de commande : pas de CMD-année-XXX inventé.
+      commande: "Commande en cours",
       fournisseur: produit.fournisseur_id ? (fournisseurNameById.get(produit.fournisseur_id) ?? "Fournisseur") : "À désigner",
       prevue: "En attente",
       statut: "en_attente" as const,
-      progression: 25 + index * 15,
+      progression: null,
     })),
-    ...livreesRecemment.map((mouvement, index) => ({
+    ...livreesRecemment.map((mouvement) => ({
       id: `liv-${mouvement.id}`,
-      commande: `CMD-${new Date().getFullYear()}-${String(90 + index).padStart(4, "0")}`,
+      commande: "Réception enregistrée",
       fournisseur: mouvement.produitNom,
       prevue: relativeTime(mouvement.created_at),
       statut: "livree" as const,
@@ -352,10 +386,10 @@ export async function loadPartnerOverview(): Promise<PartnerOverview | null> {
     if (mouvement.type === "ENTREE") entreeParMois[index] += 1;
     if (mouvement.type === "SORTIE_VENTE" || mouvement.type === "SORTIE_CHANTIER") sortieParMois[index] += 1;
   }
-  let cumul = 0;
   for (let i = 0; i < 12; i += 1) {
-    cumul += entreeParMois[i] - sortieParMois[i];
-    stockParMois[i] = Math.max(Math.round(cumul / 4) + 40, 0);
+    // Flux net mensuel réel (entrées − sorties), pas un stock absolu : aucun
+    // niveau de base (+40) ni diviseur (/4) arbitraire.
+    stockParMois[i] = entreeParMois[i] - sortieParMois[i];
   }
   const stockEvolution = monthKeys.map((key, index) => ({ label: key.label, valeur: stockParMois[index] }));
 

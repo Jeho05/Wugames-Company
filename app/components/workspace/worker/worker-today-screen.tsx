@@ -99,7 +99,13 @@ export function WorkerTodayScreen({ missions, ranking, actionSlot, onOpenMission
         </section>
       ) : null}
 
-      {ranking ? <WorkerRankingCard ranking={ranking} /> : null}
+      {ranking ? (
+        <WorkerRankingCard ranking={ranking} />
+      ) : (
+        <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-center text-[11px] font-bold text-slate-500">
+          Classement indisponible — aucune évaluation ne vous identifie sur le cycle en cours.
+        </p>
+      )}
     </div>
   );
 }

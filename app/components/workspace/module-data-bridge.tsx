@@ -18,6 +18,7 @@ import { getModuleCreateConfig } from "@/app/lib/module-create";
 import { loadModuleData, type ModuleDataSource, type ModuleData, type ModuleLoadError } from "@/app/lib/module-data";
 import { affecterMission } from "@/app/lib/api/missions";
 import { listUsers } from "@/app/lib/api/users";
+import { canAssignMission, canUpdate } from "@/app/lib/rbac-matrix";
 import { resolveNotificationHref } from "@/app/lib/notification-target";
 import { ProduitCreateForm } from "@/app/components/workspace/stocks/produit-create-form";
 import { ProduitEditForm } from "@/app/components/workspace/stocks/produit-edit-form";
@@ -109,14 +110,20 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     [slug, refresh, user, router],
   );
 
+  // L'affectation est réservée aux rôles métier autorisés
+  // (rbac-matrix:canAssignMission). Les autres rôles (ouvriers, clients,
+  // fournisseurs…) peuvent lire une mission sans jamais voir cette action.
+  const canAssign = canAssignMission(user?.role);
+
   const handleMissionRowClick = useCallback(
     (row: ModuleRow) => {
+      if (!canAssign) return;
       const id = (row.id as string) ?? "";
       if (!id) return;
       setAffectMissionId(id);
       setAffectOuvrierId("");
     },
-    []
+    [canAssign]
   );
 
   const handleAffectConfirm = useCallback(async () => {
@@ -140,12 +147,17 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     setToastMsg("");
   }, []);
 
+  // L'édition d'un produit exige le droit de modification du stock
+  // (lecture ≠ modification). Sans ce droit, le clic ne fait rien.
+  const canEditStock = canUpdate("stocks", user?.role);
+
   const handleStocksRowClick = useCallback((row: ModuleRow) => {
+    if (!canEditStock) return;
     const raw = (row._raw as Produit) ?? null;
     if (raw) {
       setEditingProduit(raw);
     }
-  }, []);
+  }, [canEditStock]);
 
   const createConfig = getModuleCreateConfig(slug, user?.role);
 
@@ -201,7 +213,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   }, [slug, user?.role, refreshKey, selectedCategory]);
 
   useEffect(() => {
-    if (!affectMissionId) return;
+    if (!affectMissionId || !canAssign) return;
     listUsers()
       .then((users) => {
         const ouvriers = users
@@ -216,7 +228,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
       .catch(() => {
         /* API injoignable : liste vide. */
       });
-  }, [affectMissionId]);
+  }, [affectMissionId, canAssign]);
 
   const mergedDefinition = useMemo<ModuleDefinition>(() => {
     if (!data) return { ...definition, rows: [], stats: [], insights: [] };
@@ -268,9 +280,13 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
           slug === "notifications"
             ? handleRowClick
             : slug === "missions"
-              ? handleMissionRowClick
+              ? canAssign
+                ? handleMissionRowClick
+                : undefined
               : slug === "stocks"
-                ? handleStocksRowClick
+                ? canEditStock
+                  ? handleStocksRowClick
+                  : undefined
                 : undefined
         }
         renderCreateForm={renderCreateForm}
@@ -291,7 +307,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
         </div>
       )}
 
-      {affectMissionId && (
+      {affectMissionId && canAssign && (
         <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/40 p-4">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">

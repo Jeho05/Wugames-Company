@@ -23,6 +23,8 @@ import {
   supplierNavigationGroup,
 } from "@/app/lib/demo-data";
 import { canManageVitrine } from "@/app/lib/vitrine-store";
+import { canAccessHref } from "@/app/lib/permissions";
+import { canSeeConsolidation, filialeScopeOf, quickActionsFor } from "@/app/lib/rbac-matrix";
 import { NotificationToaster } from "@/app/components/workspace/notification-toaster";
 import { AccountSheet } from "@/app/components/workspace/account-sheet";
 import { resolveNotificationTarget } from "@/app/lib/notification-target";
@@ -89,6 +91,13 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
   }, []);
 
   const handleSelectFiliale = (id: string) => {
+    // Garde périmètre : un rôle "own" ne peut sélectionner que sa filiale.
+    if (user && !canSeeConsolidation(user.role)) {
+      if (!user.filialeId || id !== user.filialeId) {
+        setFilialeDropdownOpen(false);
+        return;
+      }
+    }
     setSelectedFilialeId(id);
     setFilialeDropdownOpen(false);
     if (typeof window !== "undefined") {
@@ -100,6 +109,17 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
     }
   };
 
+  // Verrouillage du périmètre : un rôle "own" ne peut jamais sélectionner
+  // "all" ni une autre filiale. La sélection effective est dérivée (pas de
+  // setState synchrone dans l'effet) ; on notifie juste l'externe.
+  useEffect(() => {
+    if (!user) return;
+    if (!canSeeConsolidation(user.role) && user.filialeId && typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("wugams:filiale-change", { detail: { filialeId: user.filialeId } })
+      );
+    }
+  }, [user]);
   const streamEnabled = user !== null && !clientRoles.has(user.role);
   const streamState = useNotificationsStream(streamEnabled, (notification: Notification) => {
     if (!notification.lu) setLiveUnread((count) => count + 1);
@@ -145,17 +165,42 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
 
   const isClient = clientRoles.has(user.role);
   const isAdmin = user.role === "ROLE_GERANT" || user.role === "ROLE_DEV_DIGITAL";
+  // Délégation vitrine : seuls les ids connus VIA L'API (GET /vitrine/permissions)
+  // ouvrent l'accès. Ici inconnus → refus par défaut (le backend tranche via 403).
   const canVitrine = canManageVitrine(user);
   const vitrineGroup = {
     label: "Vitrine",
     items: [{ href: "/espace/vitrine", icon: "sparkles" as const, label: "Vitrine & Contenus" }],
   };
-  const groups = [
+  const baseGroups = [
     ...(isClient ? clientNavigationGroups : user.role === "ROLE_FOURNISSEUR" ? supplierNavigationGroup : navigationGroups),
     ...(isAdmin ? [adminNavigationGroup] : []),
     ...(canVitrine && !isAdmin ? [vitrineGroup] : []),
   ];
+  // RBAC strict : la sidebar ne montre que les entrées autorisées par
+  // `canAccessHref` (même matrice que la recherche). Plus de navigation
+  // ERP générique servie à tous les rôles internes. Les groupes vides
+  // sont masqués ; le doublon boutique admin est dédupliqué.
+  const seenHref = new Set<string>();
+  const groups = baseGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (!canAccessHref(item.href, user)) return false;
+        if (seenHref.has(item.href)) return false;
+        seenHref.add(item.href);
+        return true;
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
   const roleLabel = roleLabels[user.role] ?? user.role;
+  // Périmètre filiale (SPEC-BACKEND §3) : consolidation réservée aux rôles
+  // "all" (Gérant, Dev Digital, Comptable). Les autres sont verrouillés sur
+  // leur filiale et ne voient jamais "Toutes les filiales" ni les autres.
+  const filialeScope = filialeScopeOf(user.role);
+  const showFilialeSelector = filialeScope !== "none";
+  const canConsolidate = canSeeConsolidation(user.role);
+  const quickActions = quickActionsFor(user);
 
   function handleLogout() {
     void logout().then(() => router.push("/connexion"));
@@ -170,10 +215,13 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
     }
   }
 
+  // Sélection effective : les rôles "own" sont toujours calés sur leur
+  // filiale, quoi que contienne l'état local (jamais "all", jamais autrui).
+  const effectiveFilialeId = !canConsolidate && user.filialeId ? user.filialeId : selectedFilialeId;
   const currentFilialeLabel =
-    selectedFilialeId === "all"
+    effectiveFilialeId === "all"
       ? "Toutes les filiales (Consolidé)"
-      : filiales.find((f) => f.id === selectedFilialeId)?.nom ?? user.filiale ?? "Filiale";
+      : filiales.find((f) => f.id === effectiveFilialeId)?.nom ?? user.filiale ?? "Filiale";
 
   return (
     <div className="min-h-screen bg-[#f4f6f9] text-[#16233a]">
@@ -307,23 +355,27 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
               <Icon name="menu" size={18} />
             </button>
 
-            {/* Filiale Switcher Dropdown (Flowdash Multi-Tenancy Selector) */}
-            {!isClient && (
+            {/* Sélecteur de filiale — verrouillé sur le périmètre du rôle.
+                Consolidation ("Toutes les filiales") réservée aux rôles "all".
+                Les rôles "own" ne voient que leur filiale (ni "all", ni autres). */}
+            {showFilialeSelector && (
               <div className="relative min-w-0">
                 <button
                   type="button"
-                  onClick={() => setFilialeDropdownOpen((prev) => !prev)}
+                  onClick={() => canConsolidate && setFilialeDropdownOpen((prev) => !prev)}
                   className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition sm:px-3"
-                  title="Changer de filiale ou voir le groupe consolidé"
+                  title={canConsolidate ? "Changer de filiale ou voir le groupe consolidé" : "Votre filiale"}
                 >
                   <span className="size-2 shrink-0 rounded-full bg-[#e3a641]" />
                   <span className="max-w-[24vw] truncate font-bold text-[#17294b] min-[480px]:max-w-[140px] sm:max-w-[240px]">
                     {currentFilialeLabel}
                   </span>
-                  <Icon name="chevron-down" size={13} className="shrink-0 text-slate-400" />
+                  {canConsolidate ? (
+                    <Icon name="chevron-down" size={13} className="shrink-0 text-slate-400" />
+                  ) : null}
                 </button>
 
-                {filialeDropdownOpen && (
+                {filialeDropdownOpen && canConsolidate && (
                   <>
                     <div
                       className="fixed inset-0 z-40"
@@ -340,11 +392,11 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                           onClick={() => handleSelectFiliale("all")}
                           className={
                             "flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition " +
-                            (selectedFilialeId === "all" ? "bg-[#17294b] text-white font-bold" : "text-slate-600 hover:bg-slate-50")
+                            (effectiveFilialeId === "all" ? "bg-[#17294b] text-white font-bold" : "text-slate-600 hover:bg-slate-50")
                           }
                         >
                           <span>Toutes les filiales (Consolidé)</span>
-                          {selectedFilialeId === "all" && <Icon name="check" size={14} className="text-[#e3a641]" />}
+                          {effectiveFilialeId === "all" && <Icon name="check" size={14} className="text-[#e3a641]" />}
                         </button>
                         {filiales.map((f) => (
                           <button
@@ -353,11 +405,11 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                             onClick={() => handleSelectFiliale(f.id)}
                             className={
                               "flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-medium transition " +
-                              (selectedFilialeId === f.id ? "bg-[#17294b] text-white font-bold" : "text-slate-600 hover:bg-slate-50")
+                              (effectiveFilialeId === f.id ? "bg-[#17294b] text-white font-bold" : "text-slate-600 hover:bg-slate-50")
                             }
                           >
                             <span className="truncate">{f.nom}</span>
-                            {selectedFilialeId === f.id && <Icon name="check" size={14} className="text-[#e3a641]" />}
+                            {effectiveFilialeId === f.id && <Icon name="check" size={14} className="text-[#e3a641]" />}
                           </button>
                         ))}
                       </div>
@@ -386,9 +438,10 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
             {/* Flowdash Quick Search Trigger */}
             <WorkspaceCommandSearch />
 
-            {/* Quick Action (+) Dropdown Button — masqué sur très petit écran :
-                chaque module expose déjà son propre bouton de création. */}
-            {!isClient && (
+            {/* Quick Action (+) — construit dynamiquement depuis la matrice
+                RBAC (rbac-matrix:quickActionsFor). Jamais affiché à tout
+                l'interne : chaque action exige le droit de création réel. */}
+            {quickActions.length > 0 && (
               <div className="relative hidden min-[480px]:block">
                 <button
                   type="button"
@@ -411,46 +464,41 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Actions Rapides</p>
                       </div>
                       <div className="mt-1 space-y-0.5">
-                        <Link
-                          href="/espace/missions?creer=1"
-                          onClick={() => setQuickActionsOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                        >
-                          <Icon name="clipboard" size={15} className="text-indigo-600" />
-                          <span>Ordre de mission</span>
-                        </Link>
-                        <Link
-                          href="/espace/devis?creer=1"
-                          onClick={() => setQuickActionsOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                        >
-                          <Icon name="file-text" size={15} className="text-emerald-600" />
-                          <span>Nouveau devis</span>
-                        </Link>
-                        <Link
-                          href="/espace/factures?creer=1"
-                          onClick={() => setQuickActionsOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                        >
-                          <Icon name="chart" size={15} className="text-sky-600" />
-                          <span>Nouvelle facture</span>
-                        </Link>
-                        <Link
-                          href="/espace/administration?creer=1"
-                          onClick={() => setQuickActionsOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                        >
-                          <Icon name="users" size={15} className="text-amber-600" />
-                          <span>Collaborateur / Compte</span>
-                        </Link>
-                        <Link
-                          href="/espace/stocks?creer=1"
-                          onClick={() => setQuickActionsOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                        >
-                          <Icon name="boxes" size={15} className="text-teal-600" />
-                          <span>Article de stock</span>
-                        </Link>
+                        {quickActions.map((action) => (
+                          <Link
+                            key={action.href}
+                            href={action.href}
+                            onClick={() => setQuickActionsOpen(false)}
+                            className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                          >
+                            <Icon
+                              name={
+                                action.href.startsWith("/espace/missions")
+                                  ? "clipboard"
+                                  : action.href.startsWith("/espace/devis")
+                                    ? "file-text"
+                                    : action.href.startsWith("/espace/factures")
+                                      ? "chart"
+                                      : action.href.startsWith("/espace/administration")
+                                        ? "users"
+                                        : "boxes"
+                              }
+                              size={15}
+                              className={
+                                action.href.startsWith("/espace/missions")
+                                  ? "text-indigo-600"
+                                  : action.href.startsWith("/espace/devis")
+                                    ? "text-emerald-600"
+                                    : action.href.startsWith("/espace/factures")
+                                      ? "text-sky-600"
+                                      : action.href.startsWith("/espace/administration")
+                                        ? "text-amber-600"
+                                        : "text-teal-600"
+                              }
+                            />
+                            <span>{action.label}</span>
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   </>
@@ -458,8 +506,9 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
               </div>
             )}
 
-            {/* Notification Bell with Badge */}
-            {!isClient && (
+            {/* Notification Bell with Badge — visible à tous les rôles ayant
+                /espace/notifications (y compris clients). */}
+            {canAccessHref("/espace/notifications", user) && (
               <Link
                 aria-label="Notifications"
                 className="relative grid size-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-xs transition hover:border-slate-300 hover:text-[#17294b] sm:size-10"

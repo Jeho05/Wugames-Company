@@ -19,6 +19,8 @@ export type AccountantKpi = {
   spark: number[];
   caption: string;
   estimated?: boolean;
+  /** true quand la donnée n'existe pas côté backend : affichée "—", jamais estimée. */
+  unavailable?: boolean;
 };
 
 export type AccountantHealth = "excellente" | "surveillance" | "critique";
@@ -85,6 +87,9 @@ export type AccountantOverview = {
   alerts: AlertItem[];
   reports: ReportItem[];
   activity: AccountantActivityItem[];
+  /** true si au moins une source API a échoué (panne ≠ "0 facture"). */
+  partial: boolean;
+  loadErrors: string[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -213,8 +218,9 @@ function buildForecast(dailyValues: number[]): CashflowPoint[] {
   if (recent.length === 0) return [];
   const mean = recent.reduce((sum, value) => sum + value, 0) / recent.length;
   const drift = recent.length >= 2 ? (recent[recent.length - 1] - recent[0]) / (recent.length - 1) : 0;
+  // Projection linéaire explicite (foret:true côté UI), sans bruit arbitraire.
   return Array.from({ length: 7 }, (_, index) => {
-    const valeur = Math.max(0.2, mean + drift * (index + 1) + ((index * 17) % 5) / 10);
+    const valeur = Math.max(0, mean + drift * (index + 1));
     return { label: `J+${index + 1}`, valeur: Math.round(valeur * 100) / 100, foret: true };
   });
 }
@@ -235,8 +241,42 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
   const audits = auditResult.status === "fulfilled" ? auditResult.value : [];
   const consolidation =
     consolidationResult.status === "fulfilled" ? consolidationResult.value : null;
+  const loadErrors: string[] = [];
+  if (facturesResult.status === "rejected") loadErrors.push("factures");
+  if (consolidationResult.status === "rejected") loadErrors.push("consolidation");
+  if (auditResult.status === "rejected") loadErrors.push("audit");
+
+  if (facturesResult.status === "rejected") {
+    // Panne API : on NE présente jamais "excellente / 0 facture". État
+    // d'indisponibilité explicite, à distinguer d'un vrai vide.
+    return {
+      source: "api",
+      updatedAt: now,
+      health: "surveillance",
+      kpis: [],
+      cashflow: { daily: [], monthly: [], forecast: [] },
+      invoices: [],
+      payments: [],
+      statutsBreakdown: [],
+      filialesBreakdown: [],
+      recettesDepenses: [],
+      alerts: [
+        {
+          id: "alert-indisponible",
+          severity: "warning",
+          title: "Données financières indisponibles",
+          detail: "Le serveur n'a pas répondu — vérifiez la connexion puis actualisez. Aucun chiffre n'est affiché plutôt qu'un faux zéro.",
+        },
+      ],
+      reports: [],
+      activity: [],
+      partial: true,
+      loadErrors,
+    };
+  }
 
   if (factures.length === 0) {
+    // Vrai vide (API OK, aucune facture) : état vide réel, pas une panne.
     return {
       source: "api",
       updatedAt: now,
@@ -251,6 +291,8 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
       alerts: [],
       reports: [],
       activity: [],
+      partial: loadErrors.length > 0,
+      loadErrors,
     };
   }
 
@@ -258,7 +300,6 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
   const actives = factures.filter((facture) => facture.statut !== "ANNULEE" && facture.statut !== "BROUILLON");
   const caTotal = actives.reduce((sum, facture) => sum + toNumber(facture.montant_ttc), 0);
   const encaisse = factures.filter((facture) => facture.statut === "PAYEE");
-  const encaisseTotal = encaisse.reduce((sum, facture) => sum + toNumber(facture.montant_ttc), 0);
   const enRetard = factures.filter((facture) => facture.statut === "EN_RETARD");
   const enAttente = factures.filter((facture) => facture.statut === "EMISE");
   const creancesTotal = [...enRetard, ...enAttente].reduce(
@@ -288,9 +329,25 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
     );
   }).length;
 
-  const depensesEstimees = Math.round(caTotal * 0.64);
-  const beneficeEstime = recettesThis - Math.round(recettesThis * 0.64);
-  const tresorerieEstimee = Math.max(encaisseTotal - Math.round(caTotal * 0.64), encaisseTotal * 0.25);
+  // PRODUCTION : aucune dépense / bénéfice / trésorerie n'est déduite du CA
+  // par une formule arbitraire (ex-CA×64 %). Sans source comptable backend,
+  // ces indicateurs sont "Non disponibles", jamais estimés.
+  const unavailableKpi = (
+    key: string,
+    label: string,
+    icon: AccountantKpi["icon"],
+    caption: string,
+  ): AccountantKpi => ({
+    key,
+    label,
+    value: "—",
+    change: "—",
+    trend: "flat",
+    icon,
+    spark: [],
+    caption,
+    unavailable: true,
+  });
 
   /* --- Séries ------------------------------------------------------- */
   const monthKeys = lastMonthKeys(12);
@@ -391,10 +448,10 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
+  // Seules les recettes encaissées sont réelles. Les dépenses et le bénéfice
+  // ne sont pas suivis par l'API : pas de faux segment "estimé" dans le graphe.
   const recettesDepenses = [
     { label: "Recettes", value: Math.round((recettesThis / 1_000_000) * 10) / 10, color: "#34d399" },
-    { label: "Dépenses (estimé)", value: Math.round((depensesEstimees / 1_000_000) * 10) / 10, color: "#fb7185" },
-    { label: "Bénéfice (estimé)", value: Math.round((beneficeEstime / 1_000_000) * 10) / 10, color: "#e3a641" },
   ];
 
   /* --- Alertes -------------------------------------------------------- */
@@ -478,6 +535,17 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
 
   /* --- KPIs ------------------------------------------------------------ */
   const recettesChange = momPercent(recettesThis, recettesPrev) ?? "—";
+  // Historiques réels (comptés par mois de création), jamais de spark synthétique.
+  const monthKeyList = monthKeys.map((key) => key.key);
+  const impayeesMonthly = bucketByMonth(
+    enRetard.map((facture) => ({ date: facture.created_at, value: 1 })),
+    monthKeyList,
+  );
+  const creancesMonthly = bucketByMonth(
+    [...enRetard, ...enAttente].map((facture) => ({ date: facture.created_at, value: toNumber(facture.montant_ttc) / 1_000_000 })),
+    monthKeyList,
+  );
+  const creancesRatio = caTotal > 0 ? (creancesTotal / caTotal) * 100 : 0;
   const kpis: AccountantKpi[] = [
     {
       key: "ca",
@@ -499,28 +567,8 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
       spark: caMonthly.map((value) => Math.round(value / 1_000_000)),
       caption: `encaissées · ${recettesThisMonth.length} paiement(s)`,
     },
-    {
-      key: "depenses",
-      label: "Dépenses du mois",
-      value: formatFcfaCompact(depensesEstimees),
-      change: "+0 %",
-      trend: "flat",
-      icon: "arrow-down",
-      spark: caMonthly.map((value) => Math.round((value * 0.64) / 1_000_000)),
-      caption: "charges estimées (64 % du CA)",
-      estimated: true,
-    },
-    {
-      key: "benefice",
-      label: "Bénéfice net",
-      value: formatFcfaCompact(beneficeEstime),
-      change: momPercent(beneficeEstime, Math.max(recettesPrev * 0.36, 1)) ?? "—",
-      trend: "up",
-      icon: "sparkles",
-      spark: caMonthly.map((value) => Math.round((value * 0.36) / 1_000_000)),
-      caption: "marge nette estimée",
-      estimated: true,
-    },
+    unavailableKpi("depenses", "Dépenses du mois", "arrow-down", "Donnée non disponible — charges non suivies par l'API"),
+    unavailableKpi("benefice", "Bénéfice net", "sparkles", "Donnée non disponible — sans dépenses réelles, pas de marge calculée"),
     {
       key: "impayees",
       label: "Factures impayées",
@@ -528,7 +576,7 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
       change: `vs ${impayeesPrev} mois dernier`,
       trend: enRetard.length <= impayeesPrev ? "down" : "up",
       icon: "warning",
-      spark: caMonthly.map(() => Math.round(enRetard.length * 1.4)),
+      spark: impayeesMonthly,
       caption: `${formatFcfa(enRetard.reduce((sum, facture) => sum + toNumber(facture.montant_ttc), 0))} en retard`,
     },
     {
@@ -545,23 +593,13 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
       key: "creances",
       label: "Créances",
       value: formatFcfaCompact(creancesTotal),
-      change: `${(ratio * 0.4).toFixed(1).replace(".", ",")} % du CA`,
-      trend: ratio >= 30 ? "up" : "flat",
+      change: `${creancesRatio.toFixed(1).replace(".", ",")} % du CA`,
+      trend: creancesRatio >= 30 ? "up" : "flat",
       icon: "clock",
-      spark: caMonthly.map((value) => Math.round((value * Math.min(ratio / 100, 0.5)) / 1_000_000)),
+      spark: creancesMonthly.map((value) => Math.round(value)),
       caption: `${enRetard.length + enAttente.length} facture(s) à encaisser`,
     },
-    {
-      key: "tresorerie",
-      label: "Trésorerie disponible",
-      value: formatFcfaCompact(tresorerieEstimee),
-      change: momPercent(tresorerieEstimee, encaisseTotal * 0.5) ?? "—",
-      trend: "up",
-      icon: "building",
-      spark: caMonthly.map((value) => Math.round((value * 0.72) / 1_000_000)),
-      caption: "soldes bancaires estimés",
-      estimated: true,
-    },
+    unavailableKpi("tresorerie", "Trésorerie disponible", "building", "Donnée non disponible — soldes bancaires non suivis par l'API"),
   ];
 
   return {
@@ -582,5 +620,7 @@ export async function loadAccountantOverview(): Promise<AccountantOverview | nul
         ]
       : [],
     activity,
+    partial: loadErrors.length > 0,
+    loadErrors,
   };
 }

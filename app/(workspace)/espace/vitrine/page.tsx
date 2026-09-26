@@ -136,7 +136,7 @@ export default function VitrineAdminPage() {
           </span>
           <h1 className="mt-5 text-xl font-bold tracking-[-0.035em] text-[#17294b]">Accès vitrine restreint</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            La gestion de la vitrine (témoignages, étoiles, produits, blog, réalisations, services) est réservée au <strong>Gérant</strong>.
+            La gestion de la vitrine (témoignages, étoiles, produits, blog, réalisations, services) est réservée au <strong>Gérant et au Dev Digital</strong>.
             <br />
             Votre rôle actuel ({user.role}) ne dispose pas de cette permission. Demandez au Gérant de vous déléguer l&apos;accès depuis l&apos;onglet Permissions.
           </p>

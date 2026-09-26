@@ -184,8 +184,7 @@ export type BranchHealth = {
 export type BranchOverview = {
   source: "api";
   updatedAt: number;
-  filiale: { id: string; nom: string; code: string };
-  health: BranchHealth;
+  filiale: { id: string; nom: string; code: string };  health: BranchHealth;
   kpis: BranchKpi[];
   alerts: BranchAlert[];
   missions: BranchMissionRow[];
@@ -205,6 +204,9 @@ export type BranchOverview = {
   };
   activity: BranchActivityItem[];
   notifications: { list: BranchNotification[]; unread: number };
+  /** true si au moins une source API a échoué (panne ≠ "0"). */
+  partial: boolean;
+  loadErrors: string[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -352,6 +354,15 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
   const allFournisseurs = fournisseursResult.status === "fulfilled" ? fournisseursResult.value : [];
   const allEvaluations = evaluationsResult.status === "fulfilled" ? evaluationsResult.value : [];
   const allNotifications = notificationsResult.status === "fulfilled" ? notificationsResult.value : [];
+  const loadErrors: string[] = [];
+  if (usersResult.status === "rejected") loadErrors.push("users");
+  if (missionsResult.status === "rejected") loadErrors.push("missions");
+  if (facturesResult.status === "rejected") loadErrors.push("factures");
+  if (produitsResult.status === "rejected") loadErrors.push("produits");
+  if (clientsResult.status === "rejected") loadErrors.push("clients");
+  if (fournisseursResult.status === "rejected") loadErrors.push("fournisseurs");
+  if (evaluationsResult.status === "rejected") loadErrors.push("evaluations");
+  if (notificationsResult.status === "rejected") loadErrors.push("notifications");
 
   /* --- Isolation stricte par filiale ---------------------------------- */
   const users = filialeId ? allUsers.filter((user) => user.filiale_id === filialeId) : allUsers;
@@ -737,6 +748,9 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
   const unread = notifications.filter((notification) => !notification.lu).length;
 
   /* --- Santé de la filiale ---------------------------------------------------------------------- */
+  // Convention d'affichage frontend (documentée ici, non comptable) : 6 facteurs
+  // binaires équipondérés (retards, ruptures, factures en retard, disponibilité
+  // équipes, rendement ≥ 70 %, moins de 3 alertes). Seuils solely UX.
   const hasRetard = missionsRetard.length > 0;
   const hasRupture = ruptures.length > 0;
   const hasFactureRetard = enRetard.length > 0;
@@ -757,18 +771,38 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
   const level: BranchHealthLevel = score >= 84 ? "performante" : score >= 66 ? "normale" : score >= 45 ? "attention" : "critique";
 
   /* --- KPIs ---------------------------------------------------------------------------------------- */
+  // PRODUCTION : les sparklines affichent UNIQUEMENT des séries mensuelles
+  // réelles (comptées par mois de création). Sans historique réel → [] et
+  // l'UI affiche "Historique indisponible" (jamais de faux historique).
+  const kpiMonthKeys = lastMonthKeys(6).map((key) => key.key);
+  const countByMonth = (dates: (string | null | undefined)[]): number[] => {
+    const buckets = new Array(kpiMonthKeys.length).fill(0) as number[];
+    for (const date of dates) {
+      if (!date) continue;
+      const parsed = new Date(date);
+      if (Number.isNaN(parsed.getTime())) continue;
+      const index = kpiMonthKeys.indexOf(monthKeyOf(parsed));
+      if (index !== -1) buckets[index] += 1;
+    }
+    return buckets;
+  };
+  const missionsMonthly = countByMonth(missions.map((m) => m.created_at));
+  const facturesMonthly = countByMonth(activesFactures.map((f) => f.created_at));
+  const retardMonthly = countByMonth(enRetard.map((f) => f.created_at));
+  const usersMonthly = countByMonth(users.map((u) => u.created_at));
+  const produitsMonthly = countByMonth(actifs.map((p) => p.created_at));
   const missionsActives = missions.filter((m) => isMissionActive(m.statut));
   const kpis: BranchKpi[] = [
-    { key: "missions_retard", label: "Missions en retard", value: formatNumber(missionsRetard.length), change: missionsRetard.length > 0 ? "à traiter" : "aucune", trend: missionsRetard.length > 0 ? "up" : "down", icon: "clock", spark: [4, 3, 3, 4, 3, 2, 3, 2, 3, 2, 2, missionsRetard.length], caption: "pointage attendu", href: "/espace/missions" },
-    { key: "ruptures", label: "Produits en rupture", value: formatNumber(ruptures.length), change: "stock à zéro", trend: ruptures.length > 0 ? "up" : "down", icon: "boxes", spark: [2, 2, 3, 2, 3, 3, 2, 2, 3, 2, 2, ruptures.length], caption: "impact chantiers possible", href: "/espace/stocks" },
-    { key: "factures_retard", label: "Factures en retard", value: formatNumber(enRetard.length), change: enRetard.length > 0 ? "à relancer" : "aucune", trend: enRetard.length > 0 ? "up" : "down", icon: "bell", spark: [1, 1, 2, 1, 2, 2, 1, 1, 2, 1, 2, enRetard.length], caption: "au-delà de l'échéance", href: "/espace/factures" },
-    { key: "commandes", label: "Commandes en cours", value: formatNumber(enCommande.length), change: `${formatNumber(stock.pendingReceptions)} réceptions`, trend: "up", icon: "shopping-bag", spark: [1, 2, 1, 2, 2, 3, 2, 3, 3, 4, 3, enCommande.length], caption: "chez les fournisseurs", href: "/espace/stocks" },
-    { key: "utilisateurs", label: "Utilisateurs de la filiale", value: formatNumber(users.length), change: `${formatNumber(ouvriers.length)} ouvriers`, trend: "up", icon: "users", spark: [8, 9, 10, 10, 11, 12, 12, 13, 14, 15, 16, users.length], caption: "comptes rattachés", href: "/espace/utilisateurs" },
-    { key: "missions_actives", label: "Missions actives", value: formatNumber(missionsActives.length), change: `${formatNumber(missions.length)} au total`, trend: "up", icon: "hardhat", spark: [3, 4, 3, 5, 4, 5, 6, 5, 6, 7, 6, missionsActives.length], caption: "en cours de réalisation", href: "/espace/missions" },
-    { key: "produits_dispo", label: "Produits disponibles", value: formatNumber(actifs.length), change: `${formatNumber(totalUnits)} unités`, trend: "up", icon: "package", spark: [60, 65, 68, 72, 75, 80, 84, 88, 92, 98, 104, actifs.length], caption: "au catalogue de la filiale", href: "/espace/stocks" },
-    { key: "a_reappro", label: "À réapprovisionner", value: formatNumber(below.length), change: `${formatNumber(ruptures.length)} rupture(s)`, trend: below.length > 0 ? "up" : "down", icon: "warning", spark: [8, 7, 9, 8, 6, 7, 9, 8, 10, 9, 11, below.length], caption: "sous le seuil minimum", href: "/espace/stocks" },
-    { key: "factures_cours", label: "Factures en cours", value: formatNumber(emises.length), change: `${formatNumber(factures.length)} au total`, trend: "up", icon: "file-text", spark: [4, 5, 4, 6, 5, 7, 6, 8, 7, 8, 9, emises.length], caption: "émises et brouillons", href: "/espace/factures" },
-    { key: "rendement", label: "Rendement moyen des équipes", value: evaluations.length > 0 ? `${Math.round(rendementMoyen)} %` : "—", change: evaluations.length > 0 ? `${evaluations.length} évaluations` : "aucune évaluation", trend: rendementMoyen >= 70 ? "up" : "down", icon: "chart", spark: [60, 62, 64, 63, 66, 65, 68, 67, 69, 70, 69, Math.round(rendementMoyen)], caption: "sur le cycle en cours", href: "/espace/evaluations" },
+    { key: "missions_retard", label: "Missions en retard", value: formatNumber(missionsRetard.length), change: missionsRetard.length > 0 ? "à traiter" : "aucune", trend: missionsRetard.length > 0 ? "up" : "down", icon: "clock", spark: [], caption: "pointage attendu", href: "/espace/missions" },
+    { key: "ruptures", label: "Produits en rupture", value: formatNumber(ruptures.length), change: "stock à zéro", trend: ruptures.length > 0 ? "up" : "down", icon: "boxes", spark: [], caption: "impact chantiers possible", href: "/espace/stocks" },
+    { key: "factures_retard", label: "Factures en retard", value: formatNumber(enRetard.length), change: enRetard.length > 0 ? "à relancer" : "aucune", trend: enRetard.length > 0 ? "up" : "down", icon: "bell", spark: retardMonthly, caption: "au-delà de l'échéance", href: "/espace/factures" },
+    { key: "commandes", label: "Commandes en cours", value: formatNumber(enCommande.length), change: `${formatNumber(stock.pendingReceptions)} réceptions`, trend: "up", icon: "shopping-bag", spark: [], caption: "chez les fournisseurs", href: "/espace/stocks" },
+    { key: "utilisateurs", label: "Utilisateurs de la filiale", value: formatNumber(users.length), change: `${formatNumber(ouvriers.length)} ouvriers`, trend: "up", icon: "users", spark: usersMonthly, caption: "comptes rattachés", href: "/espace/utilisateurs" },
+    { key: "missions_actives", label: "Missions actives", value: formatNumber(missionsActives.length), change: `${formatNumber(missions.length)} au total`, trend: "up", icon: "hardhat", spark: missionsMonthly, caption: "missions créées par mois", href: "/espace/missions" },
+    { key: "produits_dispo", label: "Produits disponibles", value: formatNumber(actifs.length), change: `${formatNumber(totalUnits)} unités`, trend: "up", icon: "package", spark: produitsMonthly, caption: "produits créés par mois", href: "/espace/stocks" },
+    { key: "a_reappro", label: "À réapprovisionner", value: formatNumber(below.length), change: `${formatNumber(ruptures.length)} rupture(s)`, trend: below.length > 0 ? "up" : "down", icon: "warning", spark: [], caption: "sous le seuil minimum", href: "/espace/stocks" },
+    { key: "factures_cours", label: "Factures en cours", value: formatNumber(emises.length), change: `${formatNumber(factures.length)} au total`, trend: "up", icon: "file-text", spark: facturesMonthly, caption: "factures créées par mois", href: "/espace/factures" },
+    { key: "rendement", label: "Rendement moyen des équipes", value: evaluations.length > 0 ? `${Math.round(rendementMoyen)} %` : "—", change: evaluations.length > 0 ? `${evaluations.length} évaluations` : "aucune évaluation", trend: rendementMoyen >= 70 ? "up" : "down", icon: "chart", spark: [], caption: "sur le cycle en cours", href: "/espace/evaluations" },
   ];
 
   return {
@@ -788,6 +822,8 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
     evaluations: { ranking, radar },
     activity,
     notifications: { list: notifications, unread },
+    partial: loadErrors.length > 0,
+    loadErrors,
   };
 }
 

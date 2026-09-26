@@ -15,7 +15,7 @@ import type { AuditLog, Facture } from "@/app/lib/contracts";
 /* Types                                                               */
 /* ------------------------------------------------------------------ */
 
-export type ExecutiveHealth = "stable" | "attention" | "critique";
+export type ExecutiveHealth = "stable" | "attention" | "critique" | "instable";
 
 export type ExecutiveKpi = {
   key: string;
@@ -100,6 +100,9 @@ export type ExecutiveOverview = {
   audits: AuditLog[];
   unread: number;
   missionCounters: { label: string; count: number; tone: "neutral" | "info" | "success" | "danger" }[];
+  /** true si au moins une source API a échoué (panne ≠ "0"). */
+  partial: boolean;
+  loadErrors: string[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -228,14 +231,36 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
   const unread = notifRes.status === "fulfilled" ? notifRes.value : 0;
 
   const now = Date.now();
+  const loadErrors: string[] = [
+    ...(filialesRes.status === "rejected" ? ["consolidation-filiales"] : []),
+    ...(facturesRes.status === "rejected" ? ["consolidation-factures"] : []),
+    ...(facturesListRes.status === "rejected" ? ["factures"] : []),
+    ...(produitsRes.status === "rejected" ? ["produits"] : []),
+    ...(missionsRes.status === "rejected" ? ["missions"] : []),
+    ...(usersRes.status === "rejected" ? ["users"] : []),
+    ...(clientsRes.status === "rejected" ? ["clients"] : []),
+    ...(fournisseursRes.status === "rejected" ? ["fournisseurs"] : []),
+    ...(auditRes.status === "rejected" ? ["audit"] : []),
+    ...(rankingRes.status === "rejected" ? ["ranking"] : []),
+    ...(notifRes.status === "rejected" ? ["notifications"] : []),
+  ];
 
   if (!filiales || !factures) {
+    // Consolidation en échec : PAS de "stable" rassurant sur du vide.
+    // État d'indisponibilité explicite avec alerte dédiée.
     return {
       source: "api" as const,
       updatedAt: now,
-      health: "stable" as const,
+      health: "instable" as const,
       kpis: [],
-      alerts: [],
+      alerts: [
+        {
+          id: "al-indisponible",
+          severity: "warning",
+          title: "Consolidation indisponible",
+          detail: `Le serveur n'a pas répondu (${loadErrors.join(", ")}). Aucun indicateur affiché plutôt qu'un faux état stable.`,
+        },
+      ],
       activity: [],
       missions: [],
       filiales: [],
@@ -247,6 +272,8 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
       audits: [],
       unread,
       missionCounters: [],
+      partial: true,
+      loadErrors,
     };
   }
 
@@ -464,7 +491,7 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
       change: `${filiales.summary.total_filiales} en consolidation`,
       trend: "flat",
       icon: "building",
-      spark: monthKeys.map(() => filiales.summary.total_filiales),
+      spark: [],
       caption: "tout le groupe",
     },
     {
@@ -494,7 +521,7 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
       change: `${stockCritique.length} alertes`,
       trend: stockCritique.length > 0 ? "down" : "up",
       icon: "boxes",
-      spark: monthKeys.map((_, i) => (i === monthKeys.length - 1 ? stockTotal : Math.round(stockTotal * (0.95 + i * 0.005)))),
+      spark: [],
       caption: "unités · dépôts",
     },
   ];
@@ -605,9 +632,9 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
     missions: missions.slice(0, 6).map((m) => ({
       id: m.id.slice(0, 8).toUpperCase(),
       title: m.titre,
-      client: m.client_id ? `Client · ${m.client_id.slice(0, 8)}` : "Client WUGAMS",
-      location: m.adresse_lat ? `${m.adresse_lat.toFixed(4)}, ${m.adresse_lng?.toFixed(4)}` : "Abidjan",
-      filiale: m.filiale?.nom ?? "WUGAMS",
+      client: m.client_id ? `Client · ${m.client_id.slice(0, 8)}` : "Non renseigné",
+      location: m.adresse_lat ? `${m.adresse_lat.toFixed(4)}, ${m.adresse_lng?.toFixed(4)}` : "Non renseigné",
+      filiale: m.filiale?.nom ?? "Non renseigné",
       statut: missionMapStatut(m.statut, m.date_planifiee),
       equipe: m.ouvrier?.user ? `${m.ouvrier.user.first_name} ${m.ouvrier.user.last_name}` : "À affecter",
       date: m.date_planifiee ? new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(new Date(m.date_planifiee)) : "—",
@@ -626,6 +653,8 @@ export async function loadExecutiveOverview(filialeId?: string | null): Promise<
       { label: "Terminée", count: missionCounterValues["Terminée"], tone: "success" },
       { label: "Retard", count: missionCounterValues["Retard"], tone: "danger" },
     ],
+    partial: loadErrors.length > 0,
+    loadErrors,
   };
 }
 
@@ -637,6 +666,7 @@ export const healthMeta: Record<ExecutiveHealth, { label: string; dot: string; r
   stable: { label: "Stable", dot: "bg-emerald-400", ring: "ring-emerald-400/30", text: "text-emerald-300", emoji: "🟢" },
   attention: { label: "Attention", dot: "bg-amber-400", ring: "ring-amber-400/30", text: "text-amber-300", emoji: "🟡" },
   critique: { label: "Critique", dot: "bg-red-400", ring: "ring-red-400/30", text: "text-red-300", emoji: "🔴" },
+  instable: { label: "Données indisponibles", dot: "bg-slate-400", ring: "ring-slate-400/30", text: "text-slate-300", emoji: "⚪" },
 };
 
 export const missionStatutMeta = {

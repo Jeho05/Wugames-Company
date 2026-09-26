@@ -55,7 +55,8 @@ export type FieldMission = {
 
 export type PhotoPoint = {
   label: string;
-  statut: number;
+  /** Qualité photo : non mesurée par l'API → null (affiché "—", jamais inventé). */
+  statut: number | null;
   size: string;
 };
 
@@ -81,8 +82,10 @@ export type FieldWorker = {
   missionEnCours: string | null;
   missionsAujourdhui: number;
   checkin: string | null;
-  rendement9S: number;
-  rang: number;
+  /** Rendement 9S : null quand aucune évaluation API ne l'établit (jamais 0 par défaut). */
+  rendement9S: number | null;
+  /** Rang : null quand non établi (jamais 0). */
+  rang: number | null;
 };
 
 export type FieldPerformance = {
@@ -144,6 +147,9 @@ export type RespOuvriersOverview = {
   performance: FieldPerformance[];
   notifications: Notification[];
   unread: number;
+  /** true si au moins une source API a échoué (données partielles, pas "0"). */
+  partial: boolean;
+  loadErrors: string[];
 };
 
 /* ------------------------------------------------------------------ */
@@ -196,83 +202,69 @@ const statutProgression: Record<MissionStatut, number> = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Enrichissement présentation — dérivé des données réelles, identique  */
-/* pour la démo et l'API                                               */
+/* Enrichissement présentation — dérivé UNIQUEMENT des données API.   */
+/* Aucun véhicule, matériel, score photo, position ou heure n'est     */
+/* inventé : l'indisponible est explicite ("Non renseigné" / null).   */
 /* ------------------------------------------------------------------ */
 
-const PHOTO_LABELS = ["Pointage entrée", "Avant travaux", "Zone chantier", "Avancement", "Après travaux", "Fin de chantier", "Sortie du site"];
-
-const MATERIEL_BY_FILIERE: Record<string, string[]> = {
-  "Nettoyage & Entretien": ["Auto-laveuse", "Karcher pro", "Kit désinfection"],
-  "Rénovation & Construction": ["Échelle 6 m", "Malaxeur", "Outillage complet"],
-  "Mobilier & Design": ["Camion plateau", "Chariot élévateur", "Kit visserie"],
-  "Matériaux & Fournitures": ["Camion 3.5T", "Transpalette", "Sangles"],
-  "Toiture / étanchéité": ["Poste de soudure", "Kit torchère", "Équipement EPI"],
-};
-
-const VEHICULES: { immatriculation: string; type: string }[] = [
-  { immatriculation: "GN-1842-KA", type: "Van Renault Master" },
-  { immatriculation: "GN-7710-KC", type: "Camion 3.5T" },
-  { immatriculation: "GN-3045-KB", type: "Utilitaire Duster" },
-  { immatriculation: "GN-9102-KD", type: "Fourgon Kangoo" },
-];
-
-function offsetTime(anchor: string, offset: number): string {
-  const match = anchor.match(/(\d{1,2}):(\d{2})/);
-  if (!match) return anchor;
-  const base = Number(match[1]) * 60 + Number(match[2]) + offset;
-  const h = ((Math.floor(base / 60) % 24) + 24) % 24;
-  const m = base % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+function heureCourte(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
-function buildWorkplan(statut: MissionStatut, anchor: string): WorkplanItem[] {
-  const steps: { titre: string; offset: number; detail: string; level: FieldLevel; done?: boolean }[] =
-    statut === "TERMINE" || statut === "VALIDE"
-      ? [
-          { titre: "Pointage arrivée", offset: 0, detail: "Arrivée enregistrée dans le rayon autorisé.", level: "normal", done: true },
-          { titre: "Démarrage du chantier", offset: 25, detail: "Vérification du matériel et consignes de sécurité.", level: "normal", done: true },
-          { titre: "Exécution des travaux", offset: 80, detail: "Avancement conforme au plan du jour.", level: "normal", done: true },
-          { titre: "Fin de chantier", offset: 0, detail: "Sortie enregistrée et zone remise en état.", level: "normal", done: true },
-        ]
-      : statut === "RAPPORT_SOUMIS"
-        ? [
-            { titre: "Pointage arrivée", offset: 0, detail: "Arrivée enregistrée dans le rayon.", level: "normal", done: true },
-            { titre: "Exécution des travaux", offset: 40, detail: "Les points du plan du jour sont couverts.", level: "normal", done: true },
-            { titre: "Rapport & photos", offset: 90, detail: "Preuves photo transmises, rapport soumis.", level: "attention" },
-          ]
-        : statut === "POINTAGE_A_VERIFIER"
-          ? [
-              { titre: "Pointage arrivée", offset: 0, detail: "Horodatage enregistré hors du rayon de tolérance.", level: "critical" },
-              { titre: "Vérification de position", offset: 30, detail: "Écart de distance à confirmer avec l'ouvrier.", level: "attention" },
-              { titre: "Suite du chantier", offset: 90, detail: "Validation requise avant rapport final.", level: "normal" },
-            ]
-          : statut === "EN_COURS"
-              ? [
-                  { titre: "Pointage arrivée", offset: 0, detail: "Arrivée validée dans le foyer.", level: "normal", done: true },
-                  { titre: "Travaux en cours", offset: 35, detail: "Avancement enregistré sur le chantier.", level: "attention" },
-                  { titre: "Fin de chantier", offset: 120, detail: "Sortie attendue à la fin de la fenêtre.", level: "normal" },
-                ]
-              : [
-                  { titre: "Affectation & consignes", offset: 0, detail: "Équipe confirmée et briefée.", level: "normal" },
-                  { titre: "Déplacement vers chantier", offset: 30, detail: "GPS actif à partir de la base.", level: "normal" },
-                  { titre: "Démarrage", offset: 0, detail: "Ouverture de la fenêtre de réalisation.", level: "normal" },
-                ];
-
-  return steps.map((step) => ({
-    titre: step.titre,
-    heure: offsetTime(anchor, step.offset),
-    detail: step.detail,
-    level: step.level,
-  }));
+function buildWorkplan(
+  statut: MissionStatut,
+  pointages: { type: "ARRIVEE" | "SORTIE"; horodatage: string; horsRayon: boolean }[],
+  photosCount: number,
+  rapportTexte: string | null,
+): WorkplanItem[] {
+  const arrivee = pointages.find((p) => p.type === "ARRIVEE");
+  const sortie = [...pointages].reverse().find((p) => p.type === "SORTIE");
+  const steps: WorkplanItem[] = [
+    {
+      titre: "Pointage arrivée",
+      heure: heureCourte(arrivee?.horodatage),
+      detail: arrivee
+        ? arrivee.horsRayon
+          ? "Arrivée enregistrée hors du rayon de tolérance — à vérifier."
+          : "Arrivée enregistrée."
+        : "Aucun pointage d'arrivée enregistré.",
+      level: arrivee ? (arrivee.horsRayon ? "critical" : "normal") : "attention",
+    },
+    {
+      titre: "Preuves photo",
+      heure: "—",
+      detail: photosCount > 0 ? `${photosCount} photo(s) jointe(s) à la mission.` : "Aucune photo jointe.",
+      level: photosCount > 0 ? "normal" : "attention",
+    },
+    {
+      titre: "Rapport",
+      heure: "—",
+      detail: rapportTexte ? "Rapport rédigé par l'ouvrier." : "Aucun rapport soumis.",
+      level: rapportTexte ? "normal" : statut === "RAPPORT_SOUMIS" || statut === "VALIDE" || statut === "TERMINE" ? "attention" : "normal",
+    },
+  ];
+  if (sortie) {
+    steps.push({
+      titre: "Pointage sortie",
+      heure: heureCourte(sortie.horodatage),
+      detail: sortie.horsRayon ? "Sortie enregistrée hors rayon — à vérifier." : "Sortie enregistrée.",
+      level: sortie.horsRayon ? "critical" : "normal",
+    });
+  }
+  return steps;
 }
 
 function buildPhotoPoints(count: number): PhotoPoint[] {
   if (count <= 0) return [];
-  return PHOTO_LABELS.slice(0, count).map((label, index) => ({
-    label,
-    statut: 93 + ((index * 5) % 6),
-    size: `${(1.1 + index * 0.35).toFixed(1)} Mo`,
+  // L'API ne fournit ni score qualité ni taille : on expose le réel (le
+  // nombre de photos) sans inventer de pourcentage ni de poids.
+  return Array.from({ length: count }, (_, index) => ({
+    label: `Photo ${index + 1}`,
+    statut: null,
+    size: "—",
   }));
 }
 
@@ -287,20 +279,22 @@ function initialsOfName(name: string): string {
 }
 
 function buildMissionExtras(
-  mission: Pick<FieldMission, "client" | "adresse" | "filiere" | "statut" | "heurePlanifiee" | "workerNom" | "photos" | "rapportDate" | "id">,
+  mission: Pick<FieldMission, "client" | "adresse" | "filiere" | "statut" | "heurePlanifiee" | "workerNom" | "photos" | "rapportDate" | "rapportTexte" | "id"> & {
+    pointages: { type: "ARRIVEE" | "SORTIE"; horodatage: string; horsRayon: boolean }[];
+  },
   teammates: TeamLine[] = [],
 ): Pick<FieldMission, "siteDepart" | "siteChantier" | "workplan" | "team" | "photosStatut" | "vehicule" | "materiel"> {
-  const vehicle = VEHICULES[mission.id.length % VEHICULES.length];
-  const materiel = MATERIEL_BY_FILIERE[mission.filiere] ?? ["Outillage standard", "EPI"];
-  const workerLine: TeamLine = { name: mission.workerNom || "Ouvrier", workerInitiales: initialsOfName(mission.workerNom || "Ouvrier") };
+  const workerLine: TeamLine = { name: mission.workerNom || "Non renseigné", workerInitiales: initialsOfName(mission.workerNom || "··") };
   return {
-    siteDepart: `Base Wugames · ${mission.filiere}`,
+    // Aucune donnée véhicule/matériel/site de départ n'est exposée par l'API :
+    // on l'affiche comme indisponible au lieu d'attribuer un véhicule fictif.
+    siteDepart: "Non renseigné",
     siteChantier: mission.adresse && mission.adresse !== mission.filiere ? `${mission.client} · ${mission.adresse}` : mission.client,
-    workplan: buildWorkplan(mission.statut, mission.heurePlanifiee),
+    workplan: buildWorkplan(mission.statut, mission.pointages, mission.photos, mission.rapportTexte),
     team: [workerLine, ...teammates],
     photosStatut: buildPhotoPoints(mission.photos),
-    vehicule: vehicle,
-    materiel,
+    vehicule: { immatriculation: "Non renseigné", type: "Véhicule non suivi par l'API" },
+    materiel: ["Matériel non suivi par l'API"],
   };
 }
 
@@ -340,10 +334,10 @@ function relativeTime(iso: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Chargement — best-effort vers l'API, repli démo si RBAC bloque      */
+/* Chargement — API uniquement, périmètre filiale strict               */
 /* ------------------------------------------------------------------ */
 
-export async function loadRespOuvriersOverview(firstName?: string | null): Promise<RespOuvriersOverview> {
+export async function loadRespOuvriersOverview(firstName?: string | null, filialeId?: string | null): Promise<RespOuvriersOverview> {
   const now = Date.now();
 
   const [missionsResult, notificationsResult, usersResult] = await Promise.allSettled([
@@ -352,28 +346,44 @@ export async function loadRespOuvriersOverview(firstName?: string | null): Promi
     usersApi.listUsers(),
   ]);
 
-  const missions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
+  const loadErrors: string[] = [];
+  if (missionsResult.status === "rejected") loadErrors.push("missions");
+  if (notificationsResult.status === "rejected") loadErrors.push("notifications");
+  if (usersResult.status === "rejected") loadErrors.push("users");
+
+  const allMissions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
 
   /* --- Vue réelle : missions + ouvriers + notifications accessibles --- */
+  /* Périmètre : un responsable de filiale ne récupère que sa filiale. */
 
   const users = usersResult.status === "fulfilled" ? usersResult.value : [];
-  const workers: FieldWorker[] = users
+  const scopedUsers = filialeId ? users.filter((user) => user.filiale_id === filialeId) : users;
+  const missions = filialeId ? allMissions.filter((mission) => mission.filiale_id === filialeId) : allMissions;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const workers: FieldWorker[] = scopedUsers
     .filter((user) => user.role === "ROLE_OUVRIER")
     .slice(0, 8)
-    .map((user, index) => {
-      const nom = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Ouvrier";
+    .map((user) => {
+      const nom = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Non renseigné";
+      const userMissions = missions.filter((mission) => mission.ouvrier_id === user.id);
+      const enCours = userMissions.find((mission) => mission.statut === "EN_COURS")?.titre ?? null;
+      const notifiee = userMissions.some((mission) => mission.statut === "NOTIFIE" || mission.statut === "ACCEPTE");
+      const lastPointage = userMissions
+        .flatMap((mission) => mission.pointages ?? [])
+        .sort((a, b) => new Date(b.horodatage).getTime() - new Date(a.horodatage).getTime())[0];
       return {
         id: user.id,
         nom,
-        initiales: initialsOf(nom),
-        specialite: user.ouvrier_profile?.specialite ?? "Terrain",
-        matricule: user.ouvrier_profile?.matricule ?? "—",
-        etat: (index % 3 === 0 ? "sur_site" : index % 3 === 1 ? "en_route" : "disponible") as FieldWorker["etat"],
-        missionEnCours: missions.find((mission) => mission.ouvrier_id === user.id && mission.statut === "EN_COURS")?.titre ?? null,
-        missionsAujourdhui: 0,
-        checkin: null,
-        rendement9S: 0,
-        rang: 0,
+        initiales: initialsOf(nom === "Non renseigné" ? "··" : nom),
+        specialite: user.ouvrier_profile?.specialite ?? "Non renseigné",
+        matricule: user.ouvrier_profile?.matricule ?? "Non renseigné",
+        // État dérivé des missions réelles, jamais cyclique (index % 3 supprimé).
+        etat: (!user.is_active ? "offline" : enCours ? "sur_site" : notifiee ? "en_route" : "disponible") as FieldWorker["etat"],
+        missionEnCours: enCours,
+        missionsAujourdhui: userMissions.filter((mission) => (mission.date_planifiee ?? "").slice(0, 10) === todayKey).length,
+        checkin: lastPointage ? heureCourte(lastPointage.horodatage) : null,
+        rendement9S: null,
+        rang: null,
       };
     });
 
@@ -428,7 +438,7 @@ export async function loadRespOuvriersOverview(firstName?: string | null): Promi
       missions: missions.length,
       ouvriers: workers.length,
       rapports: missions.filter((mission) => mission.statut === "RAPPORT_SOUMIS").length,
-      alertes: Math.max(attention.filter((item) => item.level !== "normal").length, 1),
+      alertes: attention.filter((item) => item.level !== "normal").length,
       enCours: missions.filter((mission) => mission.statut === "EN_COURS").length,
       terminees: missions.filter((mission) => mission.statut === "TERMINE").length,
     },
@@ -439,6 +449,8 @@ export async function loadRespOuvriersOverview(firstName?: string | null): Promi
     performance: [],
     notifications: notifications.slice(0, 12),
     unread: notifications.filter((notification) => !notification.lu).length,
+    partial: loadErrors.length > 0,
+    loadErrors,
   };
 }
 
@@ -459,9 +471,9 @@ function toFieldMission(mission: Mission): FieldMission {
     numero: `MISSION ${mission.id.slice(0, 3).toUpperCase()}`,
     titre: mission.titre,
     description: mission.description,
-    client: mission.client?.type_client ? `Client ${mission.client.type_client.toLowerCase()}` : "Client",
-    adresse: mission.filiale?.nom ?? "Chantier",
-    filiere: mission.filiale?.nom ?? "WUGAMS",
+    client: mission.client?.type_client ? `Client ${mission.client.type_client.toLowerCase()}` : "Non renseigné",
+    adresse: mission.filiale?.nom ?? "Non renseigné",
+    filiere: mission.filiale?.nom ?? "Non renseigné",
     statut: mission.statut,
     statutLabel: statutLabel[mission.statut],
     progression: statutProgression[mission.statut],

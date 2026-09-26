@@ -47,7 +47,11 @@ export function AccountantKpiGrid({ kpis }: AccountantKpiGridProps) {
             </div>
             <div className="mt-4 flex items-center gap-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">{kpi.label}</p>
-              {kpi.estimated ? (
+              {kpi.unavailable ? (
+                <span className="rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-slate-400">
+                  Non disponible
+                </span>
+              ) : kpi.estimated ? (
                 <span className="rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-slate-400">
                   Estimé
                 </span>
@@ -55,9 +59,13 @@ export function AccountantKpiGrid({ kpis }: AccountantKpiGridProps) {
             </div>
             <p className="mt-1 text-2xl font-extrabold tabular-nums tracking-tight text-white">{kpi.value}</p>
             <p className="mt-1 text-[11px] text-slate-500">{kpi.caption}</p>
-            <div className="mt-3 flex justify-end opacity-70 transition-opacity duration-300 group-hover:opacity-100">
-              <Sparkline color={tone.spark} data={kpi.spark} height={30} width={110} />
-            </div>
+            {kpi.spark.length > 0 ? (
+              <div className="mt-3 flex justify-end opacity-70 transition-opacity duration-300 group-hover:opacity-100">
+                <Sparkline color={tone.spark} data={kpi.spark} height={30} width={110} />
+              </div>
+            ) : (
+              <p className="mt-3 text-[10px] font-semibold text-slate-500">Historique indisponible</p>
+            )}
           </article>
         );
       })}

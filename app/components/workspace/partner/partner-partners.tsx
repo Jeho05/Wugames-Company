@@ -20,10 +20,15 @@ function initialsOf(name: string): string {
   return name.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
 }
 
-function scoreColor(score: number): string {
+function scoreColor(score: number | null): string {
+  if (score == null) return "text-slate-400";
   if (score >= 90) return "text-emerald-600";
   if (score >= 75) return "text-amber-600";
   return "text-rose-600";
+}
+
+function scoreLabel(score: number | null): string {
+  return score == null ? "—" : `${score} %`;
 }
 
 export function PartnerPartners({ partners }: PartnerPartnersProps) {
@@ -68,32 +73,34 @@ export function PartnerPartners({ partners }: PartnerPartnersProps) {
                 <div className="rounded-xl border border-slate-100 bg-white px-3 py-2">
                   <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Performance</p>
                   <p className={"mt-0.5 text-[15px] font-extrabold tabular-nums " + scoreColor(partner.performance)}>
-                    {partner.performance} %
+                    {partner.performance == null ? "Non évaluée" : `${partner.performance} %`}
                   </p>
                 </div>
                 <div className="rounded-xl border border-slate-100 bg-white px-3 py-2">
                   <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Fiabilité</p>
                   <p className={"mt-0.5 flex items-center gap-1 text-[15px] font-extrabold tabular-nums " + scoreColor(partner.fiabilite)}>
-                    {partner.fiabilite} %
-                    <Icon
-                      className={partner.fiabilite >= 90 ? "text-emerald-500" : partner.fiabilite >= 75 ? "text-amber-500" : "text-rose-500"}
-                      name={partner.fiabilite >= 75 ? "check" : "warning"}
-                      size={13}
-                    />
+                    {scoreLabel(partner.fiabilite)}
+                    {partner.fiabilite != null ? (
+                      <Icon
+                        className={partner.fiabilite >= 90 ? "text-emerald-500" : partner.fiabilite >= 75 ? "text-amber-500" : "text-rose-500"}
+                        name={partner.fiabilite >= 75 ? "check" : "warning"}
+                        size={13}
+                      />
+                    ) : null}
                   </p>
                 </div>
               </div>
               <div className="mt-2.5">
                 <div className="mb-1 flex items-center justify-between text-[9px] font-semibold text-slate-400">
                   <span>Fiabilité des livraisons</span>
-                  <span className="tabular-nums text-slate-500">{partner.fiabilite} %</span>
+                  <span className="tabular-nums text-slate-500">{scoreLabel(partner.fiabilite)}</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-slate-200/70">
                   <motion.div
-                    animate={{ width: `${partner.fiabilite}%` }}
+                    animate={{ width: `${partner.fiabilite ?? 0}%` }}
                     className={
                       "h-full rounded-full " +
-                      (partner.fiabilite >= 90 ? "bg-emerald-500" : partner.fiabilite >= 75 ? "bg-amber-500" : "bg-rose-500")
+                      ((partner.fiabilite ?? 0) >= 90 ? "bg-emerald-500" : (partner.fiabilite ?? 0) >= 75 ? "bg-amber-500" : "bg-rose-500")
                     }
                     initial={{ width: 0 }}
                     transition={{ delay: 0.15 + index * 0.05, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}

@@ -24,6 +24,7 @@ import {
   type PhotoPoint,
   type RespOuvriersOverview,
 } from "@/app/lib/resp-ouvriers-data";
+import { useAuth } from "@/app/lib/auth-context";
 
 const REFRESH_INTERVAL_MS = 60_000;
 const NAV_SECTIONS: { id: string; label: string }[] = [
@@ -47,6 +48,7 @@ function scrollToSection(id: string) {
 }
 
 export function RespOuvriersCommandCenter() {
+  const { user } = useAuth();
   const [data, setData] = useState<RespOuvriersOverview | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [detail, setDetail] = useState<FieldMission | null>(null);
@@ -55,16 +57,20 @@ export function RespOuvriersCommandCenter() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [allRead, setAllRead] = useState(false);
 
+  // Périmètre : le responsable reste sur sa filiale (user.filialeId).
+  const scopeFilialeId = user?.filialeId ?? null;
+
   const refresh = useCallback(async () => {
     setRefreshing(true);
-    const overview = await loadRespOuvriersOverview();
+    const overview = await loadRespOuvriersOverview(null, scopeFilialeId);
     setData(overview);
     setRefreshing(false);
-  }, []);
+  }, [scopeFilialeId]);
 
   useEffect(() => {
+    if (!user) return;
     let cancelled = false;
-    loadRespOuvriersOverview().then((overview) => {
+    loadRespOuvriersOverview(null, scopeFilialeId).then((overview) => {
       if (!cancelled) {
         setData(overview);
         setJourney(overview.missions[0] ?? null);
@@ -73,7 +79,7 @@ export function RespOuvriersCommandCenter() {
     return () => {
       cancelled = true;
     };
-  }, [refresh]);
+  }, [refresh, scopeFilialeId, user]);
 
   useSmartPolling(refresh, REFRESH_INTERVAL_MS);
 
@@ -289,7 +295,7 @@ function PhotoLightbox({ photo, mission, onClose }: { photo: PhotoPoint | null; 
           <div>
             <p className="text-[13px] font-bold text-[#e8eefb]">{photo.label}</p>
             <p className="mt-0.5 text-[11px] text-[#8b96b3]">
-              {mission?.numero ?? "Mission"} · {photo.size} · qualité {photo.statut}%
+              {mission?.numero ?? "Mission"} · {photo.size} · qualité {photo.statut == null ? "indisponible" : `${photo.statut}%`}
             </p>
           </div>
           <button

@@ -9,6 +9,8 @@ export type SearchEntry = {
 
 /**
  * Source de vérité RBAC côté front (miroir du back — affichage/navigation uniquement).
+ * Matrice métier détaillée : voir `app/lib/rbac-matrix.ts`
+ * (ADMIN_DASHBOARD_API_GUIDE §4-§5 + SPEC-BACKEND §3).
  * Chaque href correspond à une page ou un module.
  * On autorise par rôle ; le back reste le garde-fou final (403).
  * Aucune permission n'est lue depuis le navigateur : permission inconnue = refusée.
@@ -50,8 +52,9 @@ const MODULE_ROLES: Record<string, RoleCode[]> = {
   "/espace/projets": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
   "/espace/demandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
   "/espace/documents": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  "/espace/commandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR"],
+  "/espace/commandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR", "ROLE_GERANT", "ROLE_COMPTABLE", "ROLE_SECRETAIRE"],
   "/espace/messages": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR"],
+  "/espace/mode2vie": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
   // Vitrine & Admin
   "/espace/administration": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"],
   "/espace/vitrine": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"], // + délégués via canManageVitrine

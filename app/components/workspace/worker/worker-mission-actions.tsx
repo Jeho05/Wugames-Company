@@ -70,7 +70,7 @@ export function MissionActions({
   onToast,
   onRun,
 }: MissionActionsProps) {
-  const action = actionForMission(mission, photos.length > 0, draft.length > 0);
+  const action = actionForMission(mission, photos.length > 0, draft.length > 0, mission.sortiePointee);
   const meta = actionMeta[action.kind];
   const [gpsMode, setGpsMode] = useState<PointageMode>("arrivee");
 

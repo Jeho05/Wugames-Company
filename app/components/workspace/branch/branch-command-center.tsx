@@ -26,6 +26,7 @@ import { BranchStock } from "@/app/components/workspace/branch/branch-stock";
 import { BranchSuppliers } from "@/app/components/workspace/branch/branch-suppliers";
 import { BranchTeam } from "@/app/components/workspace/branch/branch-team";
 import { loadBranchOverview, type BranchOverview } from "@/app/lib/branch-data";
+import { canSeeConsolidation } from "@/app/lib/rbac-matrix";
 
 const REFRESH_INTERVAL_MS = 60_000;
 
@@ -65,7 +66,11 @@ export function BranchCommandCenter() {
   }, [filialeId]);
 
 useEffect(() => {
+    // Périmètre strict : un rôle "own" (ex. Manager Filiale) ne charge JAMAIS
+    // la vue consolidée (filialeId null = toute la holding). On attend que la
+    // filiale de l'utilisateur soit résolue.
     if (!filialeId && filialeId !== null) return;
+    if (filialeId === null && user && !canSeeConsolidation(user.role)) return;
     let cancelled = false;
     loadBranchOverview(filialeId).then((overview) => {
       if (!cancelled) setData(overview);
@@ -73,7 +78,7 @@ useEffect(() => {
     return () => {
       cancelled = true;
     };
-  }, [filialeId, refresh]);
+  }, [filialeId, refresh, user]);
 
   useSmartPolling(() => void refresh(), REFRESH_INTERVAL_MS, { skip: !filialeId && filialeId !== null });
 
@@ -125,6 +130,11 @@ useEffect(() => {
                   </button>
                 </div>
               </div>
+              {data.partial ? (
+                <p className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-amber-800" role="status">
+                  Données partielles ({data.loadErrors.join(", ")}) — certaines informations n&apos;ont pas pu être chargées.
+                </p>
+              ) : null}
 
               <BranchHero
                 filiale={data.filiale}
