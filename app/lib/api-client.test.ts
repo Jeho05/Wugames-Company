@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeExpiry } from "@/app/lib/api-client";
+import { computeExpiry, getSafeRedirect } from "@/app/lib/api-client";
 
 describe("computeExpiry", () => {
   const now = 1_750_000_000_000;
@@ -33,5 +33,25 @@ describe("computeExpiry", () => {
 
   it("accepte les espaces autour de la valeur", () => {
     expect(computeExpiry(" 7d ", now)).toBe(now + 7 * 86_400_000);
+  });
+});
+
+describe("getSafeRedirect — anti open-redirect post-login", () => {
+  it("conserve une route interne demandée", () => {
+    expect(getSafeRedirect("/espace/missions")).toBe("/espace/missions");
+    expect(getSafeRedirect("/espace/devis?creer=1")).toBe("/espace/devis?creer=1");
+  });
+
+  it("retombe sur /espace quand la destination est absente", () => {
+    expect(getSafeRedirect(null)).toBe("/espace");
+    expect(getSafeRedirect(undefined)).toBe("/espace");
+    expect(getSafeRedirect("")).toBe("/espace");
+  });
+
+  it("rejette les URL externes et les protocoles", () => {
+    expect(getSafeRedirect("https://evil.test/phish")).toBe("/espace");
+    expect(getSafeRedirect("//evil.test/espace")).toBe("/espace");
+    expect(getSafeRedirect("javascript:alert(1)")).toBe("/espace");
+    expect(getSafeRedirect("https://evil.test")).toBe("/espace");
   });
 });

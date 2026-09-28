@@ -60,6 +60,8 @@ type FactureBar = {
 
 type DashboardLiveData = {
   source: "api";
+  /** Sources secondaires en échec (affichées comme indisponibles, pas vides). */
+  degraded: string[];
   metrics: DashboardMetric[];
   schedule: ScheduleItem[];
   alerts: StockAlert[];
@@ -169,6 +171,12 @@ function loadDashboardLive(): Promise<DashboardLiveData> {
     const produits = produitsResult.status === "fulfilled" ? produitsResult.value : [];
     const missions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
     const chantiers = chantiersResult.status === "fulfilled" ? chantiersResult.value : [];
+    // Sources secondaires en échec : marquées "indisponibles", jamais "vides".
+    const degraded: string[] = [];
+    if (notificationsResult.status === "rejected") degraded.push("notifications");
+    if (produitsResult.status === "rejected") degraded.push("stocks");
+    if (missionsResult.status === "rejected") degraded.push("missions");
+    if (chantiersResult.status === "rejected") degraded.push("chantiers");
 
     const alerts = produits.map(produitToAlert).filter((alert) => alert !== null) as StockAlert[];
     const liveSchedule = missions
@@ -185,6 +193,7 @@ function loadDashboardLive(): Promise<DashboardLiveData> {
 
     return {
       source: "api",
+      degraded,
       metrics: [
         {
           caption: "factures consolidées",
@@ -317,6 +326,23 @@ export function DashboardScreen() {
 
   return (
     <div className="space-y-6">
+      {live.degraded.length > 0 ? (
+        <div className="flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3" role="status">
+          <Icon className="shrink-0 text-amber-600" name="warning" size={17} />
+          <p className="text-xs font-semibold text-amber-800">
+            Données partielles : {live.degraded.join(", ")} indisponible{live.degraded.length > 1 ? "s" : ""} pour le
+            moment. Les chiffres affichés restent fiables, les sections concernées seront complétées au prochain
+            chargement.
+          </p>
+          <button
+            className="ml-auto shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
+            onClick={reload}
+            type="button"
+          >
+            Réessayer
+          </button>
+        </div>
+      ) : null}
       <section className="flex flex-col justify-between gap-5 xl:flex-row xl:items-end">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#d19331]">

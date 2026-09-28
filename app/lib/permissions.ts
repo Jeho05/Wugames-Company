@@ -1,5 +1,5 @@
-import type { RoleCode } from "@/app/lib/contracts";
 import type { AuthUser } from "@/app/lib/auth-context";
+import { canViewModule } from "@/app/lib/rbac-matrix";
 
 export type SearchEntry = {
   href: string;
@@ -16,49 +16,15 @@ export type SearchEntry = {
  * Aucune permission n'est lue depuis le navigateur : permission inconnue = refusée.
  */
 
-const ROLE_GERANT: RoleCode = "ROLE_GERANT";
-const ROLE_DEV_DIGITAL: RoleCode = "ROLE_DEV_DIGITAL";
-
-const clientRoles = new Set<RoleCode>(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
-const fournisseurRole: RoleCode = "ROLE_FOURNISSEUR";
+const ROLE_GERANT = "ROLE_GERANT";
+const ROLE_DEV_DIGITAL = "ROLE_DEV_DIGITAL";
 
 // Hrefs publics (toujours visibles)
 const PUBLIC_HREFS = new Set(["/", "/blog", "/realisations", "/boutique", "/vitrine", "/horizon", "/cinematic-hero"]);
 
-// Mapping module -> rôles autorisés (intersection avec navigationGroups)
-// Si un rôle n'est pas listé, il ne voit pas l'entrée dans la recherche.
-const MODULE_ROLES: Record<string, RoleCode[]> = {
-  // Pilotage
-  "/espace": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  "/espace/rapports": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_COMPTABLE", "ROLE_SECRETAIRE"],
-  "/espace/filiales": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_FILIALE"],
-  "/espace/managers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"],
-  // Opérations
-  "/espace/clients": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
-  "/espace/chantiers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_SECRETAIRE"],
-  "/espace/missions": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_SECRETAIRE"],
-  "/espace/ouvriers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_SECRETAIRE"],
-  "/espace/carte": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER"],
-  "/espace/devis": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS"],
-  "/espace/factures": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS"],
-  // Ressources
-  "/espace/stocks": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_FOURNISSEUR"],
-  "/espace/fournisseurs": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_SECRETAIRE"],
-  "/espace/messagerie": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS"],
-  "/espace/notifications": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  // Boutique
-  "/espace/boutique": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  // Client
-  "/espace/projets": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  "/espace/demandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  "/espace/documents": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  "/espace/commandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR", "ROLE_GERANT", "ROLE_COMPTABLE", "ROLE_SECRETAIRE"],
-  "/espace/messages": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR"],
-  "/espace/mode2vie": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
-  // Vitrine & Admin
-  "/espace/administration": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"],
-  "/espace/vitrine": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"], // + délégués via canManageVitrine
-};
+// La matrice des modules vit dans `rbac-matrix.ts` (MODULE_VIEW_ROLES,
+// source unique). Ce module ne fait que la normalisation d'href + le cas
+// particulier de la délégation Vitrine, puis délègue à `canViewModule`.
 
 export function canAccessHref(href: string, user: AuthUser | null, delegatedVitrineIds: readonly string[] = []): boolean {
   if (!user) return false;
@@ -77,26 +43,9 @@ export function canAccessHref(href: string, user: AuthUser | null, delegatedVitr
   // Normalise les hrefs avec query/hashtag
   const base = href.split("?")[0].split("#")[0];
 
-  // Mapping direct
-  if (MODULE_ROLES[base]) {
-    return MODULE_ROLES[base].includes(user.role);
-  }
-
-  // Sous-routes : /espace/clients/123 -> check /espace/clients
-  for (const [key, roles] of Object.entries(MODULE_ROLES)) {
-    if (base.startsWith(key + "/")) {
-      return roles.includes(user.role);
-    }
-  }
-
-  // Par défaut : si le href est sous /espace mais non listé, on autorise seulement Gérant/Dev
-  if (base.startsWith("/espace/")) {
-    return user.role === ROLE_GERANT || user.role === ROLE_DEV_DIGITAL;
-  }
-
-  // Autres routes workspace : autorisé si rôle interne
-  if (base.startsWith("/espace")) {
-    return !clientRoles.has(user.role);
+  // Matrice centrale unique (rbac-matrix). Permission inconnue = refusée.
+  if (base === "/espace" || base.startsWith("/espace/")) {
+    return canViewModule(base, user.role);
   }
 
   return true;

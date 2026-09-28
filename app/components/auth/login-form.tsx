@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { ApiError } from "@/app/lib/api-client";
+import { ApiError, authTrace, getSafeRedirect } from "@/app/lib/api-client";
 import { useAuth } from "@/app/lib/auth-context";
 import { confirmPasswordReset, requestPasswordReset } from "@/app/lib/api/auth";
 import { Icon } from "@/app/components/ui/app-icon";
@@ -16,10 +16,16 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/espace";
-  const { user, ready, login, pending2fa, verify2fa } = useAuth();
+  const { user, ready, login, pending2fa, verify2fa, retrySessionSync } = useAuth();
+  const safeRedirect = getSafeRedirect(redirectTo);
   useEffect(() => {
-    if (ready && user) router.replace(redirectTo);
-  }, [ready, user, router, redirectTo]);
+    // Redirection UNIQUEMENT sur session validée (`user` strict, jamais le
+    // cache). Navigation déterministe sans empiler d'historique inutile.
+    if (ready && user) {
+      authTrace("navigation-ready", `login-form → ${safeRedirect}`);
+      router.replace(safeRedirect);
+    }
+  }, [ready, user, router, safeRedirect]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorToken, setTwoFactorToken] = useState("");
@@ -41,9 +47,22 @@ export function LoginForm() {
     return "Une erreur est survenue. Veuillez réessayer.";
   }
 
+  const [syncRetryable, setSyncRetryable] = useState(false);
+
+  /** Échec de sync cookie : tokens conservés → retry SANS ressaisir le mdp. */
+  function isSyncFailure(error: unknown): boolean {
+    return (
+      error instanceof ApiError &&
+      error.statusCode === 0 &&
+      /navigation non confirmée|synchronisation de session/i.test(error.message)
+    );
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setError("");
+    setSyncRetryable(false);
 
     if (!email.trim()) {
       setError("Veuillez renseigner votre adresse e-mail.");
@@ -54,10 +73,28 @@ export function LoginForm() {
     try {
       const outcome = await login(email, password);
       if (outcome === "authenticated") {
-        router.push(redirectTo);
+        // Session locale + cookie VÉRIFIÉS dans login() : navigation sûre.
+        router.replace(safeRedirect);
       }
     } catch (caught) {
       setError(messageFrom(caught));
+      // Pas de ressaisie mdp inutile : on propose un retry direct.
+      setSyncRetryable(isSyncFailure(caught));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRetrySync() {
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await retrySessionSync();
+      router.replace(safeRedirect);
+    } catch (caught) {
+      setError(messageFrom(caught));
+      setSyncRetryable(isSyncFailure(caught));
     } finally {
       setSubmitting(false);
     }
@@ -65,7 +102,9 @@ export function LoginForm() {
 
   async function handleTwoFactorSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setError("");
+    setSyncRetryable(false);
     if (!twoFactorToken.trim()) {
       setError("Veuillez saisir le code à 6 chiffres.");
       return;
@@ -73,9 +112,10 @@ export function LoginForm() {
     setSubmitting(true);
     try {
       await verify2fa(twoFactorToken);
-      router.push(redirectTo);
+      router.replace(safeRedirect);
     } catch (caught) {
       setError(messageFrom(caught));
+      setSyncRetryable(isSyncFailure(caught));
     } finally {
       setSubmitting(false);
     }
@@ -158,6 +198,16 @@ export function LoginForm() {
             <Icon name="warning" size={16} />
             {error}
           </div>
+        ) : null}
+        {syncRetryable ? (
+          <button
+            className="w-full rounded-xl border border-[#7ea5ca] bg-[#edf6ff] px-4 py-2.5 text-xs font-bold text-[#17294b] transition hover:bg-[#dceaf6] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={submitting}
+            onClick={handleRetrySync}
+            type="button"
+          >
+            Réessayer la connexion (sans ressaisir le mot de passe)
+          </button>
         ) : null}
         <LoadingButton
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#17294b] px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
@@ -334,6 +384,16 @@ export function LoginForm() {
           <Icon name="warning" size={16} />
           {error}
         </div>
+      ) : null}
+      {syncRetryable ? (
+        <button
+          className="w-full rounded-xl border border-[#7ea5ca] bg-[#edf6ff] px-4 py-2.5 text-xs font-bold text-[#17294b] transition hover:bg-[#dceaf6] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={submitting}
+          onClick={handleRetrySync}
+          type="button"
+        >
+          Réessayer la connexion (sans ressaisir le mot de passe)
+        </button>
       ) : null}
 
       <LoadingButton

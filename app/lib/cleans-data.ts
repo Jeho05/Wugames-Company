@@ -48,8 +48,14 @@ export type CleansAbonnement = {
   localisation: string;
 };
 
+export type CleansOverviewSource = "api" | "empty" | "error";
+
 export type CleansOverview = {
-  source: "api" | "empty";
+  source: CleansOverviewSource;
+  /** Distinction stricte : `empty` = sans abonnement (confirmé API) vs
+   *  `error` = API indisponible (ne JAMAIS afficher "Aucun abonnement"). */
+  status: "success" | "no_subscription" | "api_error";
+  errorMessage: string | null;
   abonnement: CleansAbonnement;
   services: CleansService[];
 };
@@ -166,6 +172,8 @@ export function groupServicesByDay(services: CleansService[]): CleansDayGroup[] 
 
 export const emptyCleansOverview: CleansOverview = {
   source: "empty",
+  status: "no_subscription",
+  errorMessage: null,
   abonnement: {
     statut: "AUCUN",
     planId: null,
@@ -180,8 +188,19 @@ export const emptyCleansOverview: CleansOverview = {
   services: [],
 };
 
+/** État d'erreur explicite — à afficher comme "données indisponibles + retry". */
+export function cleansApiErrorOverview(message = "Données d'abonnement indisponibles (API injoignable)."): CleansOverview {
+  return {
+    ...emptyCleansOverview,
+    source: "error",
+    status: "api_error",
+    errorMessage: message,
+  };
+}
+
 /* ------------------------------------------------------------------ */
-/* Chargement — tente l'API, sinon vide (plus de mock affiché)         */
+/* Chargement — tente l'API ; erreur → état `api_error` (jamais confondu */
+/* avec "aucun abonnement"). Aucun mock affiché.                       */
 /* ------------------------------------------------------------------ */
 
 export async function loadCleansOverview(): Promise<CleansOverview> {
@@ -189,10 +208,19 @@ export async function loadCleansOverview(): Promise<CleansOverview> {
     const { apiFetch } = await import("@/app/lib/api-client");
     const data = await apiFetch<CleansOverview>("/cleans/overview", { cacheTtlMs: 0 });
     if (data && Array.isArray((data as unknown as { services?: unknown }).services)) {
-      return { ...data, source: "api" };
+      const abonnement = (data as CleansOverview).abonnement;
+      const hasSubscription = Boolean(abonnement && abonnement.statut !== "AUCUN");
+      return {
+        ...data,
+        source: "api",
+        status: hasSubscription ? "success" : "no_subscription",
+        errorMessage: null,
+      };
     }
-  } catch {
-    /* API non dispo — nouveau client reste SANS abonnement, pas de mock */
+    return cleansApiErrorOverview("Réponse inattendue du serveur.");
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message ? error.message : "Données d'abonnement indisponibles (API injoignable).";
+    return cleansApiErrorOverview(message);
   }
-  return emptyCleansOverview;
 }

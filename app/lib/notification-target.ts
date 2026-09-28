@@ -2,6 +2,7 @@
 
 import type { Notification } from "@/app/lib/contracts";
 import type { RoleCode } from "@/app/lib/contracts";
+import { canViewModule } from "@/app/lib/rbac-matrix";
 
 const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
 
@@ -16,7 +17,11 @@ const clientRoles = new Set(["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"]);
  *
  * On normalise tout en lower_case et on cherche des mots-clés.
  */
-export function resolveNotificationTarget(
+/**
+ * Mapping brut notification → route (sans garde RBAC — usage interne).
+ * La fonction publique `resolveNotificationTarget` applique la garde.
+ */
+function resolveRawTarget(
   notification: Notification,
   role?: RoleCode | null
 ): { href: string; label: string } | null {
@@ -99,6 +104,24 @@ export function resolveNotificationTarget(
   // On retourne null seulement si vraiment générique sans type
   if (!rawType && !rawMessage) return null;
   return { href: "/espace/notifications", label: "Voir la notification" };
+}
+
+/**
+ * Résolution SÉCURISÉE : type notification → route cible → garde RBAC
+ * (même matrice que sidebar/recherche). Si le rôle ne peut pas accéder à
+ * la route (ex. ouvrier vers /espace/stocks), repli sur
+ * `/espace/notifications` — jamais vers un module interdit.
+ */
+export function resolveNotificationTarget(
+  notification: Notification,
+  role?: RoleCode | null
+): { href: string; label: string } | null {
+  const candidate = resolveRawTarget(notification, role);
+  if (!candidate) return null;
+  if (role && candidate.href !== "/espace/notifications" && !canViewModule(candidate.href, role)) {
+    return { href: "/espace/notifications", label: "Voir les notifications" };
+  }
+  return candidate;
 }
 
 /**

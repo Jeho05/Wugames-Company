@@ -51,6 +51,27 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
 
   const cleansContent = (
     <>
+      {/* API indisponible : ne JAMAIS afficher "Aucun abonnement" sur une erreur. */}
+      {cleans.status === "api_error" ? (
+        <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-center sm:p-8" role="alert">
+          <span className="mx-auto grid size-12 place-items-center rounded-full bg-red-100 text-red-700">
+            <Icon name="warning" size={22} />
+          </span>
+          <h3 className="mt-3 text-lg font-bold tracking-[-0.02em] text-red-900">
+            Données d&apos;abonnement indisponibles
+          </h3>
+          <p className="mx-auto mt-1.5 max-w-md text-[13px] font-medium leading-6 text-red-700">
+            {cleans.errorMessage ?? "Le serveur ne répond pas pour le moment. Votre abonnement éventuel reste inchangé."}
+          </p>
+          <button
+            className="mt-4 rounded-2xl bg-red-700 px-5 py-2.5 text-[12px] font-bold text-white transition hover:bg-red-800"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            Réessayer
+          </button>
+        </div>
+      ) : null}
       {/* Bandeau si pas d'abonnement — ne masque plus les formules : le client voit et choisit son plan ci-dessous */}
       {!actif ? (
         <div className="rounded-3xl border border-amber-300 bg-amber-50 p-6 text-center sm:p-8 dark:border-amber-700 dark:bg-amber-950">

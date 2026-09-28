@@ -419,17 +419,26 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
               </div>
             )}
 
-            {/* Health API Badge */}
+            {/* Health API Badge — 3 états : checking / online / offline.
+                `null` = vérification en cours, JAMAIS présenté comme connecté. */}
             <span
               className={
                 "hidden rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide md:inline-flex items-center gap-1.5 " +
                 (healthOk === false
                   ? "border-red-200 bg-red-50 text-red-700"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700")
+                  : healthOk === true
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 bg-slate-50 text-slate-500")
               }
+              role="status"
             >
-              <span className={"size-1.5 rounded-full " + (healthOk === false ? "bg-red-500" : "bg-emerald-500 animate-pulse")} />
-              {healthOk === false ? "API hors ligne" : "API connectée"}
+              <span
+                className={
+                  "size-1.5 rounded-full " +
+                  (healthOk === false ? "bg-red-500" : healthOk === true ? "bg-emerald-500" : "bg-slate-400 animate-pulse")
+                }
+              />
+              {healthOk === false ? "API hors ligne" : healthOk === true ? "API connectée" : "Vérification…"}
             </span>
           </div>
 

@@ -116,7 +116,47 @@ export function getSession(): SessionTokens | null {
   return cachedSession;
 }
 
+/* ------------------------------------------------------------------ */
+/* Traces de diagnostic auth (sans secret) — activables via            */
+/* `localStorage["wugams-auth-debug"] = "1"`. Jamais de token/mdp.     */
+/* ------------------------------------------------------------------ */
+
+export type AuthTraceEvent =
+  | "login-start"
+  | "login-api-ok"
+  | "session-local-saved"
+  | "cookie-sync-start"
+  | "cookie-sync-ok"
+  | "cookie-sync-fail"
+  | "navigation-ready"
+  | "restore-start"
+  | "restore-done"
+  | "refresh-start"
+  | "refresh-done"
+  | "session-invalidated"
+  | "redirect-to-login";
+
+export function authTrace(event: AuthTraceEvent, detail?: string): void {
+  try {
+    const enabled =
+      typeof window !== "undefined" &&
+      (window.localStorage.getItem("wugams-auth-debug") === "1" ||
+        process.env.NODE_ENV !== "production");
+    if (!enabled) return;
+    console.debug(`[auth] ${event}${detail ? ` — ${detail}` : ""}`);
+  } catch {
+    /* traçage best-effort */
+  }
+}
+
+/**
+ * `setSession` = mise à jour LOCALE uniquement (stockage + notification +
+ * invalidation du cache). Ne synchronise JAMAIS le cookie : la sync est
+ * explicite via `syncSessionCookie` / `persistAuthenticatedSession`.
+ * Un seul flux fiable, une seule sync par transition de session.
+ */
 export function setSession(session: SessionTokens | null): void {
+  const previousOwner = cachedSession === undefined ? null : sessionFingerprint(cachedSession);
   cachedSession = session;
   if (typeof window !== "undefined") {
     try {
@@ -125,39 +165,119 @@ export function setSession(session: SessionTokens | null): void {
     } catch {
       /* stockage indisponible : la session reste en mémoire */
     }
-    // Miroir httpOnly pour le middleware (défense en profondeur)
-    void syncSessionCookie(session);
+  }
+  const nextOwner = sessionFingerprint(session);
+  if (previousOwner !== nextOwner) {
+    // Changement d'utilisateur / logout : aucune donnée GET de l'ancien
+    // compte ne doit rester exploitable.
+    resetApiCache();
+    invalidateInflightRequests();
   }
   notifyAuthChange();
 }
 
-/** Synchronise le cookie httpOnly lu par le middleware. À await avant de naviguer vers /espace. */
-export function syncSessionCookie(session: SessionTokens | null): Promise<void> {
-  if (typeof window === "undefined") return Promise.resolve();
+function sessionFingerprint(session: SessionTokens | null | undefined): string {
+  if (!session?.accessToken) return "anon";
+  return session.accessToken.slice(-12);
+}
+
+/**
+ * Synchronise le cookie httpOnly lu par `proxy.ts`.
+ * RÉSOLUT UNIQUEMENT si `/api/session` a répondu avec un statut OK et
+ * `{ ok: true }`. REJETTE sinon (réseau / timeout / 4xx / 5xx / payload
+ * inattendu) : le flux critique d'authentification ne doit JAMAIS avaler
+ * cette erreur (ancien `.catch(() => undefined)` interdit).
+ * À `await` AVANT toute navigation vers `/espace`.
+ */
+export async function syncSessionCookie(session: SessionTokens | null): Promise<void> {
+  if (typeof window === "undefined") return;
+  authTrace("cookie-sync-start", session ? "POST /api/session" : "DELETE /api/session");
+  const controller = new AbortController();
+  const timeout =
+    typeof setTimeout !== "undefined" ? setTimeout(() => controller.abort(new Error("sync-timeout")), 10_000) : null;
   try {
-    if (session) {
-      return fetch("/api/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(session),
-        cache: "no-store",
-      })
-        .then(() => undefined)
-        .catch(() => undefined);
+    const response = await fetch("/api/session", {
+      method: session ? "POST" : "DELETE",
+      headers: session ? { "Content-Type": "application/json" } : undefined,
+      body: session ? JSON.stringify(session) : undefined,
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      authTrace("cookie-sync-fail", `HTTP ${response.status}`);
+      throw new ApiError(
+        response.status,
+        response.status >= 500
+          ? "Session créée côté API mais navigation non confirmée (cookie indisponible). Réessayez sans ressaisir le mot de passe."
+          : "La synchronisation de session a échoué. Réessayez.",
+      );
     }
-    return fetch("/api/session", { method: "DELETE", cache: "no-store" })
-      .then(() => undefined)
-      .catch(() => undefined);
-  } catch {
-    return Promise.resolve();
+    // Vérifie réellement le corps `{ ok: true }` (pas seulement le statut).
+    try {
+      const text = await response.text();
+      if (text) {
+        const parsed = JSON.parse(text) as { ok?: unknown };
+        if (parsed && typeof parsed === "object" && "ok" in parsed && parsed.ok !== true) {
+          throw new Error("bad-payload");
+        }
+      }
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      authTrace("cookie-sync-fail", "payload inattendu");
+      throw new ApiError(0, "Réponse de session inattendue. Réessayez.");
+    }
+    authTrace("cookie-sync-ok");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      authTrace("cookie-sync-fail", error.message.slice(0, 80));
+      throw error;
+    }
+    const isTimeout =
+      (error instanceof Error && error.message === "sync-timeout") ||
+      (error instanceof DOMException && error.name === "AbortError");
+    authTrace("cookie-sync-fail", isTimeout ? "timeout" : "réseau");
+    throw new ApiError(
+      0,
+      "Session créée côté API mais navigation non confirmée (cookie indisponible). Réessayez sans ressaisir le mot de passe.",
+    );
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
+}
+
+/**
+ * Orchestration complète d'une transition authentifiée :
+ * stockage local → sync cookie vérifiée → session prête à naviguer.
+ * En cas d'échec cookie, les tokens locaux sont CONSERVÉS pour permettre
+ * un retry sans ressaisir le mot de passe ; l'erreur est propagée (jamais
+ * transformée en succès) afin d'éviter tout état moitié-connecté.
+ */
+export async function persistAuthenticatedSession(session: SessionTokens): Promise<void> {
+  setSession(session);
+  authTrace("session-local-saved");
+  await syncSessionCookie(session);
+  authTrace("navigation-ready");
+}
+
+/** Re-tente la synchronisation cookie de la session courante (sans mot de passe). */
+export async function retrySessionCookieSync(): Promise<void> {
+  const session = getSession();
+  if (!session) {
+    throw new ApiError(401, "Session expirée. Veuillez vous reconnecter.");
+  }
+  await syncSessionCookie(session);
 }
 
 export function clearSession(): void {
   setSession(null);
+  authTrace("session-invalidated", "clearSession");
   if (typeof window !== "undefined") {
+    // Purge cookie best-effort (non critique : le local est déjà purgé et le
+    // proxy rejettera toute navigation sans cookie). Échec loggé, jamais bloquant.
     try {
-      void fetch("/api/session", { method: "DELETE", cache: "no-store" }).catch(() => undefined);
+      void fetch("/api/session", { method: "DELETE", cache: "no-store" }).catch((error) => {
+        authTrace("cookie-sync-fail", `logout DELETE: ${error instanceof Error ? error.message.slice(0, 60) : "réseau"}`);
+      });
     } catch {
       /* ignore */
     }
@@ -212,6 +332,7 @@ let refreshInFlight: Promise<boolean> | null = null;
 async function doRefreshTokens(): Promise<boolean> {
   const session = getSession();
   if (!session?.refreshToken) return false;
+  authTrace("refresh-start");
   const controller = new AbortController();
   const timeout =
     typeof setTimeout !== "undefined" ? setTimeout(() => controller.abort(), 15_000) : null;
@@ -227,6 +348,7 @@ async function doRefreshTokens(): Promise<boolean> {
       // 401/403 = refresh révoqué/expiré → déconnexion. Autres statuts (429, 5xx)
       // = problème transitoire → on garde la session pour réessayer plus tard.
       if (response.status === 401 || response.status === 403) clearSession();
+      authTrace("refresh-done", `HTTP ${response.status} → false`);
       return false;
     }
     const data = (await response.json()) as {
@@ -236,16 +358,30 @@ async function doRefreshTokens(): Promise<boolean> {
     };
     if (!data?.access_token) {
       clearSession();
+      authTrace("refresh-done", "payload invalide → false");
       return false;
     }
-    setSession({
+    const next: SessionTokens = {
       accessToken: data.access_token,
       refreshToken: data.refresh_token ?? session.refreshToken,
       expiresAt: computeExpiry(data.expires_in),
-    });
+    };
+    setSession(next);
+    // Le refresh n'est COMPLET que si le nouveau cookie est synchronisé :
+    // une navigation immédiate après refresh lisait sinon l'ancien cookie.
+    try {
+      await syncSessionCookie(next);
+    } catch {
+      // Tokens conservés (retry possible), mais on ne prétend PAS que le
+      // refresh est terminé : l'appelant doit traiter `false` comme retryable.
+      authTrace("refresh-done", "cookie-sync échec → false");
+      return false;
+    }
+    authTrace("refresh-done", "ok");
     return true;
   } catch {
     // Erreur réseau/timeout : on ne purge PAS la session (transitoire).
+    authTrace("refresh-done", "réseau/timeout → false");
     return false;
   } finally {
     if (timeout) clearTimeout(timeout);
@@ -302,6 +438,28 @@ function cacheKey(method: string, url: string, auth: boolean): string {
 /** Vide le cache GET (appelé lors des mutations pour garantir la fraîcheur appliquée). */
 export function resetApiCache(): void {
   responseCache.clear();
+}
+
+/** Annule la déduplication des requêtes en vol (changement d'utilisateur/logout). */
+function invalidateInflightRequests(): void {
+  inflightRequests.clear();
+}
+
+/**
+ * Destination post-login sûre : uniquement une route interne `/...`.
+ * Rejette les URL externes / protocoles / `//evil` pour éviter l'open-redirect.
+ */
+export function getSafeRedirect(raw: string | null | undefined, fallback = "/espace"): string {
+  if (!raw || typeof raw !== "string") return fallback;
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("://")) return fallback;
+  try {
+    const url = new URL(trimmed, "http://local");
+    const path = url.pathname + url.search + url.hash;
+    return path.startsWith("/") && !path.startsWith("//") ? path : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 function buildUrl(path: string, query?: ApiQuery): string {

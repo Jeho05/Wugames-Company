@@ -116,8 +116,9 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
     setSaving(true);
     setError("");
     setNotice("");
-    const nextOverrides: ProfileOverrides = {};
-    let synced = true;
+    try {
+      const nextOverrides: ProfileOverrides = {};
+      let synced = true;
 
     const userPatch: { first_name?: string; last_name?: string; phone?: string; adresse?: string } = {};
     if (firstName.trim() !== (currentUser.firstName ?? "")) userPatch.first_name = firstName.trim();
@@ -155,17 +156,19 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
       }
     }
 
-    if (synced) {
-      writeOverrides(currentUser.id, {});
-      setPendingSync(false);
-      setNotice("Profil synchronisé avec le serveur.");
-    } else {
-      writeOverrides(currentUser.id, { ...readOverrides(currentUser.id), ...nextOverrides });
-      setPendingSync(true);
-      setNotice("Enregistré sur cet appareil — sera synchronisé dès que l'API répondra.");
+      if (synced) {
+        writeOverrides(currentUser.id, {});
+        setPendingSync(false);
+        setNotice("Profil enregistré sur le serveur.");
+      } else {
+        writeOverrides(currentUser.id, { ...readOverrides(currentUser.id), ...nextOverrides });
+        setPendingSync(true);
+        setNotice("Enregistré sur cet appareil — sera synchronisé dès que l'API répondra.");
+      }
+      await refreshUser();
+    } finally {
+      setSaving(false);
     }
-    await refreshUser();
-    setSaving(false);
   }
 
   return (
@@ -186,7 +189,7 @@ export function AccountSheet({ open, onClose }: AccountSheetProps) {
             <p className="text-sm font-bold text-[#1a2943] dark:text-white">Mon profil</p>
             <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
               <span className={"inline-block size-1.5 rounded-full " + (pendingSync ? "bg-amber-500" : "bg-emerald-500")} />
-              {pendingSync ? "Modifications en attente de synchronisation" : "Synchronisé avec le serveur"}
+              {pendingSync ? "Modifications en attente de synchronisation" : "Profil à jour"}
             </p>
           </div>
           <button

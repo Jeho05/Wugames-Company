@@ -126,6 +126,104 @@ function hasRole(domain: Record<string, RoleCode[]>, slug: string, role: RoleCod
   return (domain[slug] ?? []).includes(role);
 }
 
+/**
+ * SOURCE UNIQUE DE VÉRITÉ RBAC (frontend).
+ * Toute vérification de permission (routes, sidebar, recherche, boutons)
+ * doit passer par `can()` / `canViewModule()` / `canAccessHref()` (qui
+ * délègue ici). Permission inconnue = refusée. Le backend reste l'autorité
+ * finale (403 serveur).
+ */
+export type RbacAction =
+  | "VIEW"
+  | "CREATE"
+  | "UPDATE"
+  | "DELETE"
+  | "ASSIGN"
+  | "VALIDATE"
+  | "CONVERT"
+  | "CHANGE_STATUS"
+  | "VIEW_CONSOLIDATED"
+  | "VIEW_OWN_FILIALE"
+  | "VIEW_OWN_PROFILE";
+
+/** Visibilité des modules par rôle (canonique — consommée par permissions.ts). */
+export const MODULE_VIEW_ROLES: Record<string, RoleCode[]> = {
+  "/espace": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/rapports": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_COMPTABLE", "ROLE_SECRETAIRE"],
+  "/espace/filiales": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_FILIALE"],
+  "/espace/managers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"],
+  "/espace/clients": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
+  "/espace/chantiers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_SECRETAIRE"],
+  "/espace/missions": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_SECRETAIRE"],
+  "/espace/ouvriers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_SECRETAIRE"],
+  "/espace/carte": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER"],
+  "/espace/devis": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS"],
+  "/espace/factures": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS"],
+  "/espace/stocks": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_FOURNISSEUR"],
+  "/espace/fournisseurs": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_SECRETAIRE"],
+  "/espace/messagerie": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS"],
+  "/espace/notifications": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/boutique": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_FOURNISSEUR", "ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/projets": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/demandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/documents": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/commandes": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR", "ROLE_GERANT", "ROLE_COMPTABLE", "ROLE_SECRETAIRE"],
+  "/espace/messages": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE", "ROLE_FOURNISSEUR"],
+  "/espace/mode2vie": ["ROLE_CLIENT_STD", "ROLE_CLIENT_MEMBRE"],
+  "/espace/administration": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"],
+  "/espace/vitrine": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"], // + délégués via canManageVitrine
+};
+
+/** VIEW d'un module (navigation + garde de route). */
+export function canViewModule(href: string, role: RoleCode | null | undefined): boolean {
+  if (!role) return false;
+  const base = href.split("?")[0].split("#")[0];
+  const direct = MODULE_VIEW_ROLES[base];
+  if (direct) return direct.includes(role);
+  for (const [key, roles] of Object.entries(MODULE_VIEW_ROLES)) {
+    // La racine "/espace" ne doit jamais servir de préfixe générique :
+    // sinon tout module inconnu hérite de ses rôles (fail-open).
+    if (key === "/espace") continue;
+    if (base.startsWith(key + "/")) return roles.includes(role);
+  }
+  // Route /espace inconnue : seuls Gérant/Dev (le backend tranche via 403).
+  if (base.startsWith("/espace/")) {
+    return role === "ROLE_GERANT" || role === "ROLE_DEV_DIGITAL";
+  }
+  return false;
+}
+
+/** Point d'entrée unifié : une action sur un domaine pour un rôle. */
+export function can(action: RbacAction, slug: string, role: RoleCode | null | undefined): boolean {
+  switch (action) {
+    case "VIEW":
+      return canViewModule(slug.startsWith("/") ? slug : `/espace/${slug}`, role);
+    case "CREATE":
+      return hasRole(CREATE_ROLES, slug, role);
+    case "UPDATE":
+      return hasRole(UPDATE_ROLES, slug, role);
+    case "DELETE":
+      return hasRole(DELETE_ROLES, slug, role);
+    case "ASSIGN":
+      return canAssignMission(role);
+    case "VALIDATE":
+      return canVerifyPointage(role);
+    case "CONVERT":
+      return canConvertDevis(role);
+    case "CHANGE_STATUS":
+      // Changement de statut métier (missions/chantiers) : mêmes rôles que UPDATE.
+      return hasRole(UPDATE_ROLES, slug, role);
+    case "VIEW_CONSOLIDATED":
+      return role != null && canSeeConsolidation(role);
+    case "VIEW_OWN_FILIALE":
+      return role != null && filialeScopeOf(role) === "own";
+    case "VIEW_OWN_PROFILE":
+      return role != null;
+    default:
+      return false;
+  }
+}
+
 export function canCreate(slug: string, role: RoleCode | null | undefined): boolean {
   return hasRole(CREATE_ROLES, slug, role);
 }

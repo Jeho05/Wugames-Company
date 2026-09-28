@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ApiError } from "@/app/lib/api-client";
+import { ApiError, authTrace } from "@/app/lib/api-client";
 import { useAuth } from "@/app/lib/auth-context";
 import { Icon } from "@/app/components/ui/app-icon";
 import { LoadingButton } from "@/app/components/ui/loading-button";
@@ -14,13 +14,16 @@ const darkInput =
 
 export function WorkerLoginForm() {
   const router = useRouter();
-  const { login, pending2fa, verify2fa } = useAuth();
+  // Même mécanisme centralisé que la connexion principale (useAuth().login
+  // → hydrate → cookie vérifié → navigation). Seul le visuel diffère.
+  const { login, pending2fa, verify2fa, retrySessionSync } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [syncRetryable, setSyncRetryable] = useState(false);
 
   function messageFrom(error: unknown): string {
     if (error instanceof ApiError) {
@@ -32,9 +35,19 @@ export function WorkerLoginForm() {
     return "Une erreur est survenue. Veuillez réessayer.";
   }
 
+  function isSyncFailure(err: unknown): boolean {
+    return (
+      err instanceof ApiError &&
+      err.statusCode === 0 &&
+      /navigation non confirmée|synchronisation de session/i.test(err.message)
+    );
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setError("");
+    setSyncRetryable(false);
 
     if (!email.trim()) {
       setError("Veuillez renseigner votre adresse e-mail.");
@@ -45,10 +58,27 @@ export function WorkerLoginForm() {
     try {
       const outcome = await login(email, password);
       if (outcome === "authenticated") {
-        router.push("/espace");
+        authTrace("navigation-ready", "worker-login-form → /espace");
+        router.replace("/espace");
       }
     } catch (caught) {
       setError(messageFrom(caught));
+      setSyncRetryable(isSyncFailure(caught));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRetrySync() {
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await retrySessionSync();
+      router.replace("/espace");
+    } catch (caught) {
+      setError(messageFrom(caught));
+      setSyncRetryable(isSyncFailure(caught));
     } finally {
       setSubmitting(false);
     }
@@ -56,7 +86,9 @@ export function WorkerLoginForm() {
 
   async function handleTwoFactorSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setError("");
+    setSyncRetryable(false);
     if (!twoFactorToken.trim()) {
       setError("Veuillez saisir le code à 6 chiffres.");
       return;
@@ -64,9 +96,10 @@ export function WorkerLoginForm() {
     setSubmitting(true);
     try {
       await verify2fa(twoFactorToken);
-      router.push("/espace");
+      router.replace("/espace");
     } catch (caught) {
       setError(messageFrom(caught));
+      setSyncRetryable(isSyncFailure(caught));
     } finally {
       setSubmitting(false);
     }
@@ -162,10 +195,20 @@ export function WorkerLoginForm() {
       </div>
 
       {error ? (
-        <div className="flex items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-semibold text-red-300">
-          <Icon name="warning" size={16} />
-          {error}
-        </div>
+          <div className="flex items-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-3.5 py-2.5 text-xs font-semibold text-red-300">
+            <Icon name="warning" size={16} />
+            {error}
+          </div>
+        ) : null}
+      {syncRetryable ? (
+        <button
+          className="w-full rounded-xl border border-[#e3a641]/40 bg-[#e3a641]/10 px-4 py-2.5 text-xs font-bold text-amber-200 transition hover:bg-[#e3a641]/20 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={submitting}
+          onClick={handleRetrySync}
+          type="button"
+        >
+          Réessayer la connexion (sans ressaisir le mot de passe)
+        </button>
       ) : null}
 
       <LoadingButton

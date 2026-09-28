@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { AuthUser } from "@/app/lib/auth-context";
 import {
   ALL_ROLES,
+  can,
   canAssignMission,
   canConvertDevis,
   canCreate,
@@ -10,6 +11,7 @@ import {
   canSeeConsolidation,
   canUpdate,
   canVerifyPointage,
+  canViewModule,
   filialeScopeOf,
   quickActionsFor,
 } from "@/app/lib/rbac-matrix";
@@ -119,5 +121,39 @@ describe("rbac-matrix — actions par module (lecture ≠ création)", () => {
     expect(canCreate("stocks", "ROLE_COMPTABLE")).toBe(false);
     expect(canUpdate("stocks", "ROLE_MGR_FILIALE")).toBe(true);
     expect(canCreate("filiales", "ROLE_MGR_FILIALE")).toBe(false);
+  });
+});
+
+describe("rbac-matrix — point d'entrée unifié can() + canViewModule", () => {
+  it("expose VIEW via la même matrice que les routes", () => {
+    expect(can("VIEW", "/espace/missions", "ROLE_OUVRIER")).toBe(true);
+    expect(can("VIEW", "/espace/stocks", "ROLE_OUVRIER")).toBe(false);
+    expect(can("VIEW", "missions", "ROLE_MGR_OPS")).toBe(true);
+  });
+
+  it("refuse toute permission inconnue", () => {
+    expect(can("VIEW", "/espace/module-inexistant", "ROLE_SECRETAIRE")).toBe(false);
+    expect(can("CREATE", "domaine-inexistant", "ROLE_GERANT")).toBe(false);
+    expect(can("VIEW", "/espace/missions", null)).toBe(false);
+    expect(canViewModule("/espace/missions", null)).toBe(false);
+  });
+
+  it("distingue ASSIGN / VALIDATE / CONVERT / CHANGE_STATUS", () => {
+    expect(can("ASSIGN", "missions", "ROLE_RESP_OUVRIERS")).toBe(true);
+    expect(can("ASSIGN", "missions", "ROLE_OUVRIER")).toBe(false);
+    expect(can("VALIDATE", "pointages", "ROLE_MGR_FILIALE")).toBe(true);
+    expect(can("CONVERT", "devis", "ROLE_COMPTABLE")).toBe(true);
+    expect(can("CONVERT", "devis", "ROLE_MGR_OPS")).toBe(false);
+    expect(can("CHANGE_STATUS", "missions", "ROLE_RESP_OUVRIERS")).toBe(true);
+    expect(can("CHANGE_STATUS", "missions", "ROLE_OUVRIER")).toBe(false);
+  });
+
+  it("expose VIEW_CONSOLIDATED / VIEW_OWN_FILIALE / VIEW_OWN_PROFILE", () => {
+    expect(can("VIEW_CONSOLIDATED", "", "ROLE_GERANT")).toBe(true);
+    expect(can("VIEW_CONSOLIDATED", "", "ROLE_MGR_FILIALE")).toBe(false);
+    expect(can("VIEW_OWN_FILIALE", "", "ROLE_OUVRIER")).toBe(true);
+    expect(can("VIEW_OWN_FILIALE", "", "ROLE_CLIENT_STD")).toBe(false);
+    expect(can("VIEW_OWN_PROFILE", "", "ROLE_FOURNISSEUR")).toBe(true);
+    expect(can("VIEW_OWN_PROFILE", "", null)).toBe(false);
   });
 });
