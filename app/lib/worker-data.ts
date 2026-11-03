@@ -237,6 +237,19 @@ export async function loadWorkerOverview(
     ? allMissions.filter((mission) => mission.ouvrier_id === ouvrierId)
     : [];
 
+  /* `GET /users/:id` est interdit au rôle ouvrier (403) : le nom réel est
+     donc repris des missions scopées renvoyées par le backend, plutôt que
+     du nom de secours construit à partir de l'email. */
+  const missionWorkerName =
+    missions
+      .map((mission) =>
+        [mission.ouvrier?.user?.first_name, mission.ouvrier?.user?.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim(),
+      )
+      .find((name) => name.length > 0) ?? null;
+
   const view = missions
     .sort((a, b) => new Date(a.date_planifiee ?? a.created_at).getTime() - new Date(b.date_planifiee ?? b.created_at).getTime())
     .map(toWorkerMission);
@@ -286,7 +299,7 @@ export async function loadWorkerOverview(
     notifications: { list: allNotifications.slice(0, 12), unread },
     ranking,
     worker: {
-      nom: profile?.nom?.trim() || "Non renseigné",
+      nom: missionWorkerName || profile?.nom?.trim() || "Non renseigné",
       matricule: profile?.matricule?.trim() || "Non renseigné",
       specialite: profile?.specialite?.trim() || "Non renseigné",
     },

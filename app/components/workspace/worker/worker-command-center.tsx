@@ -6,8 +6,6 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
 import { useSmartPolling } from "@/app/hooks/use-smart-polling";
 import { useAuth } from "@/app/lib/auth-context";
-import * as usersApi from "@/app/lib/api/users";
-import type { User } from "@/app/lib/contracts";
 import { Icon } from "@/app/components/ui/app-icon";
 import {
   actionForMission,
@@ -73,7 +71,6 @@ export function WorkerCommandCenter() {
   const router = useRouter();
   const online = useNetworkOnline();
 
-  const [fullUser, setFullUser] = useState<User | null>(null);
   const [overview, setOverview] = useState<WorkerOverview | null>(null);
   const [servicesOverview, setServicesOverview] = useState<WorkerServiceOverview>({ source: "api", services: [], primeDisponible: null });
   const [proofs, setProofs] = useState<Record<string, WorkerServicePreuve>>(() => loadServiceProofs());
@@ -89,49 +86,40 @@ export function WorkerCommandCenter() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastId = useRef(0);
 
+  /**
+   * Identité ouvrier : le claim `profile_id` de la session (login / me) est
+   * la source fiable. L'ancien chemin `GET /users/:id` est interdit au rôle
+   * ouvrier (403 : réservé Gérant / Manager filiale), il ne doit donc jamais
+   * conditionner l'affichage des missions.
+   */
+  const ouvrierId = user?.profileId ?? null;
+
   const refresh = useCallback(async () => {
-    const ouvrierId = fullUser?.ouvrier_profile?.id ?? null;
-    const result = await loadWorkerOverview(fullUser?.id ?? user?.id ?? null, ouvrierId, {
-      nom: fullUser ? [fullUser.first_name, fullUser.last_name].filter(Boolean).join(" ") || fullUser.email : (user?.name ?? null),
-      matricule: fullUser?.ouvrier_profile?.matricule ?? null,
-      specialite: fullUser?.ouvrier_profile?.specialite ?? null,
-      filiale: fullUser?.filiale?.nom ?? user?.filiale ?? null,
-      email: fullUser?.email ?? user?.email ?? null,
-      phone: fullUser?.phone ?? user?.phone ?? null,
-      twoFactor: fullUser?.two_factor_enabled ?? null,
+    const result = await loadWorkerOverview(user?.id ?? null, ouvrierId, {
+      nom: [user?.firstName, user?.lastName].filter(Boolean).join(" ") || (user?.name ?? null),
+      matricule: null,
+      specialite: null,
+      filiale: user?.filiale ?? null,
+      email: user?.email ?? null,
+      phone: user?.phone ?? null,
+      twoFactor: user?.twoFactorEnabled ?? null,
     });
     setOverview(result);
     setPendingCount(getPendingActions().length);
     return result;
-  }, [fullUser, user]);
+  }, [ouvrierId, user]);
 
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
-    usersApi
-      .getUser(user.id)
-      .then((full) => {
-        if (!cancelled) setFullUser(full);
-      })
-      .catch(() => {
-        if (!cancelled) setFullUser(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    loadWorkerOverview(user.id, fullUser?.ouvrier_profile?.id ?? null, {
-      nom: fullUser ? [fullUser.first_name, fullUser.last_name].filter(Boolean).join(" ") || fullUser.email : (user?.name ?? null),
-      matricule: fullUser?.ouvrier_profile?.matricule ?? null,
-      specialite: fullUser?.ouvrier_profile?.specialite ?? null,
-      filiale: fullUser?.filiale?.nom ?? user?.filiale ?? null,
-      email: fullUser?.email ?? user?.email ?? null,
-      phone: fullUser?.phone ?? user?.phone ?? null,
-      twoFactor: fullUser?.two_factor_enabled ?? null,
+    loadWorkerOverview(user.id, ouvrierId, {
+      nom: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name,
+      matricule: null,
+      specialite: null,
+      filiale: user.filiale,
+      email: user.email,
+      phone: user.phone,
+      twoFactor: user.twoFactorEnabled,
     }).then((overview) => {
       if (cancelled) return;
       setOverview(overview);
@@ -141,7 +129,7 @@ export function WorkerCommandCenter() {
     return () => {
       cancelled = true;
     };
-  }, [fullUser, user]);
+  }, [ouvrierId, user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -363,7 +351,7 @@ export function WorkerCommandCenter() {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[18px] font-extrabold leading-6 text-[#16233a]">
-                  Bonjour {fullUser?.first_name ?? firstNames(overview.worker.nom)} 👋
+                  Bonjour {firstNames(overview.worker.nom)} 👋
                 </p>
                 <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
                   {new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}

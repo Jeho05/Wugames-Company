@@ -259,7 +259,7 @@ async function buildAuthUser(dto: AuthUserDto): Promise<AuthUser> {
       initials: initialsOf(name),
       name,
       role: full.role,
-      profileId: full.ouvrier_profile?.id ?? null,
+      profileId: full.ouvrier_profile?.id ?? dto.profile_id,
       firstName: full.first_name ?? null,
       lastName: full.last_name ?? null,
       phone: full.phone ?? null,
