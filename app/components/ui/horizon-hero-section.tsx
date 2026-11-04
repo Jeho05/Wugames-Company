@@ -64,14 +64,19 @@ export function HorizonHeroSection({ title, subtitle, sections = [] }: {
 
   return (
     <div className="relative">
-      <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none -z-10" />
+      <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none -z-10 bg-[#0a1420] bg-gradient-to-b from-[#0a1420] via-[#0f3460] to-[#17294b]" />
 
       <div className="absolute inset-0 z-[-1] bg-gradient-to-b from-black/10 via-transparent to-black/30 pointer-events-none" />
 
       <div className="relative h-screen flex flex-col items-center justify-center pointer-events-none text-center px-6 sm:px-8" style={{ opacity: overlayOpacity }}>
-        <h1 ref={titleRef} className="text-[clamp(2.8rem,13vw,8rem)] font-black tracking-[0.08em] leading-none bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/30 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)]" style={{ visibility: "hidden" }}>
+        <h1 ref={titleRef} className="text-[clamp(2.8rem,13vw,8rem)] font-black tracking-[0.08em] leading-none drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)]" style={{ visibility: "hidden" }}>
           {title.split("").map((char, i) => (
-            <span key={i} className="title-char inline-block">{char}</span>
+            <span
+              key={i}
+              className="title-char inline-block bg-gradient-to-b from-white via-white/90 to-white/30 bg-clip-text text-transparent"
+            >
+              {char}
+            </span>
           ))}
         </h1>
         <div ref={subtitleRef} className="mt-4 sm:mt-6 text-[clamp(0.85rem,2.5vw,1.3rem)] text-amber-200/60 font-light tracking-[0.06em] space-y-1 max-w-2xl" style={{ visibility: "hidden" }}>

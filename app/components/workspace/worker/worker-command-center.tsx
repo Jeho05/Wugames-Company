@@ -311,7 +311,7 @@ export function WorkerCommandCenter() {
   const unread = overview?.notifications.list.filter((notification) => !notification.lu).length ?? 0;
 
   const fab = useMemo(() => {
-    if (!activeMission) return null;
+    if (!activeMission || tab !== "aujourdhui") return null;
     const action = actionForMission(activeMission, activePhotos.length > 0, activeDraft.length > 0, activeMission.sortiePointee);
     if (action.kind === "attente_validation" || action.kind === "terminee") return null;
     const meta = actionMeta[action.kind];
@@ -323,7 +323,7 @@ export function WorkerCommandCenter() {
         setFlow(flowForAction(action.kind));
       },
     };
-  }, [activeDraft, activeMission, activePhotos.length]);
+  }, [activeDraft, activeMission, activePhotos.length, tab]);
 
   if (loading || !overview) {
     return (

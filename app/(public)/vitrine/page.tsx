@@ -170,7 +170,7 @@ export default function VitrinePage() {
             text: "Colossiens 3:23. Qui veut, trouve les solutions — et qui a la foi les sert jusqu'au bout.",
           },
           {
-            image: "https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?q=75&w=1920&fm=webp&auto=format&fit=crop",
+            image: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=75&w=1920&fm=webp&auto=format&fit=crop",
             imageAlt: "Équipes WUGAMS sur le terrain",
             chapter: "Le focus",
             kicker: "Moteur n°2 — La concentration",

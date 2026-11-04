@@ -16,9 +16,7 @@ export default function WugamsCleanPublicPage() {
     <main className="bg-white text-slate-900">
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-[68px] w-full max-w-[1080px] items-center justify-between gap-3 px-4 sm:px-6">
-          <Link href="/" aria-label="Retour accueil WUGAMS">
-            <BrandMark />
-          </Link>
+          <BrandMark />
           <div className="flex items-center gap-2">
             <Link
               href="/"

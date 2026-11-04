@@ -105,8 +105,8 @@ export const mode2vieArticles: Mode2VieArticle[] = [
     ],
     diasporama: [
       "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=75&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=75&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1600607687644-c7f38ed2e0e3?w=800&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=75&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=75&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=75&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=75&auto=format&fit=crop",
@@ -160,7 +160,7 @@ export const mode2vieArticles: Mode2VieArticle[] = [
     ],
     diasporama: [
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=75&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3d2?w=800&q=75&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=75&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=75&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&q=75&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=75&auto=format&fit=crop",

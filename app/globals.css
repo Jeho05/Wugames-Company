@@ -1,4 +1,13 @@
 @import "tailwindcss";
+@import "./base-reset.css" layer(base);
+
+/*
+ * L'application est en thème clair uniquement : le fond reste clair même si
+ * le système de l'utilisateur est en mode sombre. On neutralise donc les
+ * variantes `dark:` héritées de composants tiers, qui produisaient du texte
+ * clair sur fond clair (ex. catalogue WUGAMS CLEAN).
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #f7f9fc;
@@ -28,39 +37,8 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-* {
-  border-color: #e2e8f0;
-}
-
-html {
-  min-height: 100%;
-  text-size-adjust: 100%;
-  overflow-x: clip;
-}
-
-body {
-  min-height: 100%;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  overflow-x: clip;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-button,
-a {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 ::selection {

@@ -164,11 +164,11 @@ export default function ClientBrandingPage() {
           </div>
         }
         proof={
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/60">
+          <div className="grid grid-cols-3 items-start gap-x-3 gap-y-1 text-[9px] font-semibold uppercase leading-4 tracking-[0.1em] text-white/60 [@media(max-height:600px)]:hidden sm:flex sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-5 sm:gap-y-2 sm:text-[11px] sm:tracking-[0.14em]">
             <span>Devis clair</span>
-            <span aria-hidden="true" className="size-1 rounded-full bg-white/30" />
+            <span aria-hidden="true" className="hidden size-1 rounded-full bg-white/30 sm:block" />
             <span>Suivi à chaque étape</span>
-            <span aria-hidden="true" className="size-1 rounded-full bg-white/30" />
+            <span aria-hidden="true" className="hidden size-1 rounded-full bg-white/30 sm:block" />
             <span>Garantie d&apos;accompagnement</span>
           </div>
         }

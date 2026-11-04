@@ -47,7 +47,7 @@ export function ContactForm() {
 
   return (
     <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">
           Formulaire de contact
         </p>
@@ -137,7 +137,7 @@ export function ContactForm() {
           </form>
       </div>
 
-      <aside className="space-y-4">
+      <aside className="min-w-0 space-y-4">
         {[
           { icon: "message" as const, title: "E-mail", lines: ["wugams_holding_inc@hotmail.com"] },
           { icon: "clock" as const, title: "Horaires", lines: ["Lundi - Vendredi", "Matinée : 9 h 00 – 11 h 00", "Soirée : 15 h 00 – 17 h 00", "Urgences chantier : 5 j/7"] },
@@ -151,10 +151,16 @@ export function ContactForm() {
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#edf3f9] text-[#426b95]">
               <Icon name={card.icon} size={18} />
             </span>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-bold text-[#233856]">{card.title}</p>
               {card.lines.map((line) => (
-                <p className="mt-0.5 text-xs leading-5 text-slate-500" key={line}>
+                <p
+                  className={
+                    "mt-0.5 break-words text-slate-500 " +
+                    (line.includes("@") ? "text-[11px] leading-5" : "text-xs leading-5")
+                  }
+                  key={line}
+                >
                   {line}
                 </p>
               ))}

@@ -363,11 +363,11 @@ export function BackOfficeShell({ children }: BackOfficeShellProps) {
                 <button
                   type="button"
                   onClick={() => canConsolidate && setFilialeDropdownOpen((prev) => !prev)}
-                  className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition sm:px-3"
+                  className="flex max-w-full min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition sm:px-3"
                   title={canConsolidate ? "Changer de filiale ou voir le groupe consolidé" : "Votre filiale"}
                 >
                   <span className="size-2 shrink-0 rounded-full bg-[#e3a641]" />
-                  <span className="max-w-[24vw] truncate font-bold text-[#17294b] min-[480px]:max-w-[140px] sm:max-w-[240px]">
+                  <span className="max-w-[180px] truncate font-bold text-[#17294b] min-[480px]:max-w-[140px] sm:max-w-[240px]">
                     {currentFilialeLabel}
                   </span>
                   {canConsolidate ? (

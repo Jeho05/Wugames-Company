@@ -1,0 +1,42 @@
+/*
+ * Styles de base du projet.
+ *
+ * Ce fichier est importé dans la couche `base` de Tailwind (voir globals.css).
+ * Il doit rester dans cette couche : les utilitaires Tailwind (`text-*`,
+ * `border-*`, etc.) doivent toujours pouvoir surcharger ces valeurs par défaut.
+ */
+* {
+  border-color: #e2e8f0;
+}
+
+html {
+  min-height: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  overflow-x: clip;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Les ancres ne doivent pas se cacher sous l'en-tête fixe. */
+section[id] {
+  scroll-margin-top: 6rem;
+}

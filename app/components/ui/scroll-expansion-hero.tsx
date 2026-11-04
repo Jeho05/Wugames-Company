@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useMotionValue, useScroll, useTransform } from "motion/react";
 
 type ClipFrame = { top: number; right: number; bottom: number; left: number; radius: number };
 
@@ -51,11 +51,16 @@ export function ScrollExpansionHero({
   proof,
 }: ScrollExpansionHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [isCompact, setIsCompact] = useState(false);
   // Fondu du fond à l'arrivée de l'image : évite le "pop" d'une immense photo nette
   // qui apparaît d'un coup une fois chargée (l'image de fond doit rester un fond).
   const [bgLoaded, setBgLoaded] = useState(false);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
+  // Position de départ de l'image (en % de la hauteur d'écran). Elle est
+  // mesurée pour garantir que l'image ne recouvre jamais le texte, même sur
+  // les téléphones courts (320×568, 360×640…).
+  const mediaStartTop = useMotionValue(COMPACT_START.top);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -65,8 +70,30 @@ export function ScrollExpansionHero({
     return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
-  const startFrame = isCompact ? COMPACT_START : WIDE_START;
-  const mediaClip = useTransform(scrollYProgress, (progress) => clipAt(progress, startFrame));
+  useEffect(() => {
+    const measure = () => {
+      const content = contentRef.current;
+      if (!content) return;
+      const viewportHeight = window.innerHeight || 1;
+      const baseTop = isCompact ? COMPACT_START.top : WIDE_START.top;
+      const contentBottom = content.getBoundingClientRect().height + 20;
+      const measuredTop = (contentBottom / viewportHeight) * 100;
+      mediaStartTop.set(Math.min(96, Math.max(baseTop, measuredTop)));
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    const observer = new ResizeObserver(measure);
+    if (contentRef.current) observer.observe(contentRef.current);
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, [isCompact, mediaStartTop]);
+
+  const mediaClip = useTransform<number, string>([scrollYProgress, mediaStartTop], ([progress, top]) =>
+    clipAt(progress, { ...(isCompact ? COMPACT_START : WIDE_START), top }),
+  );
   const mediaScale = useTransform(scrollYProgress, [0, 0.68, 1], [0.98, 1.02, 1]);
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.75, 1], [1, 0.36, 0.2]);
   // Copy fades out before the expanding media reaches it, so text and image never collide
@@ -103,6 +130,7 @@ export function ScrollExpansionHero({
 
         <motion.div
           className="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-4xl flex-col items-center px-4 pt-[92px] text-center text-white sm:px-5 sm:pt-[102px]"
+          ref={contentRef}
           style={{ opacity: titleOpacity, y: contentY, pointerEvents, visibility: contentVisibility }}
         >
           {eyebrow}
@@ -117,7 +145,7 @@ export function ScrollExpansionHero({
 
         <motion.div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-3 z-20 flex flex-col items-center gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/80 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] sm:bottom-5"
+          className="absolute inset-x-0 bottom-3 z-20 flex flex-col items-center gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-white/80 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)] [@media(max-height:640px)]:hidden sm:bottom-5"
           style={{ opacity: titleOpacity }}
         >
           Faites défiler pour découvrir WUGAMS

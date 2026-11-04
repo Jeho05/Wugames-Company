@@ -30,7 +30,7 @@ export function WorkerBottomNavigation({ tab, unread, onTab, fabLabel, fabIcon, 
         {fabLabel ? (
           <motion.button
             animate={{ scale: 1 }}
-            className="absolute -top-7 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl bg-[#0f7a5f] px-5 py-3.5 text-[13px] font-extrabold text-white shadow-xl shadow-emerald-900/30 transition active:scale-[0.97]"
+            className="absolute -top-14 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl bg-[#0f7a5f] px-5 py-3.5 text-[13px] font-extrabold text-white shadow-xl shadow-emerald-900/30 transition active:scale-[0.97]"
             initial={{ scale: 0.9 }}
             onClick={onFab}
             style={{ minHeight: 52 }}

@@ -13,7 +13,7 @@ export function HeroImage() {
           fetchPriority="high"
           quality={75}
           sizes="(max-width: 768px) 90vw, 560px"
-          src="https://images.unsplash.com/photo-1541888946425-d81bbad27a4f?w=800&q=75&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=75&auto=format&fit=crop"
           style={{ aspectRatio: "4/3" }}
           width={800}
         />
