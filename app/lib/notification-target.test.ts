@@ -18,14 +18,15 @@ describe("notification-target — garde RBAC (même matrice que sidebar)", () =>
     expect(target?.href).toBe("/espace/notifications");
   });
 
+  it("oriente une notification de mission de l'ouvrier vers son espace dédié", () => {
+    const target = resolveNotificationTarget(notification("nouvelle_mission"), "ROLE_OUVRIER");
+    expect(target?.href).toBe("/espace");
+    expect(target?.label).toBe("Voir mes missions");
+  });
+
   it("ne dirige jamais un fournisseur vers les missions internes", () => {
     const target = resolveNotificationTarget(notification("nouvelle_mission"), "ROLE_FOURNISSEUR");
     expect(target?.href).toBe("/espace/notifications");
-  });
-
-  it("garde les missions accessibles à l'ouvrier", () => {
-    const target = resolveNotificationTarget(notification("nouvelle_mission"), "ROLE_OUVRIER");
-    expect(target?.href).toBe("/espace/missions");
   });
 
   it("resolveNotificationHref ne retourne jamais une route interdite", () => {

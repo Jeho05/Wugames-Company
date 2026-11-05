@@ -104,7 +104,10 @@ export function SecretaryHero({ tasksCount, demandesCount }: SecretaryHeroProps)
           {[
             { href: "/espace/clients?creer=1", label: "Nouveau client", icon: "user-plus" as const },
             { href: "/espace/fournisseurs?creer=1", label: "Nouveau fournisseur", icon: "truck" as const },
-            { href: "/espace/administration?creer=1", label: "Nouvel utilisateur", icon: "users" as const },
+            // Pas de lien "Nouvel utilisateur" : /espace/administration est
+            // réservé au Gérant/Dev Digital (rbac-matrix) — c'est un lien mort
+            // pour la Secrétaire. La création de compte passe par son raccourci
+            // « Créer un compte ».
           ].map((action) => (
             <Link
               className="group inline-flex items-center gap-2.5 rounded-2xl bg-[#17294b] px-4.5 py-3 text-sm font-bold text-white shadow-lg shadow-[#17294b]/20 transition hover:bg-[#243656] hover:shadow-[#17294b]/30 active:scale-[0.98]"

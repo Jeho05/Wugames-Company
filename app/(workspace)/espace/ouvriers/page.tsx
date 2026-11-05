@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/app/components/ui/app-icon";
+import { ModuleAccessGuard } from "@/app/components/workspace/module-access-guard";
 import { ModuleDataBridge } from "@/app/components/workspace/module-data-bridge";
 import { ErrorState, LoadingState, OfflineState } from "@/app/components/ui/data-states";
 import { ApiError } from "@/app/lib/api-client";
@@ -47,7 +48,7 @@ function evaluationsToWorkers(evaluations: Awaited<ReturnType<typeof listEvaluat
 
 type WorkerView = OuvrierPerformance & { hasEvaluation: boolean };
 
-export default function OuvriersPage() {
+function OuvriersContent() {
   const definition = getModuleDefinition("ouvriers");
   const [workers, setWorkers] = useState<WorkerView[]>([]);
   const [evaluationIds, setEvaluationIds] = useState<Record<string, string>>({});
@@ -500,5 +501,13 @@ export default function OuvriersPage() {
         </div>
       </article>
     </div>
+  );
+}
+
+export default function OuvriersPage() {
+  return (
+    <ModuleAccessGuard slug="ouvriers">
+      <OuvriersContent />
+    </ModuleAccessGuard>
   );
 }

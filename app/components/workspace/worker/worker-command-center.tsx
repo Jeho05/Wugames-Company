@@ -12,10 +12,12 @@ import {
   actionMeta,
   enqueuePendingAction,
   getPendingActions,
+  isRetryableWorkerError,
   loadWorkerOverview,
   missionProgression,
   removePendingAction,
   statutLabels,
+  workerActionErrorMessage,
   type WorkerOverview,
   type WorkerPhoto,
   workerApi,
@@ -204,20 +206,33 @@ export function WorkerCommandCenter() {
     const pending = getPendingActions();
     if (pending.length === 0) return;
     setSyncingLabel(`${pending.length} action(s) à synchroniser…`);
-    const pendingIds = new Set(pending.map((action) => action.id));
+    let syncedCount = 0;
+    let rejectedCount = 0;
     for (const action of pending) {
       try {
         await dispatchAction(action.kind, action.missionId, action.payload);
         removePendingAction(action.id);
-        pendingIds.delete(action.id);
-      } catch {
-        /* action conservée pour la prochaine tentative */
+        syncedCount += 1;
+      } catch (error) {
+        // Erreur définitive (400/403/404/409) : on retire l'action de la file
+        // au lieu de la rejouer à l'infini, sinon l'UI affiche un état de
+        // progression que le serveur n'a jamais accepté.
+        if (!isRetryableWorkerError(error)) {
+          removePendingAction(action.id);
+          rejectedCount += 1;
+          toast(workerActionErrorMessage(error, "Action refusée par le serveur"), "error");
+        }
+        /* rejouable (réseau/serveur) : conservée pour la prochaine tentative */
       }
     }
-    if (pendingIds.size === 0) toast("Toutes vos actions ont été synchronisées", "success");
+    if (rejectedCount === 0 && syncedCount === pending.length) {
+      toast("Toutes vos actions ont été synchronisées", "success");
+    }
     setSyncingLabel(null);
     setPendingCount(getPendingActions().length);
-    await refresh();
+    if (syncedCount > 0 || rejectedCount > 0) {
+      await refresh();
+    }
   }, [dispatchAction, refresh, toast]);
 
   useEffect(() => {
@@ -228,26 +243,40 @@ export function WorkerCommandCenter() {
   const onRun = useCallback(
     async (kind: WorkerRunKind, missionId: string, payload?: Record<string, unknown>) => {
       const body = payload ?? {};
-      // Mise à jour optimiste : l'UI réagit immédiatement, la synchro suit en arrière-plan.
-      patchMission(missionId, kind, body);
       if (!online) {
+        // Hors ligne : l'action est persistée dans la file avant toute mise à
+        // jour d'affichage, puis reflétée de façon optimiste.
         enqueuePendingAction({ missionId, kind, payload: body });
+        patchMission(missionId, kind, body);
         setPendingCount(getPendingActions().length);
-        toast("Action enregistrée — synchronisée au retour du réseau", "info");
+        toast("Action enregistrée hors ligne — synchronisée au retour du réseau", "info");
         return true;
       }
       setBusy(true);
-      void dispatchAction(kind, missionId, body)
-        .then(() => {
+      try {
+        // En ligne : le serveur tranche d'abord. L'état optimiste n'est appliqué
+        // QU'APRÈS son accord ; un 403/400 ne manipule donc plus l'interface.
+        await dispatchAction(kind, missionId, body);
+        patchMission(missionId, kind, body);
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
           navigator.vibrate?.(40);
-        })
-        .catch(() => {
+        }
+        return true;
+      } catch (error) {
+        if (isRetryableWorkerError(error)) {
+          // Réseau instable / 5xx : action conservée, rejouée automatiquement.
           enqueuePendingAction({ missionId, kind, payload: body });
+          patchMission(missionId, kind, body);
           setPendingCount(getPendingActions().length);
-          toast("Envoi impossible — action conservée localement", "error");
-        })
-        .finally(() => setBusy(false));
-      return true;
+          toast("Envoi impossible — action conservée et synchronisée automatiquement", "info");
+          return true;
+        }
+        // Refus métier / session : état local intact, message explicite.
+        toast(workerActionErrorMessage(error), "error");
+        return false;
+      } finally {
+        setBusy(false);
+      }
     },
     [dispatchAction, online, patchMission, toast],
   );
@@ -380,7 +409,23 @@ export function WorkerCommandCenter() {
                 Profil ouvrier non résolu — vos missions ne peuvent pas être affichées pour le moment. Reconnectez-vous ou contactez votre responsable.
               </p>
             ) : null}
-            {overview.partial ? (
+            {overview.missionsAccess === "forbidden" ? (
+              <p className="mt-2.5 rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-rose-800" role="alert">
+                Le serveur refuse l&apos;accès à vos missions (403) : votre compte n&apos;y est pas (encore) autorisé.
+                Contactez votre responsable pour activer l&apos;accès ouvrier aux missions dans le back-end.
+              </p>
+            ) : null}
+            {overview.missionsAccess === "unauthorized" ? (
+              <p className="mt-2.5 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-amber-800" role="alert">
+                Votre session a expiré : déconnectez-vous puis reconnectez-vous pour récupérer vos missions.
+              </p>
+            ) : null}
+            {overview.missionsAccess === "offline" ? (
+              <p className="mt-2.5 rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-sky-800" role="status">
+                Serveur injoignable — vos missions n&apos;ont pas pu être chargées. Réessayez en cliquant sur Actualiser.
+              </p>
+            ) : null}
+            {overview.partial && overview.missionsAccess === "ok" ? (
               <p className="mt-2.5 rounded-2xl border border-sky-300 bg-sky-50 px-4 py-3 text-center text-[11px] font-bold leading-5 text-sky-800" role="status">
                 Données partielles ({overview.loadErrors.join(", ")}) — certaines informations n&apos;ont pas pu être chargées.
               </p>

@@ -1,4 +1,5 @@
 import type { IconName } from "@/app/components/ui/app-icon";
+import { ApiError } from "@/app/lib/api-client";
 import * as evaluationsApi from "@/app/lib/api/evaluations";
 import { formatDistance, haversineMeters, relativeTime } from "@/app/lib/geo";
 import * as missionsApi from "@/app/lib/api/missions";
@@ -10,6 +11,9 @@ import type { Mission, MissionStatut, Notification, Pointage } from "@/app/lib/c
 /* ------------------------------------------------------------------ */
 
 export type WorkerSyncState = "online" | "offline" | "syncing";
+
+/** Résultat du chargement des missions : distingue 403, session et panne réseau. */
+export type WorkerMissionsAccess = "ok" | "forbidden" | "unauthorized" | "offline" | "server";
 
 export type WorkerMission = {
   id: string;
@@ -64,6 +68,8 @@ export type WorkerOverview = {
   phone: string;
   /** false quand l'identité ouvrier n'est pas résolue : aucune mission d'autrui ne doit être affichée. */
   identityOk: boolean;
+  /** Pourquoi les missions sont vides : 403, réseau, serveur… (jamais « 0 mission » ambigu). */
+  missionsAccess: WorkerMissionsAccess;
   /** true si au moins une source API a échoué (données partielles, pas "0"). */
   partial: boolean;
   loadErrors: string[];
@@ -226,6 +232,19 @@ export async function loadWorkerOverview(
   if (notificationsResult.status === "rejected") loadErrors.push("notifications");
   if (rankingResult.status === "rejected") loadErrors.push("ranking");
 
+  let missionsAccess: WorkerMissionsAccess = "ok";
+  if (missionsResult.status === "rejected") {
+    const reason = missionsResult.reason;
+    if (reason instanceof ApiError) {
+      if (reason.statusCode === 403) missionsAccess = "forbidden";
+      else if (reason.statusCode === 401) missionsAccess = "unauthorized";
+      else if (reason.statusCode === 0) missionsAccess = "offline";
+      else missionsAccess = "server";
+    } else {
+      missionsAccess = reason instanceof TypeError ? "offline" : "server";
+    }
+  }
+
   const allMissions = missionsResult.status === "fulfilled" ? missionsResult.value : [];
   const allNotifications = notificationsResult.status === "fulfilled" ? notificationsResult.value : [];
 
@@ -308,6 +327,7 @@ export async function loadWorkerOverview(
     email: profile?.email ?? "",
     phone: profile?.phone ?? "",
     identityOk,
+    missionsAccess,
     partial: loadErrors.length > 0,
     loadErrors,
   };
@@ -362,6 +382,31 @@ export function clearPendingActions(): void {
   } catch {
     /* ignore */
   }
+}
+
+/**
+ * Une erreur est rejouable uniquement si elle est transitoire (réseau,
+ * timeout, 5xx, 429). Un 400/403/404/409 est définitif : le rejouer en boucle
+ * ferait croire à l'ouvrier que l'action finira par passer.
+ */
+export function isRetryableWorkerError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return error.statusCode === 0 || error.statusCode === 408 || error.statusCode === 429 || error.statusCode >= 500;
+  }
+  return error instanceof TypeError || (error instanceof DOMException && error.name === "AbortError");
+}
+
+export function workerActionErrorMessage(error: unknown, fallback = "Action impossible."): string {
+  if (error instanceof ApiError) {
+    if (error.statusCode === 401) return "Session expirée : reconnectez-vous puis réessayez.";
+    if (error.statusCode === 403) return "Action refusée par le serveur (403). Contactez votre responsable.";
+    if (error.statusCode === 404) return "Mission introuvable : actualisez la liste.";
+    if (error.statusCode === 409) return "Action impossible à cette étape : la mission a déjà changé de statut.";
+    if (error.statusCode === 0) return "Connexion au serveur impossible : action conservée localement.";
+    return error.message || fallback;
+  }
+  if (error instanceof TypeError) return "Connexion au serveur impossible : action conservée localement.";
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 export const workerApi = {

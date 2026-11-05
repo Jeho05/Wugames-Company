@@ -100,22 +100,32 @@ export function MissionActions({
         if (ok) {
           onDraftChange("");
           onFlowChange(null);
-          onToast("Rapport soumis. En attente de validation par votre responsable", "success");
+          onToast(
+            online
+              ? "Rapport soumis. En attente de validation par votre responsable"
+              : "Rapport enregistré hors ligne — synchronisation dès le retour du réseau",
+            online ? "success" : "info",
+          );
         }
       });
       return;
     }
     openFlow(flowForAction(action.kind));
-  }, [action.kind, draft, mission, onDraftChange, onFlowChange, onRun, onToast, openFlow]);
+  }, [action.kind, draft, mission, onDraftChange, onFlowChange, onRun, onToast, openFlow, online]);
 
   const handleConfirmAccept = useCallback(() => {
     void onRun("accepter", mission.id).then((ok) => {
       if (ok) {
         onFlowChange(null);
-        onToast("Mission acceptée. Rendez-vous sur le chantier pour pointer votre arrivée", "success");
+        onToast(
+          online
+            ? "Mission acceptée. Rendez-vous sur le chantier pour pointer votre arrivée"
+            : "Acceptation enregistrée hors ligne — synchronisation dès le retour du réseau",
+          online ? "success" : "info",
+        );
       }
     });
-  }, [mission.id, onFlowChange, onRun, onToast]);
+  }, [mission.id, onFlowChange, onRun, onToast, online]);
 
   const handleGpsConfirm = useCallback(
     (result: GpsResult) => {
@@ -128,13 +138,15 @@ export function MissionActions({
           onFlowChange(null);
           if (result.horsRayon) {
             onToast("Pointage hors zone transmis pour vérification", "info");
-          } else {
+          } else if (online) {
             onToast(`Pointage d'${gpsMode === "arrivee" ? "arrivée" : "sortie"} confirmé par le serveur`, "success");
+          } else {
+            onToast("Pointage enregistré hors ligne — synchronisation dès le retour du réseau", "info");
           }
         }
       });
     },
-    [gpsMode, mission.id, onFlowChange, onRun, onToast],
+    [gpsMode, mission.id, onFlowChange, onRun, onToast, online],
   );
 
   const submitReport = useCallback(
@@ -143,11 +155,16 @@ export function MissionActions({
         if (ok) {
           onDraftChange("");
           onFlowChange(null);
-          onToast("Rapport soumis. En attente de validation par votre responsable", "success");
+          onToast(
+            online
+              ? "Rapport soumis. En attente de validation par votre responsable"
+              : "Rapport enregistré hors ligne — synchronisation dès le retour du réseau",
+            online ? "success" : "info",
+          );
         }
       });
     },
-    [mission.id, onDraftChange, onFlowChange, onRun, onToast],
+    [mission.id, onDraftChange, onFlowChange, onRun, onToast, online],
   );
 
   const idle = action.kind === "attente_validation" || action.kind === "terminee";
@@ -228,6 +245,14 @@ export function MissionActions({
               </p>
             </div>
           ) : null}
+          {!mission.sortiePointee ? (
+            <div className="mb-3 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <Icon className="mt-0.5 shrink-0 text-amber-600" name="warning" size={14} />
+              <p className="text-[11px] font-bold leading-5 text-amber-800">
+                Pointez d&apos;abord votre sortie : le rapport ne peut pas être soumis avant.
+              </p>
+            </div>
+          ) : null}
           <label className="text-[11px] font-extrabold uppercase tracking-wide text-slate-400" htmlFor="rapport">
             Description du travail réalisé
           </label>
@@ -257,7 +282,7 @@ export function MissionActions({
           </div>
           <button
             className="mt-4 w-full min-h-[52px] rounded-2xl bg-[#0f7a5f] text-[13px] font-extrabold text-white transition active:scale-[0.99] disabled:opacity-50"
-            disabled={draft.trim().length < 10 || photos.length === 0 || busy}
+            disabled={draft.trim().length < 10 || photos.length === 0 || !mission.sortiePointee || busy}
             onClick={() => submitReport(draft.trim())}
             type="button"
           >

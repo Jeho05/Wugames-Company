@@ -198,17 +198,43 @@ export const moduleCreateConfigs: Record<string, ModuleCreateConfig> = {
       { name: "titre", label: "Titre de la mission", type: "text", required: true, placeholder: "Nettoyage Chantier A" },
       { name: "description", label: "Description", type: "textarea", placeholder: "Détails de l'intervention" },
       { name: "filiale_id", label: "Filiale", type: "select", required: true, optionsLoader: filialeOptions },
-      { name: "ouvrier_id", label: "Ouvrier affecté", type: "select", optionsLoader: ouvrierOptions, help: "Optionnel au départ" },
+      { name: "client_id", label: "Client", type: "select", optionsLoader: clientOptions, help: "Optionnel" },
+      { name: "ouvrier_id", label: "Ouvrier affecté", type: "select", optionsLoader: ouvrierOptions, help: "S'il est choisi, la mission est affectée puis notifiée automatiquement." },
       { name: "date_planifiee", label: "Date planifiée", type: "date" },
+      // Sans coordonnées, le pointage GPS de l'ouvrier est rejeté par le
+      // serveur (§4.6 : distance calculée sur adresse_lat/adresse_lng).
+      { name: "adresse_lat", label: "Latitude du chantier", type: "number", required: true, step: 0.000001, placeholder: "5.3482", help: "Google Maps → clic droit sur le point → copier les coordonnées." },
+      { name: "adresse_lng", label: "Longitude du chantier", type: "number", required: true, step: 0.000001, placeholder: "-4.0185", help: "Nécessaire au contrôle du rayon de pointage." },
+      { name: "rayon_tolerance_metres", label: "Rayon de tolérance (m)", type: "number", min: 10, step: 1, placeholder: "50", help: "Valeur par défaut du serveur : 50 m." },
     ],
-    submit: async (values) =>
-      missionsApi.createMission({
+    submit: async (values) => {
+      const ouvrierId = values.ouvrier_id || null;
+      const created = await missionsApi.createMission({
         titre: values.titre.trim(),
         description: values.description?.trim() || undefined,
         filiale_id: values.filiale_id,
-        ouvrier_id: values.ouvrier_id || null,
+        client_id: values.client_id || null,
+        ouvrier_id: ouvrierId,
         date_planifiee: values.date_planifiee ? new Date(values.date_planifiee).toISOString() : undefined,
-      }),
+        adresse_lat: num(values, "adresse_lat"),
+        adresse_lng: num(values, "adresse_lng"),
+        rayon_tolerance_metres: num(values, "rayon_tolerance_metres"),
+      });
+
+      // Une mission créée reste PLANIFIE : l'ouvrier ne la voit pas et ne peut
+      // pas l'accepter. On affecte explicitement (POST /affecter) puis on
+      // notifie (PATCH statut → NOTIFIE). Si le back refuse l'une des deux
+      // étapes, la mission existe déjà : l'admin peut la reprendre depuis la
+      // liste (action « Notifier »), on ne duplique donc jamais la création.
+      if (!ouvrierId) return created;
+      try {
+        const affectation = await missionsApi.affecterMission(created.id, ouvrierId);
+        const mission = affectation?.mission ?? created;
+        return await missionsApi.updateMissionStatut(mission.id, "NOTIFIE");
+      } catch {
+        return created;
+      }
+    },
     rowMapper: (entity) => missionRow(entity as Parameters<typeof missionRow>[0]),
   },
   factures: {

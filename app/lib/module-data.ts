@@ -193,6 +193,9 @@ export function missionRow(mission: Mission): ModuleRow {
     lieu: mission.filiale?.nom ?? "—",
     créneau: formatDate(mission.date_planifiee, "Non planifiée"),
     statut: missionStatuts[mission.statut] ?? status(mission.statut, "neutral"),
+    // Permet aux actions back-office (notifier / valider / clôturer) de
+    // connaître le statut et l'affectation réels sans second appel réseau.
+    _raw: mission,
   };
 }
 
@@ -390,6 +393,35 @@ function isClient(role: RoleCode): boolean {
 }
 
 const apiLoaders: Record<string, Loader> = {
+  ouvriers: async () => {
+    // `GET /users?role=ROLE_OUVRIER` est la source réelle du module Ouvriers
+    // (ADMIN_DASHBOARD_API_GUIDE §5.2). Le loader évite l'erreur
+    // « Module « ouvriers » inconnu » et n'affiche jamais de noms fictifs.
+    const users = await usersApi.listUsers({ role: "ROLE_OUVRIER" });
+    const ouvriers = users.filter((user) => user.role === "ROLE_OUVRIER");
+    const actifs = ouvriers.filter((user) => user.is_active !== false);
+    const avecSpecialite = ouvriers.filter((user) => Boolean(user.ouvrier_profile?.specialite));
+    return {
+      rows: ouvriers.map((user) => ({
+        id: user.id,
+        ouvrier: fullName(user.first_name, user.last_name, user.email),
+        compétences: user.ouvrier_profile?.specialite ?? "Non renseignée",
+        équipe: user.filiale?.nom ?? "—",
+        performance: "—",
+        statut: user.is_active === false ? status("Inactif", "neutral") : status("Actif", "success"),
+      })),
+      stats: [
+        { label: "Ouvriers", value: String(ouvriers.length) },
+        { label: "Actifs", value: String(actifs.length) },
+        { label: "Spécialité renseignée", value: String(avecSpecialite.length) },
+      ],
+      insights: [
+        { label: "Matricules renseignés", value: String(ouvriers.filter((user) => user.ouvrier_profile?.matricule).length) },
+        { label: "Comptes inactifs", value: String(ouvriers.length - actifs.length) },
+        { label: "Synchronisation", value: "En direct" },
+      ],
+    };
+  },
   clients: async () => {
     const clients = await clientsApi.listClients();
     const membres = clients.filter((c) => c.type_client === "MEMBRE").length;

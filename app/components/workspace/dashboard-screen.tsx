@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Icon } from "@/app/components/ui/app-icon";
 import { StatusBadge } from "@/app/components/ui/status-badge";
 import { useAuth } from "@/app/lib/auth-context";
+import { canViewModule } from "@/app/lib/rbac-matrix";
 import { getFacturesConsolidation } from "@/app/lib/api/factures";
 import { getFilialesConsolidation } from "@/app/lib/api/filiales";
 import { listChantiers } from "@/app/lib/api/chantiers";
@@ -311,7 +312,6 @@ export function DashboardScreen() {
 
   const framing = user ? (roleFraming[user.role] ?? roleFraming.ROLE_MGR_OPS) : roleFraming.ROLE_MGR_OPS;
   const firstName = user?.name.split(" ")[0] ?? "";
-  const isWorker = user?.role === "ROLE_OUVRIER";
 
   if (loadError) {
     if (loadError.offline) {
@@ -360,7 +360,11 @@ export function DashboardScreen() {
             <span className="size-1.5 rounded-full bg-emerald-400" />
             Données consolidées en direct
           </span>
-          {!isWorker ? (
+          {/* Garde RBAC : on n'affiche que des liens vers des modules accessibles
+              au rôle connecté, jamais de lien mort (403). L'ouvrier, qui vit
+              dans son WorkerCommandCenter, est de toute façon ignoré ici car
+              /espace ne rend pas ce dashboard pour ROLE_OUVRIER. */}
+          {canViewModule("/espace/rapports", user?.role) ? (
             <Link
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
               href="/espace/rapports"
@@ -368,15 +372,7 @@ export function DashboardScreen() {
               <Icon name="chart" size={17} />
               Voir les rapports
             </Link>
-          ) : (
-            <Link
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e3a641] px-4 py-2.5 text-sm font-bold text-[#14223b] shadow-lg shadow-amber-600/15 transition hover:bg-[#efb653]"
-              href="/espace/ouvriers"
-            >
-              <Icon name="hardhat" size={17} />
-              Ma performance S1-S9
-            </Link>
-          )}
+          ) : null}
         </div>
       </section>
 
@@ -492,12 +488,14 @@ export function DashboardScreen() {
               </p>
             )}
           </div>
-          <Link
-            className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-[#f2c56d] transition hover:text-white"
-            href="/espace/missions"
-          >
-            Ouvrir le planning <Icon name="arrow-right" size={15} />
-          </Link>
+          {canViewModule("/espace/missions", user?.role) ? (
+            <Link
+              className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-[#f2c56d] transition hover:text-white"
+              href="/espace/missions"
+            >
+              Ouvrir le planning <Icon name="arrow-right" size={15} />
+            </Link>
+          ) : null}
         </article>
       </section>
 

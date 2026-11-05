@@ -153,10 +153,18 @@ export const MODULE_VIEW_ROLES: Record<string, RoleCode[]> = {
   "/espace/filiales": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_FILIALE"],
   "/espace/managers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL"],
   "/espace/clients": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE"],
-  "/espace/chantiers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_SECRETAIRE"],
-  "/espace/missions": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER", "ROLE_SECRETAIRE"],
-  "/espace/ouvriers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_SECRETAIRE"],
-  "/espace/carte": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_OUVRIER"],
+  // L'ouvrier n'utilise pas les modules back-office : son interface dédiée
+  // (`/espace` → WorkerCommandCenter) charge uniquement ses missions.
+  // `GET /chantiers` et `GET /pointages` ne sont pas ouverts à ROLE_OUVRIER
+  // (ADMIN_DASHBOARD_API_GUIDE §5.6–5.8), donc ni Chantiers ni Carte terrain.
+  "/espace/chantiers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS", "ROLE_COMPTABLE"],
+  // `GET /missions` est réservé aux rôles d'encadrement ; l'ouvrier reçoit ses
+  // missions via son interface dédiée (accès scopé demandé au backend).
+  "/espace/missions": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS"],
+  // Le module Ouvriers dépend de `GET /users` (Gérant, Mgr Filiale, Resp.
+  // Ouvriers — ADMIN §5.2). Les rôles non autorisés ne voient pas de lien mort.
+  "/espace/ouvriers": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS"],
+  "/espace/carte": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_OPS", "ROLE_MGR_FILIALE", "ROLE_RESP_OUVRIERS"],
   "/espace/devis": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS"],
   "/espace/factures": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_MGR_OPS"],
   "/espace/stocks": ["ROLE_GERANT", "ROLE_DEV_DIGITAL", "ROLE_MGR_PARTENAIRE", "ROLE_MGR_FILIALE", "ROLE_SECRETAIRE", "ROLE_COMPTABLE", "ROLE_FOURNISSEUR"],

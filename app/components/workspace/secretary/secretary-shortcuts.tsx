@@ -24,7 +24,9 @@ type SecretaryShortcutsProps = {
 const shortcuts: Shortcut[] = [
   { href: "/espace/clients", label: "Clients", hint: "Fiches et dossiers", icon: "users", tile: "bg-sky-50 text-sky-600" },
   { href: "/espace/fournisseurs", label: "Fournisseurs", hint: "Rôles, contrats, matériel", icon: "truck", tile: "bg-violet-50 text-violet-600" },
-  { href: "/espace/administration", label: "Utilisateurs", hint: "Comptes et permissions", icon: "user-plus", tile: "bg-amber-50 text-amber-600" },
+  // « Utilisateurs » → /espace/administration retiré : module réservé au
+  // Gérant/Dev Digital (rbac-matrix), lien mort (403) pour la Secrétaire.
+  { href: "/espace/rapports", label: "Rapports", hint: "Suivi consolidé des activités", icon: "chart", tile: "bg-amber-50 text-amber-600" },
   { section: "boutiques", label: "Boutiques", hint: "Points de vente de la filiale", icon: "shopping-bag", tile: "bg-emerald-50 text-emerald-600" },
   { section: "ventes", label: "Espace de vente", hint: "Caisse et encaissements", icon: "credit-card", tile: "bg-[#0f7a5f]/10 text-[#0f7a5f]" },
   { section: "comptes", label: "Créer un compte", hint: "Nouveaux utilisateurs ERP", icon: "clipboard", tile: "bg-rose-50 text-rose-600" },

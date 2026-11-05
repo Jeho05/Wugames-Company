@@ -52,10 +52,19 @@ describe("canAccessHref — matrice modules (sidebar = recherche)", () => {
     expect(canAccessHref("/espace/administration", user("ROLE_OUVRIER"))).toBe(false);
   });
 
-  it("autorise l'ouvrier sur son périmètre (missions, carte, notifications)", () => {
-    expect(canAccessHref("/espace/missions", user("ROLE_OUVRIER"))).toBe(true);
-    expect(canAccessHref("/espace/carte", user("ROLE_OUVRIER"))).toBe(true);
+  it("réserve le back-office ouvrier à son interface dédiée", () => {
+    // L'ouvrier travaille dans WorkerCommandCenter (`/espace`), pas dans les
+    // modules d'encadrement. Ces routes renvoyaient un 403 backend.
+    expect(canAccessHref("/espace/missions", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/chantiers", user("ROLE_OUVRIER"))).toBe(false);
+    expect(canAccessHref("/espace/carte", user("ROLE_OUVRIER"))).toBe(false);
     expect(canAccessHref("/espace/notifications", user("ROLE_OUVRIER"))).toBe(true);
+  });
+
+  it("retire la secrétaire des modules missions/chantiers confirmés 403 (SPEC §2.6)", () => {
+    expect(canAccessHref("/espace/missions", user("ROLE_SECRETAIRE"))).toBe(false);
+    expect(canAccessHref("/espace/chantiers", user("ROLE_SECRETAIRE"))).toBe(false);
+    expect(canAccessHref("/espace/chantiers", user("ROLE_RESP_OUVRIERS"))).toBe(true);
   });
 
   it("expose les factures aux rôles autorisés (sidebar + recherche cohérentes)", () => {

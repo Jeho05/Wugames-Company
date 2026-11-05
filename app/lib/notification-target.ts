@@ -40,6 +40,16 @@ function resolveRawTarget(
   // Contexte client
   const isClient = role ? clientRoles.has(role) : false;
 
+  // Ouvrier : aucun module back-office n'est accessible (missions, carte,
+  // chantiers…). Sa vue missions est son espace dédié `/espace`, où le
+  // WorkerCommandCenter affiche la mission active — jamais `/espace/missions`.
+  if (role === "ROLE_OUVRIER") {
+    if (has("mission") || has("pointage") || has("rapport") || table === "missions") {
+      return { href: "/espace", label: "Voir mes missions" };
+    }
+    return { href: "/espace/notifications", label: "Voir les notifications" };
+  }
+
   if (isClient) {
     if (has("facture")) return { href: "/espace/factures", label: "Voir la facture" };
     if (has("devis")) return { href: "/espace/devis", label: "Voir le devis" };

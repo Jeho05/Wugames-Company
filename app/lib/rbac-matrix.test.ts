@@ -126,7 +126,10 @@ describe("rbac-matrix — actions par module (lecture ≠ création)", () => {
 
 describe("rbac-matrix — point d'entrée unifié can() + canViewModule", () => {
   it("expose VIEW via la même matrice que les routes", () => {
-    expect(can("VIEW", "/espace/missions", "ROLE_OUVRIER")).toBe(true);
+    expect(can("VIEW", "/espace", "ROLE_OUVRIER")).toBe(true);
+    expect(can("VIEW", "/espace/missions", "ROLE_OUVRIER")).toBe(false);
+    expect(can("VIEW", "/espace/chantiers", "ROLE_OUVRIER")).toBe(false);
+    expect(can("VIEW", "/espace/carte", "ROLE_OUVRIER")).toBe(false);
     expect(can("VIEW", "/espace/stocks", "ROLE_OUVRIER")).toBe(false);
     expect(can("VIEW", "missions", "ROLE_MGR_OPS")).toBe(true);
   });

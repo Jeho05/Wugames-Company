@@ -16,13 +16,13 @@ import type { ModuleDefinition, ModuleRow } from "@/app/lib/demo-data";
 import type { ModuleCreateConfig } from "@/app/lib/module-create";
 import { getModuleCreateConfig } from "@/app/lib/module-create";
 import { loadModuleData, type ModuleDataSource, type ModuleData, type ModuleLoadError } from "@/app/lib/module-data";
-import { affecterMission } from "@/app/lib/api/missions";
+import { affecterMission, updateMissionStatut, verifierPointages } from "@/app/lib/api/missions";
 import { listUsers } from "@/app/lib/api/users";
-import { canAssignMission, canUpdate } from "@/app/lib/rbac-matrix";
+import { canAssignMission, canUpdate, canVerifyPointage } from "@/app/lib/rbac-matrix";
 import { resolveNotificationHref } from "@/app/lib/notification-target";
 import { ProduitCreateForm } from "@/app/components/workspace/stocks/produit-create-form";
 import { ProduitEditForm } from "@/app/components/workspace/stocks/produit-edit-form";
-import { CATEGORIES_PRODUITS, type Produit } from "@/app/lib/contracts";
+import { CATEGORIES_PRODUITS, type Mission, type Produit } from "@/app/lib/contracts";
 
 type ModuleDataBridgeProps = {
   definition: ModuleDefinition;
@@ -33,6 +33,29 @@ type ModuleDataBridgeProps = {
 type CreateRenderProps = {
   onClose: () => void;
   onSubmit: (row: ModuleRow) => void;
+};
+
+const MISSION_STATUT_LABELS: Record<string, string> = {
+  PLANIFIE: "Planifiée",
+  NOTIFIE: "Notifiée — à accepter",
+  ACCEPTE: "Acceptée",
+  EN_COURS: "En cours",
+  POINTAGE_A_VERIFIER: "Pointage à vérifier",
+  RAPPORT_SOUMIS: "Rapport soumis — à valider",
+  VALIDE: "Validée — à clôturer",
+  TERMINE: "Terminée",
+};
+
+const MISSION_STATUT_HINTS: Record<string, string> = {
+  PLANIFIE:
+    "Mission planifiée : l'ouvrier ne la voit pas encore. Affectez un ouvrier puis notifiez la mission.",
+  NOTIFIE: "Mission notifiée : en attente de l'acceptation de l'ouvrier.",
+  ACCEPTE: "Mission acceptée : l'ouvrier doit pointer son arrivée sur le chantier.",
+  EN_COURS: "Intervention en cours. L'ouvrier doit pointer sa sortie puis soumettre son rapport.",
+  POINTAGE_A_VERIFIER: "Un pointage est hors du rayon autorisé. Vérifiez-le avant validation.",
+  RAPPORT_SOUMIS: "Rapport reçu : validez la mission si le travail est conforme.",
+  VALIDE: "Mission validée : elle peut être clôturée.",
+  TERMINE: "Mission terminée et archivée.",
 };
 
 function FilialeCreateRenderer({ onClose, onSubmit, onCreated }: CreateRenderProps & { onCreated: () => void }) {
@@ -59,10 +82,11 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   const [loadError, setLoadError] = useState<ModuleLoadError | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
-  const [affectMissionId, setAffectMissionId] = useState<string | null>(null);
-  const [affectOuvrierId, setAffectOuvrierId] = useState("");
-  const [affectLoading, setAffectLoading] = useState(false);
-  const [affectOuvriers, setAffectOuvriers] = useState<{ value: string; label: string }[]>([]);
+  const [missionAction, setMissionAction] = useState<Mission | null>(null);
+  const [missionOuvrierId, setMissionOuvrierId] = useState("");
+  const [missionLoading, setMissionLoading] = useState(false);
+  const [missionError, setMissionError] = useState("");
+  const [missionOuvriers, setMissionOuvriers] = useState<{ value: string; label: string }[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [editingProduit, setEditingProduit] = useState<Produit | null>(null);
 
@@ -110,42 +134,76 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
     [slug, refresh, user, router],
   );
 
-  // L'affectation est réservée aux rôles métier autorisés
-  // (rbac-matrix:canAssignMission). Les autres rôles (ouvriers, clients,
-  // fournisseurs…) peuvent lire une mission sans jamais voir cette action.
+  // Les actions de mission sont réservées aux rôles métier autorisés
+  // (`canAssignMission` pour affecter/notifier, `canVerifyPointage` pour
+  // valider). Les autres rôles lisent la mission sans voir ces actions.
   const canAssign = canAssignMission(user?.role);
+  const canVerifyMission = canVerifyPointage(user?.role);
 
   const handleMissionRowClick = useCallback(
     (row: ModuleRow) => {
-      if (!canAssign) return;
-      const id = (row.id as string) ?? "";
-      if (!id) return;
-      setAffectMissionId(id);
-      setAffectOuvrierId("");
+      if (!canAssign && !canVerifyMission) return;
+      const raw = (row._raw as Mission | undefined) ?? null;
+      if (!raw) return;
+      setMissionAction(raw);
+      setMissionOuvrierId(raw.ouvrier_id ?? "");
+      setMissionError("");
     },
-    [canAssign]
+    [canAssign, canVerifyMission],
   );
 
-  const handleAffectConfirm = useCallback(async () => {
-    if (!affectMissionId) return;
-    setAffectLoading(true);
-    try {
-      await affecterMission(affectMissionId, affectOuvrierId || undefined);
-      setToastMsg("Mission affectée avec succès");
-      setAffectMissionId(null);
-      refresh();
-    } catch (err) {
-      setToastMsg(err instanceof Error ? err.message : "Échec de l'affectation");
-    } finally {
-      setAffectLoading(false);
-    }
-  }, [affectMissionId, affectOuvrierId, refresh]);
-
-  const handleAffectCancel = useCallback(() => {
-    setAffectMissionId(null);
-    setAffectOuvrierId("");
-    setToastMsg("");
+  const closeMission = useCallback(() => {
+    setMissionAction(null);
+    setMissionOuvrierId("");
+    setMissionError("");
   }, []);
+
+  const handleMissionAction = useCallback(
+    async (action: "affecter" | "notifier" | "valider" | "verifier" | "cloturer") => {
+      if (!missionAction) return;
+      setMissionLoading(true);
+      setMissionError("");
+      try {
+        if (action === "affecter") {
+          const result = await affecterMission(missionAction.id, missionOuvrierId || undefined);
+          const updated = result?.mission ?? missionAction;
+          setMissionAction(updated);
+          setMissionOuvrierId(updated.ouvrier_id ?? "");
+          setToastMsg("Ouvrier affecté. Notifiez la mission pour la rendre exécutable par l'ouvrier.");
+        } else if (action === "notifier") {
+          if (!missionOuvrierId && !missionAction.ouvrier_id) {
+            throw new Error("Sélectionnez d'abord un ouvrier.");
+          }
+          // Réaffecte d'abord si l'admin a changé d'ouvrier, puis notifie :
+          // sans NOTIFIE, l'ouvrier ne voit pas la mission (workflow §4.6).
+          if (missionOuvrierId && missionOuvrierId !== missionAction.ouvrier_id) {
+            await affecterMission(missionAction.id, missionOuvrierId);
+          }
+          await updateMissionStatut(missionAction.id, "NOTIFIE");
+          setToastMsg("Mission notifiée : l'ouvrier peut maintenant l'accepter depuis son espace.");
+          closeMission();
+        } else if (action === "valider") {
+          await updateMissionStatut(missionAction.id, "VALIDE");
+          setToastMsg("Mission validée. Elle peut être clôturée.");
+          closeMission();
+        } else if (action === "verifier") {
+          await verifierPointages(missionAction.id, { statut: "VALIDE" });
+          setToastMsg("Pointages validés.");
+          closeMission();
+        } else if (action === "cloturer") {
+          await updateMissionStatut(missionAction.id, "TERMINE");
+          setToastMsg("Mission clôturée.");
+          closeMission();
+        }
+        refresh();
+      } catch (err) {
+        setMissionError(err instanceof Error && err.message ? err.message : "Action impossible pour cette mission.");
+      } finally {
+        setMissionLoading(false);
+      }
+    },
+    [closeMission, missionAction, missionOuvrierId, refresh],
+  );
 
   // L'édition d'un produit exige le droit de modification du stock
   // (lecture ≠ modification). Sans ce droit, le clic ne fait rien.
@@ -213,7 +271,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
   }, [slug, user?.role, refreshKey, selectedCategory]);
 
   useEffect(() => {
-    if (!affectMissionId || !canAssign) return;
+    if (!missionAction || !canAssign) return;
     listUsers()
       .then((users) => {
         const ouvriers = users
@@ -223,12 +281,12 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
             value: u.ouvrier_profile?.id ?? u.id,
             label: `${[u.first_name, u.last_name].filter(Boolean).join(" ") || u.email}${u.ouvrier_profile?.specialite ? ` · ${u.ouvrier_profile.specialite}` : ""}`,
           }));
-        setAffectOuvriers(ouvriers);
+        setMissionOuvriers(ouvriers);
       })
       .catch(() => {
-        /* API injoignable : liste vide. */
+        /* API injoignable : liste vide, l'affectation automatique reste possible. */
       });
-  }, [affectMissionId, canAssign]);
+  }, [missionAction, canAssign]);
 
   const mergedDefinition = useMemo<ModuleDefinition>(() => {
     if (!data) return { ...definition, rows: [], stats: [], insights: [] };
@@ -240,6 +298,8 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
       insights: data.insights,
     };
   }, [data, definition]);
+
+  const missionHasWorker = Boolean(missionAction?.ouvrier_id || missionOuvrierId);
 
   // Afficher un loader pendant le chargement des données — APRÈS tous les hooks
   if (data === null && !loadError) {
@@ -280,7 +340,7 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
           slug === "notifications"
             ? handleRowClick
             : slug === "missions"
-              ? canAssign
+              ? canAssign || canVerifyMission
                 ? handleMissionRowClick
                 : undefined
               : slug === "stocks"
@@ -307,58 +367,127 @@ export function ModuleDataBridge({ definition, slug, initialCreateOpen = false }
         </div>
       )}
 
-      {affectMissionId && canAssign && (
+      {missionAction && (
         <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/40 p-4">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">Affecter une mission</p>
-                <h2 className="mt-1 text-xl font-bold tracking-[-0.035em] text-[#17294b]">Choisir un ouvrier</h2>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#d19331]">Mission</p>
+                <h2 className="mt-1 text-xl font-bold tracking-[-0.035em] text-[#17294b]">
+                  {missionAction.titre}
+                </h2>
+                <p className="mt-1 text-xs font-semibold text-slate-500">
+                  {MISSION_STATUT_LABELS[missionAction.statut] ?? missionAction.statut}
+                </p>
               </div>
               <button
                 aria-label="Fermer"
                 className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                onClick={handleAffectCancel}
+                onClick={closeMission}
                 type="button"
               >
                 <Icon name="close" size={18} />
               </button>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-500">Sélectionnez l&apos;ouvrier à affecter. Laisser vide pour une auto-affectation par rendement.</p>
-            <div className="mt-4">
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-bold text-slate-600">Ouvrier</span>
-                <select
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
-                  value={affectOuvrierId}
-                  onChange={(e) => setAffectOuvrierId(e.target.value)}
+
+            {missionError ? (
+              <p className="mt-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs font-medium text-rose-700">
+                <Icon className="mt-0.5 shrink-0" name="warning" size={15} />
+                <span>{missionError}</span>
+              </p>
+            ) : null}
+
+            {canAssign ? (
+              <div className="mt-4">
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-bold text-slate-600">Ouvrier affecté</span>
+                  <select
+                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#7ea5ca] focus:bg-white focus:ring-4 focus:ring-[#dceaf6]"
+                    disabled={missionLoading}
+                    onChange={(event) => setMissionOuvrierId(event.target.value)}
+                    value={missionOuvrierId}
+                  >
+                    <option value="">Auto (meilleur rendement)</option>
+                    {missionOuvriers.map((ouvrier) => (
+                      <option key={ouvrier.value} value={ouvrier.value}>
+                        {ouvrier.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  className="mt-2.5 inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-[#426b95] transition hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={missionLoading}
+                  onClick={() => void handleMissionAction("affecter")}
+                  type="button"
                 >
-                  <option value="">Auto (meilleur rendement)</option>
-                  {affectOuvriers.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="mt-6 flex justify-end gap-2.5">
+                  <Icon name="users" size={14} />
+                  {missionAction.ouvrier_id ? "Réaffecter" : "Affecter l'ouvrier"}
+                </button>
+              </div>
+            ) : null}
+
+            <p className="mt-4 rounded-xl border border-slate-100 bg-slate-50/70 px-4 py-3 text-xs leading-5 text-slate-600">
+              {MISSION_STATUT_HINTS[missionAction.statut] ?? "Statut de mission à suivre."}
+            </p>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-2.5">
               <button
                 className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-600 transition hover:border-slate-300"
-                onClick={handleAffectCancel}
+                onClick={closeMission}
                 type="button"
               >
-                Annuler
+                Fermer
               </button>
-              <button
-                className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={affectLoading}
-                onClick={handleAffectConfirm}
-                type="button"
-              >
-                {affectLoading ? "Affectation…" : "Affecter"}
-                <Icon name="arrow-right" size={15} />
-              </button>
+
+              {canAssign && missionAction.statut === "PLANIFIE" ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#17294b] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#243a61] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={missionLoading || !missionHasWorker}
+                  onClick={() => void handleMissionAction("notifier")}
+                  title={missionHasWorker ? undefined : "Sélectionnez ou affectez d'abord un ouvrier"}
+                  type="button"
+                >
+                  {missionLoading ? "Envoi…" : "Notifier à l'ouvrier"}
+                  <Icon name="arrow-right" size={15} />
+                </button>
+              ) : null}
+
+              {canVerifyMission && missionAction.statut === "RAPPORT_SOUMIS" ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0f7a5f] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#11876a] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={missionLoading}
+                  onClick={() => void handleMissionAction("valider")}
+                  type="button"
+                >
+                  {missionLoading ? "Validation…" : "Valider la mission"}
+                  <Icon name="check" size={15} />
+                </button>
+              ) : null}
+
+              {canVerifyMission && missionAction.statut === "POINTAGE_A_VERIFIER" ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0f7a5f] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#11876a] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={missionLoading}
+                  onClick={() => void handleMissionAction("verifier")}
+                  type="button"
+                >
+                  {missionLoading ? "Vérification…" : "Valider les pointages"}
+                  <Icon name="check" size={15} />
+                </button>
+              ) : null}
+
+              {missionAction.statut === "VALIDE" ? (
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0f7a5f] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#11876a] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={missionLoading}
+                  onClick={() => void handleMissionAction("cloturer")}
+                  type="button"
+                >
+                  {missionLoading ? "Clôture…" : "Clôturer la mission"}
+                  <Icon name="check" size={15} />
+                </button>
+              ) : null}
             </div>
           </div>
         </div>

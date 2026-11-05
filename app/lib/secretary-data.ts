@@ -418,7 +418,15 @@ export async function loadSecretaryOverview(): Promise<SecretaryOverview | null>
       kind: "utilisateur" as const,
       title: fullName(u.first_name, u.last_name),
       subtitle: [u.email, u.phone, `ID ${u.id.slice(0, 8)}`].filter(Boolean).join(" · "),
-      href: u.role === "ROLE_OUVRIER" ? "/espace/ouvriers" : "/espace/administration",
+      // Lien de recherche : cible accessible par la Secrétaire (porteur de ce
+      // module). `/espace/ouvriers` et `/espace/administration` lui sont
+      // interdits (rbac-matrix) — un ouvrier Utilisateur se consulte côté
+      // encadrement, pas via un lien mort vers un module 403.
+      href: u.role === "ROLE_CLIENT_STD" || u.role === "ROLE_CLIENT_MEMBRE"
+        ? "/espace/clients"
+        : u.role === "ROLE_FOURNISSEUR"
+          ? "/espace/fournisseurs"
+          : "/espace",
     })),
   ];
 
