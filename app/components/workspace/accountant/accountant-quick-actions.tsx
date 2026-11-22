@@ -17,9 +17,9 @@ type QuickAction = {
 const actions: QuickAction[] = [
   { href: "/espace/factures?creer=1", label: "Nouvelle facture", hint: "Créer et émettre", icon: "plus", tile: "bg-[#e3a641]/15 text-[#f2c56d]" },
   { href: "/espace/factures", label: "Nouveau paiement", hint: "Encaisser un client", icon: "check", tile: "bg-emerald-400/10 text-emerald-300" },
-  { href: "/espace/statistiques", label: "Voir l'historique", hint: "Toutes les factures", icon: "clock", tile: "bg-sky-400/10 text-sky-300" },
+  { href: "/espace/factures", label: "Voir l'historique", hint: "Toutes les factures", icon: "clock", tile: "bg-sky-400/10 text-sky-300" },
   { href: "/espace/factures", label: "Rechercher une facture", hint: "Par numéro ou client", icon: "search", tile: "bg-violet-400/10 text-violet-300" },
-  { href: "/espace/statistiques", label: "Créer un rapport", hint: "Bilan ou clôture", icon: "newspaper", tile: "bg-amber-400/10 text-amber-300" },
+  { href: "/espace/rapports", label: "Créer un rapport", hint: "Bilan ou clôture", icon: "newspaper", tile: "bg-amber-400/10 text-amber-300" },
   { href: "/espace/factures", label: "Exporter", hint: "CSV, Excel ou PDF", icon: "download", tile: "bg-rose-400/10 text-rose-300" },
 ];
 

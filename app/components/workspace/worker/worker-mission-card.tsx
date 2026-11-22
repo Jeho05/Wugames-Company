@@ -103,6 +103,12 @@ export function WorkerMissionCard({ mission, variant = "compact" }: WorkerMissio
             <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-400">
               {mission.client} · {mission.adresse}
             </p>
+            {mission.chantier ? (
+              <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
+                <Icon name="building" size={9} />
+                Chantier : {mission.chantier.titre}
+              </span>
+            ) : null}
           </div>
           {statutBadge(mission)}
         </div>
@@ -154,6 +160,12 @@ export function WorkerMissionCard({ mission, variant = "compact" }: WorkerMissio
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           {statutBadge(mission)}
+          {mission.chantier ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-900/60 px-2.5 py-1 text-[9px] font-bold text-emerald-200 ring-1 ring-emerald-500/30">
+              <Icon name="building" size={10} />
+              {mission.chantier.titre}
+            </span>
+          ) : null}
           <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[9px] font-bold">
             <Icon name="calendar" size={10} />
             {mission.datePlanifiee}

@@ -93,7 +93,7 @@ describe("syncSessionCookie — jamais de succès silencieux", () => {
     vi.stubGlobal("fetch", fetchMock);
     await persistAuthenticatedSession({ ...SESSION });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("/api/session");
     expect(init.method).toBe("POST");
   });

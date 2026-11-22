@@ -119,13 +119,13 @@ function mapPaymentMode(ui: PaymentUi): "MTN_MOMO" | "MOOV_MONEY" | "CARTE" {
 }
 
 export async function passerCommandeApi(
-  filialeId: string,
+  filialeId: string | null | undefined,
   lignes: { produit: BoutiqueProduit; quantite: number }[],
   telephone: string,
   paymentUi: PaymentUi = "mtn",
 ): Promise<Commande> {
   const commande = await commandesApi.createCommande({
-    filiale_id: filialeId,
+    filiale_id: filialeId || undefined,
     adresse_livraison: "Retrait Espace Wu",
     lignes: lignes.map((ligne) => ({
       produit_id: ligne.produit.id,

@@ -26,10 +26,10 @@ export function BranchEvaluations({ ranking, radar }: BranchEvaluationsProps) {
         action={
           <Link
             className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold text-slate-600 shadow-sm transition hover:border-[#0e9f9b]/50 hover:text-[#0e9f9b]"
-            href="/espace/evaluations?creer=1"
+            href="/espace/ouvriers"
           >
             <Icon name="plus" size={12} />
-            Nouvelle évaluation
+            Consulter les ouvriers
           </Link>
         }
         icon="chart"

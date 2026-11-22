@@ -323,7 +323,7 @@ export function WorkerCommandCenter() {
     void logout().then(() => router.push("/connexion"));
   }, [logout, router]);
 
-  const handleValidateService = useCallback((serviceId: string, preuve: WorkerServicePreuve) => {
+  const handleValidateService = useCallback(async (serviceId: string, preuve: WorkerServicePreuve) => {
     saveServiceProof(serviceId, preuve);
     setProofs((prev) => ({ ...prev, [serviceId]: preuve }));
     setServicesOverview((prev) => ({
@@ -332,7 +332,15 @@ export function WorkerCommandCenter() {
         service.id === serviceId ? { ...service, statut: "VALIDE" } : service,
       ),
     }));
-  }, []);
+    try {
+      const { validerWorkerServiceApi } = await import("@/app/lib/worker-services-data");
+      await validerWorkerServiceApi(serviceId, preuve);
+      toast("Passage de nettoyage validé et transmis au client !", "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erreur de transmission";
+      toast(`Validation enregistrée localement (${msg})`, "info");
+    }
+  }, [toast]);
 
   const activeMission = useMemo(() => (overview ? pickActiveMission(overview.missions) : null), [overview]);
   const activePhotos = activeMission ? (photosByMission[activeMission.id] ?? []) : [];

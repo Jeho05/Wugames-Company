@@ -17,11 +17,10 @@ type ClientCleansProps = {
 };
 
 export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = false }: ClientCleansProps) {
-  // L'abonnement et les services viennent de l'API (props `cleans`) ; aucun
-  // état local ne simule une activation métier (voir `activer` ci-dessous).
-  const [abonnement] = useState(cleans.abonnement);
-  const [services] = useState(cleans.services);
+  const [abonnement, setAbonnement] = useState(cleans.abonnement);
+  const [services, setServices] = useState(cleans.services);
   const [choosing, setChoosing] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
   const [proof, setProof] = useState<CleansService | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const reduce = useReducedMotion();
@@ -31,18 +30,31 @@ export function ClientCleans({ cleans, sectionId = "portail-cleans", embedded = 
   const valides = services.filter((s) => s.statut === "VALIDE").length;
   const dayGroups = groupServicesByDay(services);
 
-  // PRODUCTION : l'activation d'un abonnement est une opération métier
-  // (API → confirmation serveur → nouvel état). Aucun endpoint backend
-  // n'existe pour /cleans (état "empty" explicite côté loadCleansOverview) :
-  // le bouton n'active donc rien en local et renvoie vers le contact.
-  // Dès qu'un endpoint exists, brancher ici POST + confirmation serveur.
-  function activer(planId: string) {
+  async function activer(planId: string) {
     const plan = cleansPlans.find((candidate) => candidate.id === planId);
     if (!plan) return;
     setChoosing(false);
-    setMessage(
-      `L'activation en ligne du ${plan.nom} n'est pas encore disponible (fonctionnalité indisponible — configuration backend requise). Contactez ${BUSINESS_CONFIG.contactLabel} au ${BUSINESS_CONFIG.contactPhone} pour activer votre abonnement.`,
-    );
+    setSubscribing(true);
+    setMessage(null);
+    try {
+      const { apiFetch } = await import("@/app/lib/api-client");
+      const result = await apiFetch<CleansOverview>("/cleans/abonnements", {
+        method: "POST",
+        body: JSON.stringify({ plan_id: planId }),
+      });
+      if (result && result.abonnement) {
+        setAbonnement(result.abonnement);
+        setServices(result.services ?? []);
+        setMessage(`Votre abonnement au ${plan.nom} est activé avec succès !`);
+      } else {
+        setMessage(`Abonnement activé. Vos passages planifiés apparaissent ci-dessous.`);
+      }
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : "Erreur lors de l'activation.";
+      setMessage(`Impossible d'activer le plan : ${errMessage}. Contactez le support au ${BUSINESS_CONFIG.contactPhone}.`);
+    } finally {
+      setSubscribing(false);
+    }
   }
 
   function handleContactWugams() {
