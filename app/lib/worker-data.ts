@@ -20,6 +20,7 @@ export type WorkerMission = {
   titre: string;
   description: string | null;
   client: string;
+  chantier?: { id: string; titre: string; adresse?: string | null } | null;
   adresse: string;
   lat: number | null;
   lng: number | null;
@@ -176,9 +177,26 @@ export function toWorkerMission(mission: Mission): WorkerMission {
     titre: mission.titre,
     description: mission.description,
     client: mission.client?.type_client ? `Client ${mission.client.type_client.toLowerCase()}` : "Client",
-    adresse: mission.filiale?.nom ?? "Chantier",
-    lat: mission.adresse_lat === null ? null : Number(mission.adresse_lat),
-    lng: mission.adresse_lng === null ? null : Number(mission.adresse_lng),
+    chantier: mission.chantier
+      ? {
+          id: mission.chantier.id,
+          titre: mission.chantier.titre,
+          adresse: mission.chantier.adresse ?? null,
+        }
+      : null,
+    adresse: mission.chantier?.adresse ?? mission.chantier?.titre ?? mission.filiale?.nom ?? "Chantier",
+    lat:
+      mission.adresse_lat === null
+        ? mission.chantier?.adresse_lat
+          ? Number(mission.chantier.adresse_lat)
+          : null
+        : Number(mission.adresse_lat),
+    lng:
+      mission.adresse_lng === null
+        ? mission.chantier?.adresse_lng
+          ? Number(mission.chantier.adresse_lng)
+          : null
+        : Number(mission.adresse_lng),
     rayonMetres: mission.rayon_tolerance_metres,
     datePlanifiee: formatDate(mission.date_planifiee),
     statut: mission.statut,

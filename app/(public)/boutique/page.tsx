@@ -79,7 +79,7 @@ export default function BoutiquePage() {
 
   const categories = useMemo(() => {
     if (!produits || produits.length === 0) return ["Tous"];
-    const cats = Array.from(new Set(produits.map((p) => p.filiale?.nom ?? "Général")));
+    const cats = Array.from(new Set(produits.map((p) => p.categorie).filter(Boolean))) as string[];
     return ["Tous", ...cats];
   }, [produits]);
 
@@ -93,7 +93,7 @@ export default function BoutiquePage() {
     if (!produits) return [];
     return produits.filter(
       (p) =>
-        (category === "Tous" || (p.filiale?.nom ?? "Général") === category) &&
+        (category === "Tous" || p.categorie === category) &&
         (filiale === "Toutes" || (p.filiale?.nom ?? "WUGAMS") === filiale)
     );
   }, [produits, category, filiale]);
@@ -125,18 +125,37 @@ export default function BoutiquePage() {
     setCart((prev) => prev.filter((item) => item.produit.id !== produitId));
   }
 
-  function submitOrder() {
+  async function submitOrder() {
     if (!user) {
       setCheckoutOpen(false);
       setCartOpen(false);
       setLoginModalOpen(true);
       return;
     }
-    setCheckoutOpen(false);
-    setCartOpen(false);
-    setOrderDone(true);
-    setCart([]);
-    window.localStorage.removeItem(CART_KEY);
+    try {
+      const { passerCommandeApi } = await import("@/app/lib/client-shop-data");
+      const lignes = cart.map((item) => ({
+        produit: {
+          id: item.produit.id,
+          nom: item.produit.nom,
+          categorie: "materiaux" as const,
+          prix: Number(item.produit.prix_unitaire),
+          stock: item.produit.quantite_actuelle,
+          unite: "unité",
+          description: item.produit.description ?? "",
+        },
+        quantite: item.quantity,
+      }));
+      await passerCommandeApi(user.filialeId, lignes, phone, payment as any);
+      setCheckoutOpen(false);
+      setCartOpen(false);
+      setOrderDone(true);
+      setCart([]);
+      window.localStorage.removeItem(CART_KEY);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erreur lors de la validation de la commande";
+      setToast(msg);
+    }
   }
 
   const hasProduits = produits && produits.length > 0;
@@ -283,7 +302,7 @@ export default function BoutiquePage() {
                           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                           loading="lazy"
                           decoding="async"
-                          src={`https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=75&auto=format&fit=crop`}
+                          src={produit.image_url || `https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=75&auto=format&fit=crop`}
                         />
                         <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">
                           {produit.filiale?.nom ?? produit.reference}
@@ -418,7 +437,7 @@ export default function BoutiquePage() {
                     <div className="flex gap-3 py-4" key={item.produit.id}>
                       <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img alt={item.produit.nom} className="h-full w-full object-cover" loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75&auto=format&fit=crop" />
+                        <img alt={item.produit.nom} className="h-full w-full object-cover" loading="lazy" decoding="async" src={item.produit.image_url || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=75&auto=format&fit=crop"} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
@@ -559,7 +578,7 @@ export default function BoutiquePage() {
           <div aria-labelledby="product-detail-title" aria-modal="true" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl" role="dialog">
             <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt={selectedProduit.nom} className="h-full w-full object-cover" loading="eager" decoding="async" src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=75&auto=format&fit=crop" />
+              <img alt={selectedProduit.nom} className="h-full w-full object-cover" loading="eager" decoding="async" src={selectedProduit.image_url || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=75&auto=format&fit=crop"} />
               <span className="absolute left-3 top-3 rounded-full bg-[#101a2d]/85 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur">{selectedProduit.filiale?.nom ?? selectedProduit.reference}</span>
               <span className={"absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-bold " + stockLabel(selectedProduit).tone}>{stockLabel(selectedProduit).label}</span>
               <button aria-label="Fermer" className="absolute right-3 top-14 grid size-8 place-items-center rounded-full bg-white/90 text-slate-600 shadow-sm backdrop-blur transition hover:bg-white hover:text-slate-900" onClick={() => setSelectedProduit(null)} type="button">

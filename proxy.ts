@@ -10,7 +10,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * - le BACKEND reste la seule autorité RBAC métier (403) et de session (401).
  */
 
-const PUBLIC_PATHS = new Set(["/", "/connexion", "/connexion-travailleur", "/inscription", "/blog", "/realisations", "/boutique", "/mode2vie", "/vitrine", "/horizon", "/cinematic-hero"]);
+const PUBLIC_PATHS = new Set(["/", "/connexion", "/connexion-travailleur", "/inscription", "/blog", "/realisations", "/boutique", "/mode2vie", "/vitrine", "/horizon", "/cinematic-hero", "/clean"]);
 const PUBLIC_PREFIXES = ["/_next", "/api/session", "/favicon.ico"];
 
 function isPublicPath(pathname: string): boolean {

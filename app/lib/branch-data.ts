@@ -683,7 +683,7 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
       detail: `Le rendement moyen de la filiale est de ${Math.round(rendementMoyen)} % (seuil 70 %).`,
       time: "Cycle en cours",
       entity: "Équipes de la filiale",
-      action: { label: "Voir les évaluations", href: "/espace/evaluations" },
+      action: { label: "Voir les ouvriers", href: "/espace/ouvriers" },
     });
   }
   const inactifs = users.filter((user) => !user.is_active);
@@ -696,7 +696,7 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
       detail: `${inactifs.length} compte(s) désactivé(s) ou sans activité récente.`,
       time: "Dernière connexion ancienne",
       entity: inactifs[0].email,
-      action: { label: "Voir l'équipe", href: "/espace/utilisateurs" },
+      action: { label: "Voir l'équipe", href: "/espace/ouvriers" },
     });
   }
 
@@ -797,12 +797,12 @@ export async function loadBranchOverview(filialeId: string | null): Promise<Bran
     { key: "ruptures", label: "Produits en rupture", value: formatNumber(ruptures.length), change: "stock à zéro", trend: ruptures.length > 0 ? "up" : "down", icon: "boxes", spark: [], caption: "impact chantiers possible", href: "/espace/stocks" },
     { key: "factures_retard", label: "Factures en retard", value: formatNumber(enRetard.length), change: enRetard.length > 0 ? "à relancer" : "aucune", trend: enRetard.length > 0 ? "up" : "down", icon: "bell", spark: retardMonthly, caption: "au-delà de l'échéance", href: "/espace/factures" },
     { key: "commandes", label: "Commandes en cours", value: formatNumber(enCommande.length), change: `${formatNumber(stock.pendingReceptions)} réceptions`, trend: "up", icon: "shopping-bag", spark: [], caption: "chez les fournisseurs", href: "/espace/stocks" },
-    { key: "utilisateurs", label: "Utilisateurs de la filiale", value: formatNumber(users.length), change: `${formatNumber(ouvriers.length)} ouvriers`, trend: "up", icon: "users", spark: usersMonthly, caption: "comptes rattachés", href: "/espace/utilisateurs" },
+    { key: "utilisateurs", label: "Utilisateurs de la filiale", value: formatNumber(users.length), change: `${formatNumber(ouvriers.length)} ouvriers`, trend: "up", icon: "users", spark: usersMonthly, caption: "comptes rattachés", href: "/espace/ouvriers" },
     { key: "missions_actives", label: "Missions actives", value: formatNumber(missionsActives.length), change: `${formatNumber(missions.length)} au total`, trend: "up", icon: "hardhat", spark: missionsMonthly, caption: "missions créées par mois", href: "/espace/missions" },
     { key: "produits_dispo", label: "Produits disponibles", value: formatNumber(actifs.length), change: `${formatNumber(totalUnits)} unités`, trend: "up", icon: "package", spark: produitsMonthly, caption: "produits créés par mois", href: "/espace/stocks" },
     { key: "a_reappro", label: "À réapprovisionner", value: formatNumber(below.length), change: `${formatNumber(ruptures.length)} rupture(s)`, trend: below.length > 0 ? "up" : "down", icon: "warning", spark: [], caption: "sous le seuil minimum", href: "/espace/stocks" },
     { key: "factures_cours", label: "Factures en cours", value: formatNumber(emises.length), change: `${formatNumber(factures.length)} au total`, trend: "up", icon: "file-text", spark: facturesMonthly, caption: "factures créées par mois", href: "/espace/factures" },
-    { key: "rendement", label: "Rendement moyen des équipes", value: evaluations.length > 0 ? `${Math.round(rendementMoyen)} %` : "—", change: evaluations.length > 0 ? `${evaluations.length} évaluations` : "aucune évaluation", trend: rendementMoyen >= 70 ? "up" : "down", icon: "chart", spark: [], caption: "sur le cycle en cours", href: "/espace/evaluations" },
+    { key: "rendement", label: "Rendement moyen des équipes", value: evaluations.length > 0 ? `${Math.round(rendementMoyen)} %` : "—", change: evaluations.length > 0 ? `${evaluations.length} évaluations` : "aucune évaluation", trend: rendementMoyen >= 70 ? "up" : "down", icon: "chart", spark: [], caption: "sur le cycle en cours", href: "/espace/ouvriers" },
   ];
 
   return {

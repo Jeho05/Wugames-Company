@@ -149,7 +149,7 @@ export function BranchHero({ filiale, health, unreadCount, missionsCount, produi
             { href: "/espace/stocks", label: "Enregistrer un mouvement", icon: "arrow-up-right" as const },
             { href: "/espace/stocks", label: "Confirmer une réception", icon: "check" as const },
             { href: "/espace/missions", label: "Consulter les missions", icon: "hardhat" as const },
-            { href: "/espace/evaluations?creer=1", label: "Ajouter une évaluation", icon: "chart" as const },
+            { href: "/espace/ouvriers", label: "Équipe & ouvriers", icon: "users" as const },
           ].map((action) => (
             <Link
               className="group inline-flex items-center gap-2.5 rounded-2xl bg-[#10304f] px-4.5 py-3 text-sm font-bold text-white shadow-lg shadow-[#10304f]/25 transition hover:bg-[#1b446b] hover:shadow-[#10304f]/35 active:scale-[0.98]"

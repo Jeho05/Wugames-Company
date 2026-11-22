@@ -128,7 +128,7 @@ export function AccountantHero({ health, creances, tresorerie }: AccountantHeroP
           {[
             { href: "/espace/factures?creer=1", label: "Nouvelle facture", icon: "plus" as const },
             { href: "/espace/factures", label: "Enregistrer un paiement", icon: "check" as const },
-            { href: "/espace/statistiques", label: "Générer un rapport", icon: "file-text" as const },
+            { href: "/espace/rapports", label: "Générer un rapport", icon: "file-text" as const },
           ].map((action) => (
             <Link
               className="group inline-flex items-center gap-2.5 rounded-2xl bg-white/[0.06] px-4.5 py-3 text-sm font-bold text-white ring-1 ring-white/10 backdrop-blur transition hover:bg-white/[0.1] hover:ring-[#e3a641]/40 active:scale-[0.98]"

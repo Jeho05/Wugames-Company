@@ -74,11 +74,36 @@ export function saveServiceProof(serviceId: string, preuve: WorkerServicePreuve)
 }
 
 /* ------------------------------------------------------------------ */
-/* Chargement — front uniquement                                       */
+/* Chargement API — Services du jour de l'ouvrier / cleaner           */
 /* ------------------------------------------------------------------ */
 
 export async function loadWorkerServicesOverview(): Promise<WorkerServiceOverview> {
-  return { source: "api", services: [], primeDisponible: null };
+  try {
+    const { apiFetch } = await import("@/app/lib/api-client");
+    const data = await apiFetch<WorkerServiceOverview>("/cleans/services/worker", { cacheTtlMs: 0 });
+    if (data && Array.isArray(data.services)) {
+      return data;
+    }
+    return { source: "api", services: [], primeDisponible: null };
+  } catch {
+    return { source: "api", services: [], primeDisponible: null };
+  }
+}
+
+export async function validerWorkerServiceApi(serviceId: string, preuve: WorkerServicePreuve): Promise<{ ok: boolean }> {
+  const { apiFetch } = await import("@/app/lib/api-client");
+  return apiFetch<{ ok: boolean }>(`/cleans/services/${serviceId}/valider`, {
+    method: "POST",
+    body: JSON.stringify({
+      arrived_at: preuve.arrivedAt || undefined,
+      departed_at: preuve.departedAt || undefined,
+      observations: preuve.observations || undefined,
+      photo_avant: preuve.photoAvant || undefined,
+      photo_apres: preuve.photoApres || undefined,
+      audio_url: preuve.audioUrl || undefined,
+      video_url: preuve.videoUrl || undefined,
+    }),
+  });
 }
 
 export function formatMontantFcfa(amount: number): string {

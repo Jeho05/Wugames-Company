@@ -395,6 +395,7 @@ export type Mission = {
   statut: MissionStatut;
   filiale_id: string;
   client_id: string | null;
+  chantier_id?: string | null;
   ouvrier_id: string | null;
   rapport_texte: string | null;
   date_planifiee: string | null;
@@ -405,6 +406,15 @@ export type Mission = {
   created_at: string;
   updated_at: string;
   filiale?: FilialeLite;
+  chantier?: {
+    id: string;
+    titre: string;
+    description?: string | null;
+    statut?: string;
+    adresse?: string | null;
+    adresse_lat?: number | null;
+    adresse_lng?: number | null;
+  } | null;
   ouvrier?: { id: string; user: { first_name: string; last_name: string } } | null;
   client?: ClientProfileLite | null;
   pointages?: Pointage[];
@@ -416,6 +426,7 @@ export type CreateMissionPayload = {
   description?: string;
   filiale_id: string;
   client_id?: string | null;
+  chantier_id?: string | null;
   ouvrier_id?: string | null;
   date_planifiee?: string;
   adresse_lat?: number;
@@ -722,7 +733,7 @@ export type CreateLigneCommandePayload = {
 };
 
 export type CreateCommandePayload = {
-  filiale_id: string;
+  filiale_id?: string;
   client_id?: string;
   adresse_livraison?: string;
   date_prevue_livraison?: string;
